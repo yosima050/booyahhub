@@ -1,0 +1,194 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/theme.dart';
+import '../../core/routes.dart';
+import '../../services/supabase_service.dart';
+
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Map<String, dynamic>? _userData;
+  Map<String, dynamic> _stats = {};
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final userData = await UserService.getUserProfile(user.id);
+        final stats = await UserService.getUserStats(user.id);
+        setState(() {
+          _userData = userData;
+          _stats = stats;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _logout(BuildContext ctx) => showDialog(
+    context: ctx,
+    builder: (_) => AlertDialog(
+      backgroundColor: BooyahTheme.card,
+      title: const Text('LOGOUT', style: TextStyle(fontFamily:'Orbitron', fontSize: 14, fontWeight: FontWeight.w700)),
+      content: const Text('Kamu yakin ingin keluar?', style: TextStyle(fontSize: 13)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx),
+          child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted))),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.login, (r) => false);
+          },
+          style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
+          child: const Text('KELUAR'),
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext ctx) => Scaffold(
+    appBar: AppBar(title: const Text('PROFIL')),
+    body: _loading
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
+        : SingleChildScrollView(
+      child: Column(children: [
+        // Hero
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [BooyahTheme.maroonD.withOpacity(0.8), BooyahTheme.bg],
+              begin: Alignment.topCenter, end: Alignment.bottomCenter),
+          ),
+          child: Column(children: [
+            Container(
+              width: 86, height: 86,
+              decoration: BoxDecoration(
+                color: BooyahTheme.maroon.withOpacity(0.3),
+                shape: BoxShape.circle,
+                border: Border.all(color: BooyahTheme.maroon),
+                boxShadow: [BoxShadow(color: BooyahTheme.maroon.withOpacity(0.5), blurRadius: 20)],
+              ),
+              child: const Center(child: Text('🐺', style: TextStyle(fontSize: 40))),
+            ),
+            const SizedBox(height: 12),
+            Text(_userData?['team_name'] ?? 'Unknown', style: const TextStyle(
+              fontFamily: 'Orbitron', fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 2)),
+            Text('${_userData?['username'] ?? 'Player'} · ${_userData?['role'] ?? 'Peserta'}',
+              style: const TextStyle(fontSize: 12, color: BooyahTheme.textMuted)),
+            const SizedBox(height: 18),
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              _stat('${_stats['total_scrims'] ?? 0}', 'SCRIM\nDIIKUTI'),
+              Container(width: 1, height: 36, color: BooyahTheme.maroon.withOpacity(0.4)),
+              _stat('${_stats['total_kills'] ?? 0}', 'TOTAL\nKILLS'),
+              Container(width: 1, height: 36, color: BooyahTheme.maroon.withOpacity(0.4)),
+              _stat(_fmtRupiah(_stats['total_rewards'] ?? 0), 'HADIAH\nDITERIMA'),
+            ]),
+          ]),
+        ),
+
+        // Menu
+        Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(children: [
+            _menuGroup('SCRIM', [
+              _MenuItem(Icons.history, 'Riwayat Scrim', () => Navigator.pushNamed(ctx, AppRoutes.riwayat)),
+              _MenuItem(Icons.emoji_events, 'Klaim Hadiah', () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah)),
+              _MenuItem(Icons.pending_actions, 'Status Pendaftaran', () => Navigator.pushNamed(ctx, AppRoutes.statusPendaftaran)),
+            ]),
+            const SizedBox(height: 10),
+            _menuGroup('AKUN', [
+              _MenuItem(Icons.person_outline, 'Edit Profil', null),
+              _MenuItem(Icons.account_balance_wallet, 'Rekening & E-Wallet', null),
+              _MenuItem(Icons.receipt_long, 'Riwayat Pembayaran', null),
+            ]),
+            const SizedBox(height: 10),
+            _menuGroup('LAINNYA', [
+              _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
+              _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
+              _MenuItem(Icons.logout, 'Keluar', () => _logout(ctx), isRed: true),
+            ]),
+          ]),
+        ),
+        const SizedBox(height: 20),
+      ]),
+    ),
+  );
+
+  String _fmtRupiah(int amount) {
+    if (amount == 0) return 'Rp0';
+    final formatter = amount.toString().split('').reversed.toList();
+    String result = '';
+    for (int i = 0; i < formatter.length; i++) {
+      if (i > 0 && i % 3 == 0) result += '.';
+      result += formatter[i];
+    }
+    return 'Rp${result.split('').reversed.join('')}';
+  }
+
+  Widget _stat(String val, String label) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 22),
+    child: Column(children: [
+      Text(val, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: BooyahTheme.maroonB)),
+      Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted, letterSpacing: 0.3)),
+    ]),
+  );
+
+  Widget _menuGroup(String title, List<_MenuItem> items) => Container(
+    decoration: BoxDecoration(
+      color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+        child: Text(title, style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 1.5, fontWeight: FontWeight.w700)),
+      ),
+      ...items.map((m) => Column(children: [
+        InkWell(
+          onTap: m.onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(children: [
+              Icon(m.icon, color: m.isRed ? BooyahTheme.red : BooyahTheme.maroonB, size: 20),
+              const SizedBox(width: 12),
+              Text(m.label, style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w600,
+                color: m.isRed ? BooyahTheme.red : BooyahTheme.textSec)),
+              const Spacer(),
+              Icon(Icons.chevron_right, color: m.isRed ? BooyahTheme.red.withOpacity(0.5) : BooyahTheme.textMuted, size: 18),
+            ]),
+          ),
+        ),
+        if (m != items.last) Divider(height: 1, indent: 46, color: Colors.white.withOpacity(0.04)),
+      ])),
+    ]),
+  );
+}
+
+class _MenuItem {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool isRed;
+  const _MenuItem(this.icon, this.label, this.onTap, {this.isRed = false});
+  bool operator ==(Object other) => other is _MenuItem && other.label == label;
+  int get hashCode => label.hashCode;
+}
