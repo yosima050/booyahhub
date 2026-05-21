@@ -164,8 +164,8 @@ class ScrimService {
           'admin_id': AuthService.currentUser!.id,
           'title': title,
           'mode': mode,
-          if (description != null) 'description': description,
-          if (rules != null) 'rules': rules,
+          'description': ?description,
+          'rules': ?rules,
           'scheduled_at': scheduledAt,
           'registration_closes_at': registrationClosesAt,
           'slot_total': slotTotal,
@@ -194,7 +194,7 @@ class ScrimService {
       'p_room_id': roomId,
       'p_room_pass': password,
       'p_admin_id': AuthService.currentUser!.id,
-      if (extraMessage != null) 'p_extra_msg': extraMessage,
+      'p_extra_msg': ?extraMessage,
     });
   }
 
@@ -268,7 +268,7 @@ class RegistrationService {
           'status': 'pending_payment',
           'payment_amount': paymentAmount,
           'booking_expires_at': expiresAt.toIso8601String(),
-          if (midtransSnapToken != null) 'midtrans_snap_token': midtransSnapToken,
+          'midtrans_snap_token': ?midtransSnapToken,
         })
         .select()
         .single();
@@ -480,7 +480,7 @@ class ClaimService {
       'p_claim_id': claimId,
       'p_platform_id': AuthService.currentUser!.id,
       'p_approve': approve,
-      if (reason != null) 'p_reason': reason,
+      'p_reason': ?reason,
     });
   }
 
@@ -560,7 +560,7 @@ static Future<List<Map<String, dynamic>>> getAll({int limit = 20}) async {
   }) async {
     final result = await _db.rpc('fn_send_announcement', params: {
       'p_admin_id': AuthService.currentUser!.id,
-      if (scrimId != null) 'p_scrim_id': scrimId,
+      'p_scrim_id': ?scrimId,
       'p_title': title,
       'p_message': message,
       'p_target': target,
