@@ -94,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     color: BooyahTheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                    border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                   ),
                   child: const Row(
                     children: [
@@ -118,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: _filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (_, i) {
                   final f = _filters[i];
                   final active = _activeFilter == f;
@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: active ? BooyahTheme.maroon : BooyahTheme.surface,
                         borderRadius: BorderRadius.circular(5),
                         border: Border.all(
-                          color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withOpacity(0.3),
+                          color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Text(f, style: TextStyle(
@@ -215,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     width: 36, height: 36,
                     decoration: BoxDecoration(
-                      color: BooyahTheme.maroon.withOpacity(0.2),
+                      color: BooyahTheme.maroon.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.notifications_outlined,
@@ -275,13 +275,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildScrimList() {
-    if (_loading) return const SliverToBoxAdapter(
+    if (_loading) {
+      return const SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 48),
         child: Center(child: CircularProgressIndicator(color: Color(0xFFB22222))),
       ),
     );
-    if (_error != null) return SliverToBoxAdapter(
+    }
+    if (_error != null) {
+      return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -289,13 +292,16 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
-    if (_scrims.isEmpty) return const SliverToBoxAdapter(
+    }
+    if (_scrims.isEmpty) {
+      return const SliverToBoxAdapter(
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 48),
         child: Center(child: Text('Belum ada scrim tersedia.',
           style: TextStyle(color: Color(0xFF888888)))),
       ),
     );
+    }
 
     return SliverList(
       delegate: SliverChildBuilderDelegate(
@@ -364,7 +370,7 @@ class _FilterChipSmall extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
     decoration: BoxDecoration(
-      color: BooyahTheme.maroon.withOpacity(0.25),
+      color: BooyahTheme.maroon.withValues(alpha: 0.25),
       borderRadius: BorderRadius.circular(4),
     ),
     child: Text(label, style: const TextStyle(
@@ -383,7 +389,7 @@ class _StatBox extends StatelessWidget {
       decoration: BoxDecoration(
         color: BooyahTheme.card,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
       ),
       child: Column(
         children: [

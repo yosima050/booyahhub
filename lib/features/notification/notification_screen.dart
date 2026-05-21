@@ -61,7 +61,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   void _markAllRead() async {
-    setState(() { for (final n in _notifs) n['is_read'] = true; });
+    setState(() { for (final n in _notifs) {
+      n['is_read'] = true;
+    } });
     await NotificationService.markAllRead();
   }
 
@@ -132,9 +134,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       margin: const EdgeInsets.only(bottom: 9),
                       padding: const EdgeInsets.all(13),
                       decoration: BoxDecoration(
-                        color: unread ? color.withOpacity(0.05) : BooyahTheme.card,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: unread ? color.withOpacity(0.4) : BooyahTheme.maroon.withOpacity(0.15)),
+                        color: unread ? color.withValues(alpha: 0.05) : BooyahTheme.card,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: unread ? color.withValues(alpha: 0.4) : BooyahTheme.maroon.withValues(alpha: 0.15)),
                       ),
                       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(ico, style: const TextStyle(fontSize: 22)),

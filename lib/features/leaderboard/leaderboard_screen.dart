@@ -51,8 +51,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     appBar: AppBar(title: const Text('LEADERBOARD'),
       actions: [Container(margin: const EdgeInsets.only(right: 14),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: BooyahTheme.maroon.withOpacity(0.2),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.4)),
+        decoration: BoxDecoration(color: BooyahTheme.maroon.withValues(alpha: 0.2),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.4)),
           borderRadius: BorderRadius.circular(4)),
         child: const Text('SCRIM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: BooyahTheme.maroonB)))],
     ),
@@ -66,7 +66,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [BooyahTheme.maroonD.withOpacity(0.8), BooyahTheme.bg],
+                      colors: [BooyahTheme.maroonD.withValues(alpha: 0.8), BooyahTheme.bg],
                       begin: Alignment.topCenter, end: Alignment.bottomCenter),
                   ),
                   child: Column(children: [
@@ -128,13 +128,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     final isMe = t['user_id'] == Supabase.instance.client.auth.currentUser?.id;
                     final rankColors = {1: BooyahTheme.gold, 2: BooyahTheme.silver, 3: BooyahTheme.bronze};
                     final ptColor = rankColors[rank] ?? (isMe ? BooyahTheme.maroonB : BooyahTheme.textSec);
-                    final borderColor = rank == 1 ? BooyahTheme.gold : rank == 2 ? BooyahTheme.silver : rank == 3 ? BooyahTheme.bronze : BooyahTheme.maroon.withOpacity(0.2);
+                    final borderColor = rank == 1 ? BooyahTheme.gold : rank == 2 ? BooyahTheme.silver : rank == 3 ? BooyahTheme.bronze : BooyahTheme.maroon.withValues(alpha: 0.2);
 
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isMe ? BooyahTheme.maroon.withOpacity(0.1) : BooyahTheme.card,
+                        color: isMe ? BooyahTheme.maroon.withValues(alpha: 0.1) : BooyahTheme.card,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: isMe ? BooyahTheme.maroonB : borderColor),
                       ),
@@ -180,9 +180,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         Container(
           width: baseH * 0.8, height: baseH,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-            border: Border.all(color: color.withOpacity(0.5)),
+            border: Border.all(color: color.withValues(alpha: 0.5)),
           ),
           child: Center(child: Text(pts.startsWith('1') ? '1' : pts.startsWith('2') ? '2' : '3',
             style: const TextStyle(fontFamily:'Orbitron', fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white))),

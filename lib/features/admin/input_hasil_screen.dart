@@ -97,7 +97,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('INPUT HASIL'),
       actions: [Chip(label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: Column(
@@ -124,7 +124,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('SISTEM POIN FREE FIRE SCRIM',
@@ -151,7 +151,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   // Header
@@ -179,9 +179,9 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.red.withOpacity(0.1),
+                    color: BooyahTheme.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: BooyahTheme.red.withOpacity(0.3)),
+                    border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.3)),
                   ),
                   child: Row(children: [
                     const Icon(Icons.warning_amber, color: BooyahTheme.red, size: 16),
@@ -199,7 +199,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   children: _sorted.asMap().entries.map((e) {
@@ -208,8 +208,8 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.04))),
-                        color: rank <= 3 ? BooyahTheme.maroon.withOpacity(0.06) : null,
+                        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.04))),
+                        color: rank <= 3 ? BooyahTheme.maroon.withValues(alpha: 0.06) : null,
                       ),
                       child: Row(children: [
                         _rankBadge(rank),
@@ -250,7 +250,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.04)))),
+        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.04)))),
       child: Row(children: [
         Text(t.icon, style: const TextStyle(fontSize: 18)),
         const SizedBox(width: 8),
@@ -261,7 +261,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
         SizedBox(
           width: 72,
           child: DropdownButtonFormField<int>(
-            value: t.placement,
+            initialValue: t.placement,
             dropdownColor: BooyahTheme.surface,
             style: const TextStyle(fontFamily: 'Orbitron', fontSize: 12, color: BooyahTheme.textPri, fontWeight: FontWeight.w700),
             isDense: true,
@@ -269,7 +269,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: BooyahTheme.maroon.withOpacity(0.3)),
+                borderSide: BorderSide(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
               ),
             ),
             items: List.generate(12, (i) => DropdownMenuItem(value: i+1, child: Text('#${i+1}'))),
@@ -290,7 +290,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(5),
-                borderSide: BorderSide(color: BooyahTheme.maroon.withOpacity(0.3)),
+                borderSide: BorderSide(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
               ),
             ),
             onChanged: (v) => setState(() => _teams[idx].kills = int.tryParse(v) ?? 0),
@@ -335,8 +335,8 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
       width: 24, height: 24,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.15),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: color.withValues(alpha: 0.15),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Center(child: Text('$rank',
         style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color))),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
+import '../../services/supabase_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,26 +18,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _loading    = false;
   String? _error;
 
-  void _register() async {
-    setState(() { _loading = true; _error = null; });
+void _register() async {
+  // 1. Ambil nilai bersih (tanpa spasi gaib di ujung) sejak awal
+  final String name = _nameCtrl.text.trim();
+  final String email = _emailCtrl.text.trim().toLowerCase();
+  final String password = _passCtrl.text.trim();
+  final String confirmPassword = _confCtrl.text.trim();
 
-    // Validasi dasar
-    if (_nameCtrl.text.isEmpty || _emailCtrl.text.isEmpty ||
-        _passCtrl.text.isEmpty || _confCtrl.text.isEmpty) {
-      setState(() { _error = 'Semua field wajib diisi.'; _loading = false; });
-      return;
-    }
-    if (_passCtrl.text != _confCtrl.text) {
-      setState(() { _error = 'Password tidak cocok.'; _loading = false; });
-      return;
-    }
-    if (_passCtrl.text.length < 6) {
-      setState(() { _error = 'Password minimal 6 karakter.'; _loading = false; });
-      return;
-    }
+  // 2. Jalankan validasi menggunakan variabel yang sudah bersih
+  if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+    setState(() { 
+      _error = 'Semua field wajib diisi.'; 
+    });
+    return;
+  }
+  
+  if (password != confirmPassword) {
+    setState(() { 
+      _error = 'Password konfirmasi tidak cocok.'; 
+    });
+    return;
+  }
+  
+  if (password.length < 6) {
+    setState(() { 
+      _error = 'Password minimal harus 6 karakter (tanpa spasi).'; 
+    });
+    return;
+  }
 
-    await Future.delayed(const Duration(seconds: 1)); // simulate network
-    // TODO: Ganti dengan API call ke backend
+  // 3. Jika lolos validasi lokal, ubah status ke loading dan panggil API
+  setState(() { _loading = true; _error = null; });
+
+  try {
+    await AuthService.register(
+      name: name,
+      email: email,
+      password: password, // Menggunakan variabel password yang sudah terjamin panjangnya >= 6
+      role: 'peserta',
+    );
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +67,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
       Navigator.pushReplacementNamed(context, AppRoutes.login);
     }
+  } catch (e) {
+    if (mounted) {
+      // Extract dan format error message
+      String errorMsg = e.toString();
+      if (errorMsg.contains('PostgrestException')) {
+              // Kita potong stringnya agar langsung menampilkan detail kolom yang eror
+              errorMsg = 'DB Error: ${e.toString().replaceAll('PostgrestException(message: ', '').replaceAll(')', '')}';
+              debugPrint('Detail Eror PostgreSQL: $e');
+      } else if (errorMsg.contains('already registered')) {
+        errorMsg = 'Email sudah terdaftar. Silakan login atau gunakan email lain.';
+      } else if (errorMsg.contains('weak password')) {
+        errorMsg = 'Password terlalu lemah. Gunakan kombinasi huruf & angka.';
+      } else {
+        errorMsg = errorMsg.replaceAll('Exception:', '').trim();
+        if (errorMsg.isEmpty) errorMsg = 'Terjadi kesalahan tidak diketahui.';
+      }
+      
+      setState(() { 
+        _error = errorMsg;
+        _loading = false; 
+      });
+    }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontWeight: FontWeight.w700, letterSpacing: 2,
                     )),
                     SizedBox(height: 4),
-                    Text('Daftarkan dirimu sebagai Ketua Tim / Peserta',
+                    Text('Daftarkan diri Anda untuk mulai mengikuti turnamen',
                       style: TextStyle(fontSize: 12, color: BooyahTheme.textMuted)),
                   ],
                 ),
@@ -86,8 +129,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const SizedBox(height: 24),
 
-              _buildField('NAMA LENGKAP / NAMA TIM', _nameCtrl,
-                icon: Icons.group, hint: 'Contoh: FIRE WOLVES'),
+              _buildField('NAMA LENGKAP', _nameCtrl,
+                icon: Icons.person_outline, hint: 'Contoh: Yosep Bima'),
               const SizedBox(height: 12),
               _buildField('EMAIL', _emailCtrl,
                 icon: Icons.email_outlined, hint: 'email@contoh.com',
@@ -153,9 +196,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _errorBox(String msg) => Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
-      color: BooyahTheme.red.withOpacity(0.1),
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: BooyahTheme.red.withOpacity(0.4)),
+      color: BooyahTheme.red.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.4)),
     ),
     child: Row(
       children: [

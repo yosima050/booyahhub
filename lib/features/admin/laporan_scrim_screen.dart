@@ -49,7 +49,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('LAPORAN SCRIM'),
       actions: [Chip(label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: !_hasData
@@ -71,7 +71,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
                     decoration: BoxDecoration(
                       color: _periodIdx == e.key ? BooyahTheme.maroon : BooyahTheme.surface,
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: BooyahTheme.maroon.withOpacity(_periodIdx == e.key ? 0.8 : 0.2)),
+                      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: _periodIdx == e.key ? 0.8 : 0.2)),
                     ),
                     child: Text(e.value, textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
@@ -104,7 +104,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -133,7 +133,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   Row(children: [
@@ -165,7 +165,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
         decoration: BoxDecoration(
           color: BooyahTheme.card,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -173,7 +173,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
-                color: (isUp ? BooyahTheme.green : BooyahTheme.yellow).withOpacity(0.12),
+                color: (isUp ? BooyahTheme.green : BooyahTheme.yellow).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(3),
               ),
               child: Text(trend, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,

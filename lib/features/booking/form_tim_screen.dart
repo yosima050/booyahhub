@@ -42,7 +42,9 @@ class _FormTimScreenState extends State<FormTimScreen> {
     _namaCtrl.dispose();
     _captainCtrl.dispose();
     _hpCtrl.dispose();
-    for (final c in _memberCtrls) c.dispose();
+    for (final c in _memberCtrls) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -87,9 +89,9 @@ class _FormTimScreenState extends State<FormTimScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.red.withOpacity(0.1),
+                    color: BooyahTheme.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: BooyahTheme.red.withOpacity(0.3)),
+                    border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.3)),
                   ),
                   child: const Icon(Icons.close, color: BooyahTheme.red, size: 18),
                 ),
@@ -104,9 +106,9 @@ class _FormTimScreenState extends State<FormTimScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
-              border: Border.all(color: BooyahTheme.maroon.withOpacity(0.4)),
+              border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.4)),
               borderRadius: BorderRadius.circular(8),
-              color: BooyahTheme.maroon.withOpacity(0.05),
+              color: BooyahTheme.maroon.withValues(alpha: 0.05),
             ),
             child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.add, color: BooyahTheme.maroonB, size: 18),

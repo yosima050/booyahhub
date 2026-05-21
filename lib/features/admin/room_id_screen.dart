@@ -48,7 +48,7 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('INPUT ROOM ID'),
       actions: [Chip(label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: SingleChildScrollView(
@@ -62,13 +62,13 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: _selectedScrim == e.key
-                  ? BooyahTheme.maroon.withOpacity(0.1)
+                  ? BooyahTheme.maroon.withValues(alpha: 0.1)
                   : BooyahTheme.card,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: _selectedScrim == e.key
                     ? BooyahTheme.maroonB
-                    : BooyahTheme.maroon.withOpacity(0.2)),
+                    : BooyahTheme.maroon.withValues(alpha: 0.2)),
             ),
             child: Row(children: [
               const Text('🎮', style: TextStyle(fontSize: 18)),
@@ -92,9 +92,9 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
           padding: const EdgeInsets.all(10),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: BooyahTheme.green.withOpacity(0.06),
+            color: BooyahTheme.green.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(7),
-            border: Border.all(color: BooyahTheme.green.withOpacity(0.25)),
+            border: Border.all(color: BooyahTheme.green.withValues(alpha: 0.25)),
           ),
           child: const Row(children: [
             Icon(Icons.check_circle_outline, color: BooyahTheme.green, size: 16),
@@ -138,9 +138,9 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: BooyahTheme.maroon.withOpacity(0.08),
+            color: BooyahTheme.maroon.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('🔑', style: TextStyle(fontSize: 20)),

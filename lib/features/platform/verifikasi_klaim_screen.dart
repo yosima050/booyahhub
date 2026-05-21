@@ -16,7 +16,7 @@ class VerifikasiKlaimScreen extends StatefulWidget {
 
 class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
   List<Map<String, dynamic>> _claims = [];
-  List<int> _processed = [];
+  final List<int> _processed = [];
   bool _loading = true;
 
   @override
@@ -88,7 +88,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('VERIFIKASI KLAIM'),
       actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: _loading
@@ -121,12 +121,12 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: done ? BooyahTheme.green.withOpacity(0.05) : BooyahTheme.card,
+                  color: done ? BooyahTheme.green.withValues(alpha: 0.05) : BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: i == 0 && !done
-                      ? BooyahTheme.gold.withOpacity(0.35)
-                      : done ? BooyahTheme.green.withOpacity(0.25)
-                      : BooyahTheme.maroon.withOpacity(0.2)),
+                      ? BooyahTheme.gold.withValues(alpha: 0.35)
+                      : done ? BooyahTheme.green.withValues(alpha: 0.25)
+                      : BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   // Header
@@ -164,8 +164,8 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         decoration: BoxDecoration(
-                          color: BooyahTheme.green.withOpacity(0.15),
-                          border: Border.all(color: BooyahTheme.green.withOpacity(0.4)),
+                          color: BooyahTheme.green.withValues(alpha: 0.15),
+                          border: Border.all(color: BooyahTheme.green.withValues(alpha: 0.4)),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: const Text('✓ TRANSFER SELESAI', textAlign: TextAlign.center,
@@ -178,8 +178,8 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
-                          color: BooyahTheme.red.withOpacity(0.1),
-                          border: Border.all(color: BooyahTheme.red.withOpacity(0.3)),
+                          color: BooyahTheme.red.withValues(alpha: 0.1),
+                          border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.3)),
                           borderRadius: BorderRadius.circular(5),
                         ),
                         child: const Text('✕ TOLAK', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: BooyahTheme.red)),

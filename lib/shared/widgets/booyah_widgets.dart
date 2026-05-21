@@ -52,9 +52,9 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext ctx) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.12),
+      color: color.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(3),
-      border: Border.all(color: color.withOpacity(0.5)),
+      border: Border.all(color: color.withValues(alpha: 0.5)),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -146,7 +146,7 @@ class MiniBarChart extends StatelessWidget {
             decoration: BoxDecoration(
               color: isHi
                   ? BooyahTheme.maroonB
-                  : BooyahTheme.maroon.withOpacity(0.4),
+                  : BooyahTheme.maroon.withValues(alpha: 0.4),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
             ),
           ),
@@ -215,16 +215,16 @@ class TimelineStep extends StatelessWidget {
     Widget dotChild;
 
     if (isDone) {
-      dotBg = BooyahTheme.green.withOpacity(0.15);
+      dotBg = BooyahTheme.green.withValues(alpha: 0.15);
       dotBorder = BooyahTheme.green;
       dotChild = const Icon(Icons.check, color: BooyahTheme.green, size: 13);
     } else if (isActive) {
-      dotBg = BooyahTheme.maroon.withOpacity(0.2);
+      dotBg = BooyahTheme.maroon.withValues(alpha: 0.2);
       dotBorder = BooyahTheme.maroonB;
       dotChild = Text(stepLabel, style: const TextStyle(fontSize: 9, color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700));
     } else {
       dotBg = BooyahTheme.surface;
-      dotBorder = Colors.white.withOpacity(0.1);
+      dotBorder = Colors.white.withValues(alpha: 0.1);
       dotChild = Text(stepLabel, style: TextStyle(fontSize: 9, color: BooyahTheme.textMuted, fontWeight: FontWeight.w700));
     }
 
@@ -240,11 +240,11 @@ class TimelineStep extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: dotBg, shape: BoxShape.circle,
                   border: Border.all(color: dotBorder, width: 2),
-                  boxShadow: isActive ? [BoxShadow(color: BooyahTheme.maroon.withOpacity(0.3), blurRadius: 8)] : null,
+                  boxShadow: isActive ? [BoxShadow(color: BooyahTheme.maroon.withValues(alpha: 0.3), blurRadius: 8)] : null,
                 ),
                 child: Center(child: dotChild),
               ),
-              if (!isLast) Container(width: 2, height: 28, color: BooyahTheme.maroon.withOpacity(0.2)),
+              if (!isLast) Container(width: 2, height: 28, color: BooyahTheme.maroon.withValues(alpha: 0.2)),
             ],
           ),
         ),

@@ -1,6 +1,6 @@
 // Satu file service untuk semua operasi Supabase
-import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 // Akses cepat client
 final _db = Supabase.instance.client;
@@ -11,7 +11,7 @@ final _storage = Supabase.instance.client.storage;
 // AUTH SERVICE (UC-01, UC-09, UC-10)
 // ══════════════════════════════════════════════════════════
 class AuthService {
-  // UC-01: Register
+  // UC-01: Register personal account
   static Future<AuthResponse> register({
     required String name,
     required String email,
@@ -26,28 +26,39 @@ class AuthService {
       data: {
         'name': name,
         'role': role,
-        'phone': phone,
-        'ff_id': ffId,
+        'phone': phone?.trim().isEmpty == true ? null : phone,
+        'ff_id': ffId?.trim().isEmpty == true ? null : ffId,
       },
     );
 
-    // Data tambahan ke tabel users (trigger Supabase / RPC)
+    // Data tambahan ke tabel users (UUID dari Supabase Auth)
     if (res.user != null) {
-      await _db.from('users').upsert({
-        'id': res.user!.id,  // UUID dari Supabase Auth
-        'name': name,
-        'email': email,
-        'role': role,
-        'phone': phone,
-        'ff_id': ffId,
-      });
-
-      // Buat admin_profile jika role admin
-      if (role == 'admin') {
-        await _db.from('admin_profiles').insert({
-          'user_id': res.user!.id,
-          'display_name': name,
+      try {
+        await _db.from('users').insert({
+          'uuid': res.user!.id,
+          'name': name,
+          'email': email,
+          'username': email.split('@')[0],
+          'role': role,
+          'phone': phone?.trim().isEmpty == true ? null : phone,
+          'ff_id': ffId?.trim().isEmpty == true ? null : ffId,
         });
+      } catch (e) {
+        debugPrint('Error inserting user: $e');
+        rethrow;
+      }
+
+      // Buat admin_profile jika role admin (skip untuk peserta)
+      if (role == 'admin') {
+        try {
+          await _db.from('admin_profiles').insert({
+            'user_id': res.user!.id,  // UUID reference ke users.uuid
+            'display_name': name,
+          });
+        } catch (e) {
+          debugPrint('Error creating admin profile: $e');
+          // Jangan rethrow - user sudah berhasil dibuat
+        }
       }
     }
     return res;
@@ -104,15 +115,15 @@ class ScrimService {
         .eq('status', status)
         .isFilter('deleted_at', null); // BERHENTI DI SINI, jangan .order() dulu
 
-    if (mode != null) query = query.filter('mode', 'eq', mode);
+    if (mode != null) query = query.eq('mode', mode);
     if (search != null && search.isNotEmpty) {
-      query = query.filter('title', 'like', '%$search%');
+      query = query.ilike('title', '%$search%');
     }
     
     // Terapkan .order() dan .range() di paling akhir
     final res = await query
         .order('is_featured', ascending: false)
-        .order('scheduled_at')
+        .order('scheduled_at', ascending: true)
         .range((page - 1) * limit, page * limit - 1);
         
     return List<Map<String, dynamic>>.from(res);
@@ -153,8 +164,8 @@ class ScrimService {
           'admin_id': AuthService.currentUser!.id,
           'title': title,
           'mode': mode,
-          'description': description,
-          'rules': rules,
+          if (description != null) 'description': description,
+          if (rules != null) 'rules': rules,
           'scheduled_at': scheduledAt,
           'registration_closes_at': registrationClosesAt,
           'slot_total': slotTotal,
@@ -183,7 +194,7 @@ class ScrimService {
       'p_room_id': roomId,
       'p_room_pass': password,
       'p_admin_id': AuthService.currentUser!.id,
-      'p_extra_msg': extraMessage,
+      if (extraMessage != null) 'p_extra_msg': extraMessage,
     });
   }
 
@@ -211,45 +222,58 @@ class ScrimService {
 }
 
 // ══════════════════════════════════════════════════════════
-// REGISTRATION SERVICE (UC-06, UC-07)
+// UPDATE: REGISTRATION SERVICE (MIDTRANS INTEGRATED ONLY)
 // ══════════════════════════════════════════════════════════
 class RegistrationService {
-  // UC-06: Booking slot
+  /// UC-06: Booking slot & menginisiasi Token Transaksi Midtrans
   static Future<Map<String, dynamic>> book({
     required int scrimId,
     required String teamName,
     required String captainFfId,
     required String phone,
+    required int paymentAmount,
+    String? midtransSnapToken, // Token dari Backend / Edge Function Anda
     List<String> members = const [],
   }) async {
-    // Cek slot real-time sebelum booking
+    // 1. Cek ketersediaan slot real-time sebelum melakukan booking
     final scrim = await _db
         .from('scrims')
         .select('slot_filled, slot_total, status')
         .eq('id', scrimId)
         .single();
 
-    // UC-06 Langkah 2a: slot penuh
     if (scrim['status'] != 'open' ||
         (scrim['slot_filled'] as int) >= (scrim['slot_total'] as int)) {
       throw Exception('Slot Penuh – Scrim sudah ditutup');
     }
 
-    // Insert registration
+    // 2. Ambil nilai BigInt ID milik user yang sedang aktif
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', AuthService.currentUser!.id)
+        .single();
+    final int buyerId = userProfile['id'];
+
+    // 3. Masukkan data pendaftaran ke tabel registrations (Midtrans-ready)
+    final expiresAt = DateTime.now().add(const Duration(minutes: 15));
     final reg = await _db
         .from('registrations')
         .insert({
           'scrim_id': scrimId,
-          'user_id': AuthService.currentUser!.id,
+          'user_id': buyerId,
           'team_name': teamName,
           'captain_ff_id': captainFfId,
           'phone': phone,
           'status': 'pending_payment',
+          'payment_amount': paymentAmount,
+          'booking_expires_at': expiresAt.toIso8601String(),
+          if (midtransSnapToken != null) 'midtrans_snap_token': midtransSnapToken,
         })
         .select()
         .single();
 
-    // Insert anggota tim
+    // 4. Masukkan susunan anggota tim ke tabel team_members
     if (members.isNotEmpty) {
       await _db.from('team_members').insert(
         members.asMap().entries.map((e) => {
@@ -263,65 +287,44 @@ class RegistrationService {
     return reg;
   }
 
-  // UC-06: Upload bukti bayar
-  static Future<void> uploadPayment({
+  /// Memperbarui status pendaftaran (Biasanya dipicu setelah ada respon callback dari Midtrans SDK)
+  static Future<void> updatePaymentStatus({
     required int registrationId,
-    required String paymentMethod,
-    required String proofUrl,
+    required String newStatus, // 'verified', 'expired', atau 'failed'
+    String? midtransTransactionId,
+    String? paymentType,
   }) async {
-    // Cek expired (UC-06 Langkah 6a)
-    final reg = await _db
-        .from('registrations')
-        .select('booking_expires_at')
-        .eq('id', registrationId)
-        .single();
-
-    final expires = DateTime.parse(reg['booking_expires_at'] as String);
-    if (DateTime.now().isAfter(expires)) {
-      // Auto-cancel
-      await _db.from('registrations').update({
-        'status': 'rejected',
-        'reject_reason': 'Batas waktu upload terlewat'
-      }).eq('id', registrationId);
-      throw Exception('Batas waktu upload sudah terlewat. Booking dibatalkan.');
-    }
-
     await _db.from('registrations').update({
-      'payment_method': paymentMethod,
-      'payment_proof_url': proofUrl,
-      'payment_uploaded_at': DateTime.now().toIso8601String(),
-      'status': 'waiting_verify',
+      'status': newStatus,
+      'midtrans_transaction_id': midtransTransactionId?.trim().isEmpty == true ? null : midtransTransactionId,
+      'payment_type': paymentType?.trim().isEmpty == true ? null : paymentType,
+      'updated_at': DateTime.now().toIso8601String(),
     }).eq('id', registrationId);
   }
 
-  // UC-07: Admin verifikasi pembayaran (via RPC)
-  static Future<void> verifyPayment({
-    required int registrationId,
-    required bool approve,
-    String? reason,
-  }) async {
-    await _db.rpc('sp_verify_payment', params: {
-      'p_reg_id': registrationId,
-      'p_admin_id': AuthService.currentUser!.id,
-      'p_approve': approve,
-      'p_reason': reason,
-    });
+  // UC-12: Riwayat scrim peserta
+  static Future<List<Map<String, dynamic>>> getMyRiwayat() async {
+    final user = AuthService.currentUser;
+    if (user == null) return [];
+
+    // Resolve UUID to BIGINT ID
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', user.id)
+        .maybeSingle();
+    
+    if (userProfile == null) return [];
+
+    final res = await _db
+        .from('v_user_riwayat')
+        .select()
+        .eq('user_id', userProfile['id'])
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(res);
   }
 
-  // UC-12: Riwayat scrim peserta
-    static Future<List<Map<String, dynamic>>> getMyRiwayat() async {
-      final user = AuthService.currentUser;
-      if (user == null) return []; // ✅ Safe fallback
-
-      final res = await _db
-          .from('v_user_riwayat')
-          .select()
-          .eq('user_id', user.id) // ✅ Use user.id safely
-          .order('created_at', ascending: false);
-      return List<Map<String, dynamic>>.from(res);
-    }
-
-  // UC-15: Admin lihat pendaftar
+  // UC-15: Admin lihat pendaftar di scrim
   static Future<List<Map<String, dynamic>>> getByScrim(int scrimId) async {
     final res = await _db
         .from('registrations')
@@ -331,7 +334,7 @@ class RegistrationService {
         ''')
         .eq('scrim_id', scrimId)
         .isFilter('deleted_at', null)
-        .order('created_at');
+        .order('created_at', ascending: true);
     return List<Map<String, dynamic>>.from(res);
   }
 
@@ -399,7 +402,7 @@ class ResultService {
         .from('v_leaderboard')
         .select()
         .eq('scrim_id', scrimId)
-        .order('rank');
+        .order('rank', ascending: true);
     return List<Map<String, dynamic>>.from(res);
   }
 
@@ -477,7 +480,7 @@ class ClaimService {
       'p_claim_id': claimId,
       'p_platform_id': AuthService.currentUser!.id,
       'p_approve': approve,
-      'p_reason': reason,
+      if (reason != null) 'p_reason': reason,
     });
   }
 
@@ -487,7 +490,7 @@ class ClaimService {
         .from('prize_claims')
         .select('*, users(name), scrims(title)')
         .eq('status', 'processing')
-        .order('claimed_at');
+        .order('claimed_at', ascending: true);
     return List<Map<String, dynamic>>.from(res);
   }
 }
@@ -510,18 +513,26 @@ static Future<List<Map<String, dynamic>>> getAll({int limit = 20}) async {
     return List<Map<String, dynamic>>.from(res);
   }
 
-  // Hitung unread
+// Hitung unread (Versi Mutakhir Supabase Flutter SDK)
   static Future<int> getUnreadCount() async {
     final user = AuthService.currentUser;
     if (user == null) return 0;
 
-    final res = await _db
-        .from('notifications')
-        .select('id')
-        .eq('user_id', AuthService.currentUser!.id)
-        .eq('is_read', false)
-        .count();
-    return res.count;
+    try {
+      // Menggunakan metode .count() bawaan PostgrestFilterBuilder terbaru
+      final res = await _db
+          .from('notifications')
+          .select('*') // atau select('id')
+          .eq('user_id', user.id)
+          .eq('is_read', false)
+          .count(CountOption.exact); // Tambahkan opsi exact langsung di sini
+
+      // Hasil hitungan dibungkus di dalam properti .count bawaan PostgrestResponse
+      return res.count; 
+    } catch (e) {
+      debugPrint('Error getting unread count: $e');
+      return 0;
+    }
   }
 
   // UC-13: Tandai dibaca
@@ -545,12 +556,11 @@ static Future<List<Map<String, dynamic>>> getAll({int limit = 20}) async {
     required String title,
     required String message,
     int? scrimId,
-    String target = 'all', // all | verified | pending
+    String target = 'all',
   }) async {
-    // Panggil RPC yang sudah ada di PostgreSQL
     final result = await _db.rpc('fn_send_announcement', params: {
       'p_admin_id': AuthService.currentUser!.id,
-      'p_scrim_id': scrimId,
+      if (scrimId != null) 'p_scrim_id': scrimId,
       'p_title': title,
       'p_message': message,
       'p_target': target,
@@ -617,7 +627,7 @@ class StorageService {
 // ══════════════════════════════════════════════════════════
 class PlatformService {
   // UC-03: Daftar semua user
-static Future<List<Map<String, dynamic>>> getUsers({
+  static Future<List<Map<String, dynamic>>> getUsers({
     String? role,
     String? search,
     int page = 1,
@@ -626,10 +636,10 @@ static Future<List<Map<String, dynamic>>> getUsers({
     var query = _db
         .from('users')
         .select('id, name, email, role::text, is_suspended, phone, ff_id, created_at')
-        .isFilter('deleted_at', null); // Cast role to text
+        .isFilter('deleted_at', null);
         
-    if (role != null) query = query.filter('role', 'eq', role);
-    if (search != null) query = query.filter('name', 'like', '%$search%');
+    if (role != null) query = query.eq('role', role);
+    if (search != null) query = query.ilike('name', '%$search%');
     
     // Terapkan .order() dan .range() di paling akhir
     final res = await query
@@ -642,16 +652,17 @@ static Future<List<Map<String, dynamic>>> getUsers({
   // UC-03: Suspend / aktifkan akun
   static Future<void> toggleSuspend(String userId, bool suspend,
       {String? reason}) async {
-    // Cek target bukan platform lain
     final target =
         await _db.from('users').select('role').eq('id', userId).single();
     if (target['role'] == 'platform') throw Exception('Akses Ditolak');
 
     await _db.from('users').update({
       'is_suspended': suspend,
-      'suspension_reason': reason,
-      'suspended_at': suspend ? DateTime.now().toIso8601String() : null,
-      'suspended_by': suspend ? AuthService.currentUser!.id : null,
+      if (suspend) 'suspension_reason': reason,
+      if (suspend) 'suspended_at': DateTime.now().toIso8601String(),
+      if (suspend) 'suspended_by': AuthService.currentUser!.id,
+      if (!suspend) 'suspended_at': null,
+      if (!suspend) 'suspended_by': null,
     }).eq('id', userId);
   }
 
@@ -666,7 +677,7 @@ static Future<List<Map<String, dynamic>>> getUsers({
         .from('premium_requests')
         .select('*, users(name, email)')
         .eq('status', 'pending')
-        .order('created_at');
+        .order('created_at', ascending: true);
     return List<Map<String, dynamic>>.from(res);
   }
 
@@ -804,7 +815,7 @@ class AdminService {
         .from('v_admin_scrim_report')
         .select()
         .eq('admin_id', uid)
-        .filter('scheduled_at', 'gte', since.toIso8601String())
+        .gte('scheduled_at', since.toIso8601String())
         .order('scheduled_at', ascending: false);
 
     if ((res as List).isEmpty) throw Exception('Belum ada data scrim');
@@ -834,7 +845,6 @@ class AdminService {
     int totalRevenue = 0;
     int newScrims = 0;
     int newTeams = 0;
-    double verifyRate = 0.9;
     
     final now = DateTime.now();
     for (final s in scrims) {
@@ -904,32 +914,33 @@ class UserService {
 // ══════════════════════════════════════════════════════════
 // BOOKING SERVICE
 // ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// BOOKING SERVICE (Optimasi Sinkronisasi Kalender UI)
+// ══════════════════════════════════════════════════════════
 class BookingService {
   static Future<List<Map<String, dynamic>>> getAvailableSlots(DateTime date) async {
+    // Saring rentang waktu dari jam 00:00:00 sampai 23:59:59 pada hari tersebut
     final startOfDay = DateTime(date.year, date.month, date.day).toIso8601String();
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59).toIso8601String();
     
-    // Query scrims with available slots on the given date
     final res = await _db
         .from('scrims')
         .select('''
-          id, title, scheduled_at, fee, slot_filled, slot_total
-        ''')
+          id, title, mode, scheduled_at, fee, prize_pool, slot_filled, slot_total, is_premium,
+          admin_profiles(display_name)
+        ''') // 🟢 Menambahkan kolom mode, prize_pool, is_premium, dan admin_profiles agar UI Booking Screen tidak error kekurangan data
         .gte('scheduled_at', startOfDay)
         .lte('scheduled_at', endOfDay)
         .eq('status', 'open')
+        .isFilter('deleted_at', null)
         .order('scheduled_at');
 
-    // Filter for slots that have availability (slot_filled < slot_total)
-    final availableSlots = (res as List)
-        .where((s) => (s['slot_filled'] as int) < (s['slot_total'] as int))
-        .map((s) => {
-          ...s as Map<String, dynamic>,
-          'filled': s['slot_filled'],
-          'total': s['slot_total'],
-          'scrim_id': s['id'],
-        })
-        .toList();
-
-    return availableSlots;
-  }}
+    // Kita return langsung tanpa membuang slot yang penuh, agar status "PENUH" merah tetap tampil di layar BooyahHub
+    return (res as List).map((s) => {
+      ...s as Map<String, dynamic>,
+      'filled': s['slot_filled'],
+      'total': s['slot_total'],
+      'scrim_id': s['id'],
+    }).toList();
+  }
+}

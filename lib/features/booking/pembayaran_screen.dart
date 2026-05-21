@@ -73,9 +73,9 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            color: BooyahTheme.yellow.withOpacity(0.08),
+            color: BooyahTheme.yellow.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.yellow.withOpacity(0.35)),
+            border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.35)),
           ),
           child: Row(children: [
             const Icon(Icons.timer_outlined, color: BooyahTheme.yellow, size: 18),
@@ -92,7 +92,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
             color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
           ),
           child: const Column(children: [
             _SummaryRow('Biaya Pendaftaran', 'Rp25.000'),
@@ -114,7 +114,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+              border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
             ),
             child: Column(children: [
               const Text('SCAN QRIS UNTUK MEMBAYAR',
@@ -140,7 +140,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+              border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
             ),
             child: Column(children: [
               Row(children: [
@@ -172,10 +172,10 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 28),
             decoration: BoxDecoration(
-              color: _fileUploaded ? BooyahTheme.green.withOpacity(0.05) : BooyahTheme.maroon.withOpacity(0.04),
+              color: _fileUploaded ? BooyahTheme.green.withValues(alpha: 0.05) : BooyahTheme.maroon.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: _fileUploaded ? BooyahTheme.green : BooyahTheme.maroon.withOpacity(0.4),
+                color: _fileUploaded ? BooyahTheme.green : BooyahTheme.maroon.withValues(alpha: 0.4),
                 width: _fileUploaded ? 1.5 : 1,
               ),
             ),
@@ -196,7 +196,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
             decoration: BoxDecoration(
               color: BooyahTheme.surface,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: BooyahTheme.green.withOpacity(0.35)),
+              border: Border.all(color: BooyahTheme.green.withValues(alpha: 0.35)),
             ),
             child: Row(children: [
               const Text('🖼️', style: TextStyle(fontSize: 22)),
@@ -228,9 +228,9 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       duration: const Duration(milliseconds: 150),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _method == val ? BooyahTheme.maroon.withOpacity(0.15) : BooyahTheme.card,
+        color: _method == val ? BooyahTheme.maroon.withValues(alpha: 0.15) : BooyahTheme.card,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _method == val ? BooyahTheme.maroonB : BooyahTheme.maroon.withOpacity(0.2), width: _method == val ? 1.5 : 1),
+        border: Border.all(color: _method == val ? BooyahTheme.maroonB : BooyahTheme.maroon.withValues(alpha: 0.2), width: _method == val ? 1.5 : 1),
       ),
       child: Column(children: [
         Text(ico, style: const TextStyle(fontSize: 26)),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../shared/models/models.dart';
@@ -169,7 +168,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: BooyahTheme.surface,
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   _rule('Daftar tim maksimal 1 jam sebelum pertandingan dimulai'),
@@ -212,7 +211,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
         ),
         child: Row(children: [
           Text(icon, style: const TextStyle(fontSize: 16)),
@@ -249,7 +248,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Column(children: [
         Text(medal, style: const TextStyle(fontSize: 22)),

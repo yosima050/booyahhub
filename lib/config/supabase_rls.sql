@@ -15,18 +15,21 @@ ALTER TABLE transactions      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE premium_requests  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles    ENABLE ROW LEVEL SECURITY;
 
--- 2. Helper function: ambil role user
+-- 2. Helper function: ambil role user (cek UUID bukan ID)
 CREATE OR REPLACE FUNCTION auth.user_role()
 RETURNS TEXT AS $$
-  SELECT role FROM users WHERE id = auth.uid()
+  SELECT role FROM users WHERE uuid = auth.uid()
 $$ LANGUAGE sql SECURITY DEFINER;
 
 -- 3. USERS: hanya bisa lihat diri sendiri, platform bisa lihat semua
 CREATE POLICY "users_select" ON users FOR SELECT
-  USING (id = auth.uid() OR auth.user_role() = 'platform');
+  USING (uuid = auth.uid() OR (SELECT role FROM users WHERE uuid = auth.uid()) = 'platform');
+
+CREATE POLICY "users_insert_self" ON users FOR INSERT
+  WITH CHECK (uuid = auth.uid());
 
 CREATE POLICY "users_update_self" ON users FOR UPDATE
-  USING (id = auth.uid());
+  USING (uuid = auth.uid());
 
 -- 4. SCRIMS: semua bisa lihat open, admin hanya kelola punyanya
 CREATE POLICY "scrims_select_all" ON scrims FOR SELECT
@@ -44,19 +47,19 @@ CREATE POLICY "scrims_delete" ON scrims FOR DELETE
 
 -- 5. REGISTRATIONS: peserta lihat punyanya, admin lihat scrimnya
 CREATE POLICY "reg_select_own" ON registrations FOR SELECT
-  USING (user_id = auth.uid()
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid()
          OR EXISTS (SELECT 1 FROM scrims WHERE id = scrim_id AND admin_id = auth.uid())
          OR auth.user_role() = 'platform');
 
 CREATE POLICY "reg_insert_peserta" ON registrations FOR INSERT
-  WITH CHECK (auth.user_role() = 'peserta' AND user_id = auth.uid());
+  WITH CHECK (auth.user_role() = 'peserta' AND (SELECT uuid FROM users WHERE id = user_id) = auth.uid());
 
 CREATE POLICY "reg_update_own" ON registrations FOR UPDATE
-  USING (user_id = auth.uid()
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid()
          OR EXISTS (SELECT 1 FROM scrims WHERE id = scrim_id AND admin_id = auth.uid()));
 
 CREATE POLICY "reg_delete" ON registrations FOR DELETE
-  USING (user_id = auth.uid()
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid()
          OR EXISTS (SELECT 1 FROM scrims WHERE id = scrim_id AND admin_id = auth.uid()));
 
 -- 6. TEAM MEMBERS: semua bisa lihat (untuk tampil di detail registrasi)
@@ -64,10 +67,10 @@ CREATE POLICY "tm_select" ON team_members FOR SELECT USING (true);
 
 -- 7. NOTIFICATIONS: hanya pemilik yang bisa lihat & update
 CREATE POLICY "notif_select_own" ON notifications FOR SELECT
-  USING (user_id = auth.uid());
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid());
 
 CREATE POLICY "notif_update_own" ON notifications FOR UPDATE
-  USING (user_id = auth.uid());
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid());
 
 -- 8. MATCH_RESULTS: semua bisa lihat, admin bisa input
 CREATE POLICY "results_select" ON match_results FOR SELECT USING (true);
@@ -80,27 +83,27 @@ CREATE POLICY "results_update" ON match_results FOR UPDATE
 
 -- 9. PRIZE_CLAIMS: peserta lihat punyanya, platform kelola semua
 CREATE POLICY "claims_select" ON prize_claims FOR SELECT
-  USING (user_id = auth.uid() OR auth.user_role() = 'platform');
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid() OR auth.user_role() = 'platform');
 
 CREATE POLICY "claims_insert" ON prize_claims FOR INSERT
   WITH CHECK (auth.user_role() IN ('admin', 'system'));
 
 CREATE POLICY "claims_update_own" ON prize_claims FOR UPDATE
-  USING (user_id = auth.uid() OR auth.user_role() = 'platform');
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid() OR auth.user_role() = 'platform');
 
 -- 10. TRANSACTIONS: platform bisa lihat & manage
 CREATE POLICY "tx_select" ON transactions FOR SELECT
-  USING (user_id = auth.uid() OR auth.user_role() = 'platform');
+  USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid() OR auth.user_role() = 'platform');
 
 CREATE POLICY "tx_insert" ON transactions FOR INSERT
   WITH CHECK (auth.user_role() IN ('system', 'platform'));
 
 -- 11. PREMIUM_REQUESTS: admin bisa buat, platform bisa kelola
 CREATE POLICY "pr_select" ON premium_requests FOR SELECT
-  USING (admin_user_id = auth.uid() OR auth.user_role() = 'platform');
+  USING ((SELECT uuid FROM users WHERE id = admin_user_id) = auth.uid() OR auth.user_role() = 'platform');
 
 CREATE POLICY "pr_insert" ON premium_requests FOR INSERT
-  WITH CHECK (auth.user_role() = 'admin' AND admin_user_id = auth.uid());
+  WITH CHECK (auth.user_role() = 'admin' AND (SELECT uuid FROM users WHERE id = admin_user_id) = auth.uid());
 
 CREATE POLICY "pr_update_plat" ON premium_requests FOR UPDATE
   USING (auth.user_role() = 'platform');
@@ -178,54 +181,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Verify payment
-CREATE OR REPLACE FUNCTION sp_verify_payment(
-  p_reg_id INT,
-  p_admin_id UUID,
-  p_approve BOOLEAN,
-  p_reason TEXT DEFAULT NULL
-)
-RETURNS VOID AS $$
-BEGIN
-  IF p_approve THEN
-    UPDATE registrations
-    SET status = 'verified',
-        verified_by = p_admin_id,
-        verified_at = NOW()
-    WHERE id = p_reg_id;
-
-    -- Increment slot_filled
-    UPDATE scrims SET slot_filled = slot_filled + 1
-    WHERE id = (SELECT scrim_id FROM registrations WHERE id = p_reg_id);
-  ELSE
-    UPDATE registrations
-    SET status = 'rejected',
-        reject_reason = p_reason,
-        rejected_by = p_admin_id,
-        rejected_at = NOW()
-    WHERE id = p_reg_id;
-
-    -- Kembalikan saldo booking
-    UPDATE registrations
-    SET booking_expires_at = NULL
-    WHERE id = p_reg_id;
-  END IF;
-
-  -- Notifikasi ke peserta
-  INSERT INTO notifications (user_id, type, title, message, scrim_id, sent_by)
-  SELECT r.user_id,
-         CASE WHEN p_approve THEN 'verified' ELSE 'rejected' END,
-         CASE WHEN p_approve THEN '✅ Pembayaran Diterima' ELSE '❌ Pembayaran Ditolak' END,
-         CASE WHEN p_approve THEN 'Pembayaran Anda telah diverifikasi. Anda terdaftar!'
-              ELSE 'Pembayaran Anda ditolak: ' || COALESCE(p_reason, 'Silakan coba lagi')
-         END,
-         r.scrim_id,
-         p_admin_id
-  FROM registrations r
-  WHERE r.id = p_reg_id;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- Finalize leaderboard dan alokasi hadiah
 CREATE OR REPLACE FUNCTION sp_finalize_leaderboard(p_scrim_id INT)
 RETURNS VOID AS $$
@@ -279,7 +234,7 @@ CREATE OR REPLACE FUNCTION sp_verify_claim(
 )
 RETURNS VOID AS $$
 DECLARE
-  v_user_id UUID;
+  v_user_id BIGINT;
   v_prize_amount INT;
 BEGIN
   SELECT user_id, prize_amount INTO v_user_id, v_prize_amount
@@ -306,17 +261,18 @@ BEGIN
 
   -- Notifikasi ke peserta
   INSERT INTO notifications (user_id, type, title, message, sent_by)
-  VALUES (v_user_id,
-          CASE WHEN p_approve THEN 'claim_approved' ELSE 'claim_rejected' END,
-          CASE WHEN p_approve THEN '💰 Transfer Selesai!' ELSE '❌ Klaim Ditolak' END,
-          CASE WHEN p_approve THEN 'Hadiah Anda telah ditransfer!'
-               ELSE 'Klaim Anda ditolak: ' || COALESCE(p_reason, 'Silakan hubungi admin')
-          END,
-          p_platform_id);
+  SELECT u.uuid,
+         CASE WHEN p_approve THEN 'claim_approved' ELSE 'claim_rejected' END,
+         CASE WHEN p_approve THEN '💰 Transfer Selesai!' ELSE '❌ Klaim Ditolak' END,
+         CASE WHEN p_approve THEN 'Hadiah Anda telah ditransfer!'
+              ELSE 'Klaim Anda ditolak: ' || COALESCE(p_reason, 'Silakan hubungi admin')
+         END,
+         p_platform_id
+  FROM users u WHERE u.id = v_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Send announcement
+-- Send announcement (Automatic via Midtrans webhook - no manual verification)
 CREATE OR REPLACE FUNCTION fn_send_announcement(
   p_admin_id UUID,
   p_scrim_id INT DEFAULT NULL,
@@ -327,7 +283,7 @@ CREATE OR REPLACE FUNCTION fn_send_announcement(
 RETURNS INT AS $$
 DECLARE
   v_sent_count INT = 0;
-  v_recipient_ids UUID[];
+  v_recipient_ids BIGINT[];
 BEGIN
   -- Ambil recipient IDs sesuai target
   IF p_scrim_id IS NOT NULL THEN
@@ -343,7 +299,7 @@ BEGIN
       INTO v_recipient_ids
       FROM registrations r
       WHERE r.scrim_id = p_scrim_id
-        AND r.status = 'waiting_verify'
+        AND r.status = 'pending_payment'
         AND r.deleted_at IS NULL;
     ELSE -- all peserta di scrim
       SELECT ARRAY_AGG(DISTINCT r.user_id)
@@ -380,7 +336,7 @@ SELECT
   (s.slot_total - s.slot_filled) AS slot_remaining,
   s.fee, s.prize_pool,
   COUNT(r.id) FILTER (WHERE r.status = 'verified') AS verified_teams,
-  COUNT(r.id) FILTER (WHERE r.status = 'waiting_verify') AS pending_verify,
+  COUNT(r.id) FILTER (WHERE r.status = 'pending_payment') AS pending_verify,
   COUNT(r.id) FILTER (WHERE r.status = 'rejected') AS rejected_teams,
   (s.fee * COUNT(r.id) FILTER (WHERE r.status = 'verified')) AS estimated_income,
   s.status, s.admin_id
@@ -405,7 +361,7 @@ LEFT JOIN prize_claims pc ON mr.id = pc.match_result_id
 ORDER BY r.created_at DESC;
 
 -- ══════════════════════════════════════════════════════════
--- VIEW: Leaderboard scrim
+-- VIEW: Leaderboard scrim (BIGINT/UUID datatype consistency check)
 -- ══════════════════════════════════════════════════════════
 CREATE OR REPLACE VIEW v_leaderboard AS
 SELECT

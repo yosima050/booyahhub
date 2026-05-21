@@ -90,9 +90,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: BooyahTheme.yellow.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: BooyahTheme.yellow.withOpacity(0.4)),
+                            color: BooyahTheme.yellow.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
                           ),
                           child: const Row(children: [
                             Icon(Icons.star, size: 12, color: BooyahTheme.yellow),
@@ -149,11 +149,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               decoration: BoxDecoration(
                                 color: BooyahTheme.card,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                               ),
                               child: Row(children: [
                                 Container(width: 40, height: 40,
-                                  decoration: BoxDecoration(color: _statusColor(s['status'] as String? ?? 'open').withOpacity(0.15),
+                                  decoration: BoxDecoration(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(8)),
                                   child: const Center(child: Text('🎮', style: TextStyle(fontSize: 18)))),
                                 const SizedBox(width: 10),
@@ -165,9 +165,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: _statusColor(s['status'] as String? ?? 'open').withOpacity(0.15),
+                                      color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: _statusColor(s['status'] as String? ?? 'open').withOpacity(0.4)),
+                                      border: Border.all(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.4)),
                                     ),
                                     child: Text(_statusLabel(s['status'] as String? ?? 'open'), style: TextStyle(
                                       fontSize: 9, color: _statusColor(s['status'] as String? ?? 'open'), fontWeight: FontWeight.w700)),
@@ -190,7 +190,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -198,7 +198,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(3)),
+                color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(3)),
               child: Text(trend, style: TextStyle(fontSize: 8, color: color, fontWeight: FontWeight.w700)),
             ),
           ]),

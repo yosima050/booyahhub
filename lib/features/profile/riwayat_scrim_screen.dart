@@ -87,7 +87,7 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             itemCount: _filters.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 7),
+            separatorBuilder: (_, _) => const SizedBox(width: 7),
             itemBuilder: (_, i) {
               final active = _filterIdx == i;
               return GestureDetector(
@@ -98,7 +98,7 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
                     color: active ? BooyahTheme.maroon : BooyahTheme.surface,
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(
-                      color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withOpacity(0.3)),
+                      color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withValues(alpha: 0.3)),
                   ),
                   child: Text(_filters[i], style: TextStyle(
                     fontSize: 10, fontWeight: FontWeight.w700,
@@ -133,7 +133,7 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
       decoration: BoxDecoration(
         color: BooyahTheme.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _statusBorderColor(r.status).withOpacity(0.35)),
+        border: Border.all(color: _statusBorderColor(r.status).withValues(alpha: 0.35)),
       ),
       child: Column(
         children: [

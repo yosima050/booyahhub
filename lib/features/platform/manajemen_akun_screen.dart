@@ -3,7 +3,6 @@
 // UC-03: Mengelola Akun
 // ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../services/supabase_service.dart';
 import '../../shared/widgets/booyah_widgets.dart';
@@ -164,7 +163,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('MANAJEMEN AKUN'),
       actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: _isLoading
@@ -211,7 +210,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
             decoration: BoxDecoration(
               color: BooyahTheme.surface,
               borderRadius: BorderRadius.circular(7),
-              border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+              border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
             ),
             child: const Row(children: [
               Icon(Icons.search, color: BooyahTheme.textMuted, size: 16),
@@ -228,7 +227,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             itemCount: _filters.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 6),
+            separatorBuilder: (_, _) => const SizedBox(width: 6),
             itemBuilder: (_, i) {
               final active = _filterIdx == i;
               return GestureDetector(
@@ -238,7 +237,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                   decoration: BoxDecoration(
                     color: active ? BooyahTheme.maroon : BooyahTheme.surface,
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withOpacity(0.2)),
+                    border: Border.all(color: active ? BooyahTheme.maroon : BooyahTheme.maroon.withValues(alpha: 0.2)),
                   ),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                     Text(_filters[i], style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
@@ -270,11 +269,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSuspended ? BooyahTheme.red.withOpacity(0.05) : BooyahTheme.card,
+                  color: isSuspended ? BooyahTheme.red.withValues(alpha: 0.05) : BooyahTheme.card,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: isSuspended
-                      ? BooyahTheme.red.withOpacity(0.2)
-                      : BooyahTheme.maroon.withOpacity(0.2)),
+                      ? BooyahTheme.red.withValues(alpha: 0.2)
+                      : BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Row(children: [
                   const Text('👤', style: TextStyle(fontSize: 24)),
@@ -317,8 +316,8 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
     child: Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Icon(icon, size: 14, color: color),

@@ -35,7 +35,7 @@ class AdminProfileScreen extends StatelessWidget {
         title: const Text('PROFIL ADMIN'),
         actions: [Chip(
           label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
           labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
         ), const SizedBox(width: 8)],
       ),
@@ -45,7 +45,7 @@ class AdminProfileScreen extends StatelessWidget {
             width: double.infinity, padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [const Color(0xFF5C0000).withOpacity(0.8), BooyahTheme.bg],
+                colors: [const Color(0xFF5C0000).withValues(alpha: 0.8), BooyahTheme.bg],
                 begin: Alignment.topCenter, end: Alignment.bottomCenter),
             ),
             child: Column(children: [
@@ -54,8 +54,8 @@ class AdminProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: BooyahTheme.maroon,
-                  border: Border.all(color: BooyahTheme.yellow.withOpacity(0.6), width: 2.5),
-                  boxShadow: [BoxShadow(color: BooyahTheme.yellow.withOpacity(0.2), blurRadius: 16)],
+                  border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.6), width: 2.5),
+                  boxShadow: [BoxShadow(color: BooyahTheme.yellow.withValues(alpha: 0.2), blurRadius: 16)],
                 ),
                 child: const Center(child: Text('🔥', style: TextStyle(fontSize: 36))),
               ),
@@ -66,9 +66,9 @@ class AdminProfileScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: BooyahTheme.yellow.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: BooyahTheme.yellow.withOpacity(0.4)),
+                  color: BooyahTheme.yellow.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
                 ),
                 child: const Text('★ ADMIN PREMIUM', style: TextStyle(
                   fontSize: 10, color: BooyahTheme.yellow, fontWeight: FontWeight.w700, letterSpacing: 1)),
@@ -76,9 +76,9 @@ class AdminProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 _stat('42', 'SCRIM\nDIBUAT'),
-                Container(width: 1, height: 32, color: BooyahTheme.maroon.withOpacity(0.4)),
+                Container(width: 1, height: 32, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
                 _stat('834', 'TIM\nDIDAFTAR'),
-                Container(width: 1, height: 32, color: BooyahTheme.maroon.withOpacity(0.4)),
+                Container(width: 1, height: 32, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
                 _stat('97%', 'RATING\nVERIF'),
               ]),
             ]),
@@ -90,9 +90,9 @@ class AdminProfileScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: BooyahTheme.yellow.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.yellow.withOpacity(0.3)),
+                  color: BooyahTheme.yellow.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.3)),
                 ),
                 child: Row(children: [
                   const Text('⭐', style: TextStyle(fontSize: 28)),
@@ -104,9 +104,9 @@ class AdminProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: BooyahTheme.yellow.withOpacity(0.15),
+                      color: BooyahTheme.yellow.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: BooyahTheme.yellow.withOpacity(0.4)),
+                      border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
                     ),
                     child: const Text('PERBARUI', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.8)),
                   ),
@@ -124,8 +124,8 @@ class AdminProfileScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity, padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.red.withOpacity(0.08),
-                    border: Border.all(color: BooyahTheme.red.withOpacity(0.3)),
+                    color: BooyahTheme.red.withValues(alpha: 0.08),
+                    border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -154,7 +154,7 @@ class AdminProfileScreen extends StatelessWidget {
       Container(
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(

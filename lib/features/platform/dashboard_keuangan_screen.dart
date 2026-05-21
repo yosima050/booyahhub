@@ -54,7 +54,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('KEUANGAN PLATFORM'),
       actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: _loading
@@ -71,7 +71,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: BooyahTheme.gold.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.2)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('TOTAL PENDAPATAN PLATFORM', style: TextStyle(fontSize: 10, color: Colors.white38, letterSpacing: 1.5)),
@@ -106,7 +106,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.card,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.gold.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.3)),
                 ),
                 child: Column(children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -120,8 +120,8 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: BooyahTheme.yellow.withOpacity(0.1),
-                        border: Border.all(color: BooyahTheme.yellow.withOpacity(0.4)),
+                        color: BooyahTheme.yellow.withValues(alpha: 0.1),
+                        border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text('${_summary['pending_claims_count'] ?? 0} ANTRIAN',
@@ -151,13 +151,13 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                   decoration: BoxDecoration(
                     color: BooyahTheme.card,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                    border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                   ),
                   child: Row(children: [
                     Container(
                       width: 34, height: 34,
                       decoration: BoxDecoration(
-                        color: BooyahTheme.maroon.withOpacity(0.2),
+                        color: BooyahTheme.maroon.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Center(child: Text('💰', style: TextStyle(fontSize: 16))),
@@ -172,7 +172,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
                         color: ((t['type'] as String?) ?? 'debit') == 'credit' ? BooyahTheme.green : BooyahTheme.red)),
                   ]),
-                )).toList(),
+                )),
             ]),
           ),
   );
@@ -183,7 +183,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
       decoration: BoxDecoration(
         color: BooyahTheme.card,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
       ),
       child: Column(children: [
         Text(val, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),

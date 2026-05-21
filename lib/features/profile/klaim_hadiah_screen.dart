@@ -48,8 +48,9 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
     for (final c in _rawClaims) {
       final status = c['status'] as String? ?? 'available';
       final amount = c['amount'] as int? ?? 0;
-      if (status == 'available') totalAvailable += amount;
-      else if (status == 'processing') totalProcessing += amount;
+      if (status == 'available') {
+        totalAvailable += amount;
+      } else if (status == 'processing') totalProcessing += amount;
       else if (status == 'verified') totalVerified += amount;
     }
     
@@ -140,7 +141,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
                     decoration: BoxDecoration(
                       color: BooyahTheme.card,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: BooyahTheme.gold.withOpacity(0.3)),
+                      border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.3)),
                     ),
                     child: Row(children: [
                       const Text('💰', style: TextStyle(fontSize: 20)),
@@ -210,13 +211,13 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
                       decoration: BoxDecoration(
                         color: BooyahTheme.card,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: statusColor.withOpacity(0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Row(children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.15),
+                            color: statusColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(_statusLabel(status),
@@ -232,7 +233,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: statusColor)),
                       ]),
                     );
-                  }).toList(),
+                  }),
                 ]),
 
               if (_rawClaims.isEmpty)
@@ -252,7 +253,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
     decoration: BoxDecoration(
       color: BooyahTheme.card,
       borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: color.withOpacity(0.3)),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
     ),
     child: Column(children: [
       Text(ico, style: const TextStyle(fontSize: 24)),

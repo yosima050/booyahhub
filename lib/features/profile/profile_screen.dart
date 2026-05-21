@@ -73,17 +73,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [BooyahTheme.maroonD.withOpacity(0.8), BooyahTheme.bg],
+              colors: [BooyahTheme.maroonD.withValues(alpha: 0.8), BooyahTheme.bg],
               begin: Alignment.topCenter, end: Alignment.bottomCenter),
           ),
           child: Column(children: [
             Container(
               width: 86, height: 86,
               decoration: BoxDecoration(
-                color: BooyahTheme.maroon.withOpacity(0.3),
+                color: BooyahTheme.maroon.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
                 border: Border.all(color: BooyahTheme.maroon),
-                boxShadow: [BoxShadow(color: BooyahTheme.maroon.withOpacity(0.5), blurRadius: 20)],
+                boxShadow: [BoxShadow(color: BooyahTheme.maroon.withValues(alpha: 0.5), blurRadius: 20)],
               ),
               child: const Center(child: Text('🐺', style: TextStyle(fontSize: 40))),
             ),
@@ -95,9 +95,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 18),
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               _stat('${_stats['total_scrims'] ?? 0}', 'SCRIM\nDIIKUTI'),
-              Container(width: 1, height: 36, color: BooyahTheme.maroon.withOpacity(0.4)),
+              Container(width: 1, height: 36, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
               _stat('${_stats['total_kills'] ?? 0}', 'TOTAL\nKILLS'),
-              Container(width: 1, height: 36, color: BooyahTheme.maroon.withOpacity(0.4)),
+              Container(width: 1, height: 36, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
               _stat(_fmtRupiah(_stats['total_rewards'] ?? 0), 'HADIAH\nDITERIMA'),
             ]),
           ]),
@@ -153,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _menuGroup(String title, List<_MenuItem> items) => Container(
     decoration: BoxDecoration(
       color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(
@@ -173,11 +173,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 12, fontWeight: FontWeight.w600,
                 color: m.isRed ? BooyahTheme.red : BooyahTheme.textSec)),
               const Spacer(),
-              Icon(Icons.chevron_right, color: m.isRed ? BooyahTheme.red.withOpacity(0.5) : BooyahTheme.textMuted, size: 18),
+              Icon(Icons.chevron_right, color: m.isRed ? BooyahTheme.red.withValues(alpha: 0.5) : BooyahTheme.textMuted, size: 18),
             ]),
           ),
         ),
-        if (m != items.last) Divider(height: 1, indent: 46, color: Colors.white.withOpacity(0.04)),
+        if (m != items.last) Divider(height: 1, indent: 46, color: Colors.white.withValues(alpha: 0.04)),
       ])),
     ]),
   );
@@ -189,6 +189,8 @@ class _MenuItem {
   final VoidCallback? onTap;
   final bool isRed;
   const _MenuItem(this.icon, this.label, this.onTap, {this.isRed = false});
+  @override
   bool operator ==(Object other) => other is _MenuItem && other.label == label;
+  @override
   int get hashCode => label.hashCode;
 }

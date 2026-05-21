@@ -18,10 +18,10 @@ class ScrimCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: scrim.isPremium
-                ? BooyahTheme.gold.withOpacity(0.35)
-                : BooyahTheme.maroon.withOpacity(0.25),
+                ? BooyahTheme.gold.withValues(alpha: 0.35)
+                : BooyahTheme.maroon.withValues(alpha: 0.25),
           ),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 12)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 12)],
         ),
         child: Column(
           children: [
@@ -128,20 +128,20 @@ class ScrimCard extends StatelessWidget {
   Widget _slotBadge() {
     Color bg, fg;
     if (scrim.isFull) {
-      bg = BooyahTheme.red.withOpacity(0.15);
+      bg = BooyahTheme.red.withValues(alpha: 0.15);
       fg = BooyahTheme.red;
     } else if (scrim.isAlmostFull) {
-      bg = BooyahTheme.yellow.withOpacity(0.15);
+      bg = BooyahTheme.yellow.withValues(alpha: 0.15);
       fg = BooyahTheme.yellow;
     } else {
-      bg = BooyahTheme.green.withOpacity(0.15);
+      bg = BooyahTheme.green.withValues(alpha: 0.15);
       fg = BooyahTheme.green;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: bg, borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: fg.withOpacity(0.5)),
+        border: Border.all(color: fg.withValues(alpha: 0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -178,7 +178,7 @@ class ScrimCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: BooyahTheme.surface,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: BooyahTheme.maroon.withOpacity(0.15)),
+        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [

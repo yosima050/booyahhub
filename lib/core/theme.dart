@@ -72,11 +72,11 @@ class BooyahTheme {
         fillColor: surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: maroon.withOpacity(0.3)),
+          borderSide: BorderSide(color: maroon.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: maroon.withOpacity(0.3)),
+          borderSide: BorderSide(color: maroon.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -89,7 +89,7 @@ class BooyahTheme {
         color: card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: maroon.withOpacity(0.25)),
+          side: BorderSide(color: maroon.withValues(alpha: 0.25)),
         ),
         elevation: 4,
         shadowColor: Colors.black54,
@@ -102,10 +102,10 @@ class BooyahTheme {
           fontSize: 11,
           fontWeight: FontWeight.w700,
         ),
-        side: BorderSide(color: maroon.withOpacity(0.3)),
+        side: BorderSide(color: maroon.withValues(alpha: 0.3)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       ),
-      dividerColor: Colors.white.withOpacity(0.06),
+      dividerColor: Colors.white.withValues(alpha: 0.06),
       textTheme: const TextTheme(
         headlineLarge: TextStyle(fontFamily: 'Orbitron', fontWeight: FontWeight.w900, color: textPri),
         headlineMedium: TextStyle(fontFamily: 'Orbitron', fontWeight: FontWeight.w700, color: textPri),

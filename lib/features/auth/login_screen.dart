@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
-import '../../core/auth_service.dart';
+import '../../services/supabase_service.dart';
 import '../../shared/models/models.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -18,40 +18,65 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading    = false;
   String? _error;
 
-  // Dummy credentials – ganti dengan API call
-  static const _accounts = {
-    'peserta@test.com':  (UserRole.peserta,  'FIRE WOLVES',        1),
-    'admin@test.com':    (UserRole.admin,     'ProScrim_ID',        2),
-    'platform@test.com': (UserRole.platform,  'BooyahHub Platform', 3),
-  };
-
   void _login() async {
-    setState(() { _loading = true; _error = null; });
-    await Future.delayed(const Duration(seconds: 1));
+    final String email = _emailCtrl.text.trim().toLowerCase();
+    final String password = _passCtrl.text.trim();
 
-    final key = _emailCtrl.text.trim().toLowerCase();
-    final acc  = _accounts[key];
-
-    if (acc == null || _passCtrl.text != '123456') {
+    // 1. Validasi Input Sederhana
+    if (email.isEmpty || password.isEmpty) {
       setState(() {
-        _error   = 'Email atau password salah.';
-        _loading = false;
+        _error = 'Email dan password wajib diisi.';
       });
       return;
     }
 
-    // Simpan session
-    AuthService().login(
-      role:   acc.$1,
-      name:   acc.$2,
-      email:  key,
-      userId: acc.$3,
-    );
+    setState(() { _loading = true; _error = null; });
 
-    if (mounted) {
-      // Navigasi sesuai role
-      Navigator.pushReplacementNamed(
-        context, AppRoutes.homeForRole(acc.$1));
+    try {
+      // 2. Memanggil Autentikasi Asli Supabase
+      await AuthService.login(
+        email: email,
+        password: password,
+      );
+
+if (mounted) {
+        // 1. Ambil string role dari metadata Supabase ('peserta', 'admin', atau 'platform')
+        final String rawRole = AuthService.currentRole;
+        
+        // 2. Lakukan konversi dari String ke Enum UserRole yang dimengerti oleh AppRoutes
+        final UserRole role = UserRole.values.firstWhere(
+          (e) => e.name == rawRole,
+          orElse: () => UserRole.peserta, // Fallback aman jika terjadi anomali data
+        );
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('⚡ Selamat datang kembali di BooyahHub!'),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+
+        // 3. Sekarang parameter 'role' sudah bertipe UserRole dan dijamin aman!
+        Navigator.pushReplacementNamed(
+          context, 
+          AppRoutes.homeForRole(role),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        // Format penanganan pesan kesalahan login agar rapi
+        String errorMsg = e.toString().replaceAll('Exception:', '').trim();
+        if (errorMsg.contains('Invalid login credentials')) {
+          errorMsg = 'Email atau password yang Anda masukkan salah.';
+        } else if (errorMsg.contains('Email not confirmed')) {
+          errorMsg = 'Email Anda belum dikonfirmasi. Silakan cek kotak masuk.';
+        }
+        
+        setState(() {
+          _error = errorMsg;
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -64,9 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 40),
+              const SizedBox(height: 60),
 
-              // Logo
+              // Logo Komunitas BooyahHub
               Center(
                 child: Column(
                   children: [
@@ -76,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: BooyahTheme.maroon,
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [BoxShadow(
-                          color: BooyahTheme.maroon.withOpacity(0.4),
+                          color: BooyahTheme.maroon.withValues(alpha: 0.4),
                           blurRadius: 20, spreadRadius: 2,
                         )],
                       ),
@@ -106,17 +131,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 56),
 
-              // Form
-              const Text('LOGIN', style: TextStyle(
-                fontFamily: 'Orbitron', fontSize: 14,
+              const Text('MASUK KE AKUN', style: TextStyle(
+                fontFamily: 'Orbitron', fontSize: 13,
                 fontWeight: FontWeight.w700, letterSpacing: 2,
                 color: BooyahTheme.textMuted,
               )),
               const SizedBox(height: 16),
 
-              // Email
+              // Input Email
               TextField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
@@ -128,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Password
+              // Input Password
               TextField(
                 controller: _passCtrl,
                 obscureText: _obscure,
@@ -146,15 +170,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              // Error
+              // Tampilan Alert Kotak Eror
               if (_error != null) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: BooyahTheme.red.withOpacity(0.4)),
+                    color: BooyahTheme.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.4)),
                   ),
                   child: Row(
                     children: [
@@ -168,22 +192,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
 
-              // Login button
+              // Tombol Eksekusi Login
               SizedBox(width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _loading ? null : _login,
                   child: _loading
                       ? const SizedBox(height: 20, width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('MASUK'),
+                      : const Text('MASUK SEKARANG'),
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // Register link
+              // Tautan Pindah ke Register
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
@@ -205,54 +229,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
-              // DEBUG: Quick login shortcuts
-              const SizedBox(height: 32),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: BooyahTheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withOpacity(0.08)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('🔧 DEBUG – Quick Login',
-                      style: TextStyle(fontSize: 11, color: BooyahTheme.textMuted, letterSpacing: 1)),
-                    const SizedBox(height: 8),
-                    _debugLoginBtn('👤 Masuk sebagai Peserta', 'peserta@test.com'),
-                    const SizedBox(height: 6),
-                    _debugLoginBtn('⚙️ Masuk sebagai Admin', 'admin@test.com'),
-                    const SizedBox(height: 6),
-                    _debugLoginBtn('🏢 Masuk sebagai Platform', 'platform@test.com'),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _debugLoginBtn(String label, String email) {
-    return GestureDetector(
-      onTap: () {
-        _emailCtrl.text = email;
-        _passCtrl.text  = '123456';
-        _login();
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        decoration: BoxDecoration(
-          color: BooyahTheme.maroon.withOpacity(0.15),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
-        ),
-        child: Text(label,
-          style: const TextStyle(fontSize: 12, color: BooyahTheme.textSec, fontWeight: FontWeight.w600)),
       ),
     );
   }

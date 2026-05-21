@@ -1,6 +1,6 @@
 // ──────────────────────────────────────────────────────────
 // FILE: lib/features/admin/data_pendaftar_screen.dart
-// UC-07 + UC-15: Data Pendaftar & Verifikasi
+// UC-15: Data Pendaftar (READ-ONLY MONITORING DASHBOARD)
 // ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
@@ -52,48 +52,28 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
     captainId:     d['captain_ff_id'] as String,
     paymentMethod: d['payment_method'] as String? ?? '-',
     amount:        _fmtRupiah(d['payment_amount'] as int? ?? 0),
-    time:          d['payment_uploaded_at'] != null
-                     ? _fmtTime(d['payment_uploaded_at']) : '-',
+    time:          d['created_at'] != null
+                     ? _fmtTime(d['created_at']) : '-',
     isApproved:    d['status'] == 'verified',
-    isRejected:    d['status'] == 'rejected',
+    isRejected:    d['status'] == 'rejected' || d['status'] == 'expired' || d['status'] == 'failed',
   )).toList();
 
   List<PendaftarModel> get _pending   => _allPendaftar.where((d) => !d.isApproved && !d.isRejected).toList();
   List<PendaftarModel> get _approved  => _allPendaftar.where((d) => d.isApproved).toList();
   List<PendaftarModel> get _rejected  => _allPendaftar.where((d) => d.isRejected).toList();
 
-  void _approve(PendaftarModel d) async {
-    setState(() => d.isApproved = true);
-    try {
-      await RegistrationService.verifyPayment(
-        registrationId: int.parse(d.id), approve: true);
-    } catch (e) {
-      setState(() => d.isApproved = false);
-      debugPrint('Error approve: $e');
-    }
-  }
-
-  void _reject(PendaftarModel d) async {
-    setState(() => d.isRejected = true);
-    try {
-      await RegistrationService.verifyPayment(
-        registrationId: int.parse(d.id), approve: false, reason: 'Bukti tidak valid');
-    } catch (e) {
-      setState(() => d.isRejected = false);
-      debugPrint('Error reject: $e');
-    }
-  }
-
   String _fmtTime(String iso) {
     final d = DateTime.parse(iso).toLocal();
-    return '${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')}';
+    return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 
   String _fmtRupiah(int amount) {
     final formatter = amount.toString().split('').reversed.toList();
     String result = '';
     for (int i = 0; i < formatter.length; i++) {
-      if (i > 0 && i % 3 == 0) result += '.';
+      if (i > 0 && i % 3 == 0) {
+        result += '.';
+      }
       result += formatter[i];
     }
     return 'Rp${result.split('').reversed.join('')}';
@@ -105,7 +85,7 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
       title: const Text('DATA PENDAFTAR'),
       actions: [Chip(
         label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)],
       bottom: TabBar(
@@ -126,16 +106,19 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
         : TabBarView(
             controller: _tab,
             children: [
-              _buildList(_pending, showActions: true),
+              _buildList(_pending),
               _buildList(_approved),
               _buildList(_rejected),
             ],
           ),
   );
 
-  Widget _buildList(List<PendaftarModel> list, {bool showActions = false}) {
-    if (list.isEmpty) return const Center(
-      child: Text('Tidak ada data.', style: TextStyle(color: BooyahTheme.textMuted)));
+  Widget _buildList(List<PendaftarModel> list) {
+    if (list.isEmpty) {
+      return const Center(
+        child: Text('Tidak ada data.', style: TextStyle(color: BooyahTheme.textMuted)),
+      );
+    }
 
     return ListView.builder(
       padding: const EdgeInsets.all(14),
@@ -148,15 +131,15 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
           decoration: BoxDecoration(
             color: BooyahTheme.card,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
           ),
           child: Row(children: [
             Container(
               width: 36, height: 36,
               decoration: BoxDecoration(
-                color: BooyahTheme.maroon.withOpacity(0.2),
+                color: BooyahTheme.maroon.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
               ),
               child: const Center(child: Text('⚔️', style: TextStyle(fontSize: 16))),
             ),
@@ -167,73 +150,9 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
               Text('${d.paymentMethod} · ${d.amount} · ${d.time} WIB',
                 style: const TextStyle(fontSize: 10, color: BooyahTheme.yellow)),
             ])),
-            if (showActions) Row(children: [
-              // View proof button
-              GestureDetector(
-                onTap: () => _showProofDialog(d),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: BooyahTheme.maroon.withOpacity(0.1),
-                    border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('👁', style: TextStyle(fontSize: 12)),
-                ),
-              ),
-              const SizedBox(width: 4),
-              _actionBtn('✓', BooyahTheme.green, () => _approve(d)),
-              const SizedBox(width: 4),
-              _actionBtn('✕', BooyahTheme.red, () => _reject(d)),
-            ]),
           ]),
         );
       },
     );
   }
-
-  Widget _actionBtn(String label, Color color, VoidCallback onTap) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        border: Border.all(color: color.withOpacity(0.4)),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
-    ),
-  );
-
-  void _showProofDialog(PendaftarModel d) => showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      backgroundColor: BooyahTheme.card,
-      title: Text('Bukti Bayar – ${d.teamName}',
-        style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 14, fontWeight: FontWeight.w700)),
-      content: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(height: 160, decoration: BoxDecoration(
-          color: BooyahTheme.surface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
-        ), child: const Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('🖼️', style: TextStyle(fontSize: 40)),
-          SizedBox(height: 8),
-          Text('bukti_transfer.jpg', style: TextStyle(fontSize: 11, color: BooyahTheme.textMuted)),
-        ]))),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(child: _actionBtn('✓ APPROVE', BooyahTheme.green, () {
-            _approve(d); Navigator.pop(context);
-          })),
-          const SizedBox(width: 8),
-          Expanded(child: _actionBtn('✕ TOLAK', BooyahTheme.red, () {
-            _reject(d); Navigator.pop(context);
-          })),
-        ]),
-      ]),
-      actions: [TextButton(onPressed: () => Navigator.pop(context),
-        child: const Text('TUTUP', style: TextStyle(color: BooyahTheme.textMuted)))],
-    ),
-  );
 }

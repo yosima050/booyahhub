@@ -70,7 +70,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('LAYANAN PREMIUM'),
       actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: _loading
@@ -96,7 +96,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
           ),
           child: Column(children: [
             _featureRow('🏅', 'Scrim ditampilkan di halaman utama (featured)'),
@@ -123,7 +123,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
               decoration: BoxDecoration(
                 color: BooyahTheme.card,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
               ),
               child: Row(children: [
                 const Text('⭐', style: TextStyle(fontSize: 22)),
@@ -142,7 +142,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
                 ]),
               ]),
             );
-          }).toList(),
+          }),
 
         const SizedBox(height: 14),
 
@@ -161,7 +161,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
               ),
               child: Row(children: [
                 Text(['🥇','🥈','🥉'][e.key % 3], style: const TextStyle(fontSize: 20)),
@@ -178,7 +178,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
                 ]),
               ]),
             );
-          }).toList(),
+          }),
       ]),
     ),
   );
@@ -188,7 +188,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
       ),
       child: Column(children: [
         Text(val, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
@@ -209,8 +209,8 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
   Widget _btn(String label, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withOpacity(0.12),
-      border: Border.all(color: color.withOpacity(0.4)),
+      color: color.withValues(alpha: 0.12),
+      border: Border.all(color: color.withValues(alpha: 0.4)),
       borderRadius: BorderRadius.circular(4),
     ),
     child: Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),

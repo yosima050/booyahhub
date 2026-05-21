@@ -57,8 +57,8 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
     appBar: AppBar(title: const Text('BUAT SCRIM BARU'),
       actions: [Chip(
         label: const Text('ADMIN', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
-        side: BorderSide(color: BooyahTheme.yellow.withOpacity(0.4)),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
+        side: BorderSide(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
         labelStyle: const TextStyle(color: BooyahTheme.yellow),
       ), const SizedBox(width: 8)],
     ),
@@ -74,7 +74,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             _label('MODE', required: true),
             DropdownButtonFormField<String>(
-              value: _mode,
+              initialValue: _mode,
               dropdownColor: BooyahTheme.surface,
               style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 13, color: BooyahTheme.textPri),
               decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
@@ -109,7 +109,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.surface,
                   borderRadius: BorderRadius.circular(7),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                 ),
                 child: Row(children: [
                   const Icon(Icons.calendar_today, size: 14, color: BooyahTheme.maroonB),
@@ -135,7 +135,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                 decoration: BoxDecoration(
                   color: BooyahTheme.surface,
                   borderRadius: BorderRadius.circular(7),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                 ),
                 child: Row(children: [
                   const Icon(Icons.access_time, size: 14, color: BooyahTheme.maroonB),
@@ -173,7 +173,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
           decoration: BoxDecoration(
             color: BooyahTheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.gold.withOpacity(0.2)),
+            border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.2)),
           ),
           child: Column(children: [
             const Text('KALKULASI OTOMATIS', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 1)),

@@ -34,7 +34,7 @@ class PlatformProfileScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('PROFIL PLATFORM'),
         actions: [Chip(
           label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+          backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
           labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
         ), const SizedBox(width: 8)]),
       body: SingleChildScrollView(
@@ -43,7 +43,7 @@ class PlatformProfileScreen extends StatelessWidget {
             width: double.infinity, padding: const EdgeInsets.fromLTRB(16,24,16,24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [const Color(0xFF3A0000).withOpacity(0.8), BooyahTheme.bg],
+                colors: [const Color(0xFF3A0000).withValues(alpha: 0.8), BooyahTheme.bg],
                 begin: Alignment.topCenter, end: Alignment.bottomCenter),
             ),
             child: Column(children: [
@@ -52,8 +52,8 @@ class PlatformProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: BooyahTheme.maroonGlow,
-                  border: Border.all(color: BooyahTheme.maroonGlow.withOpacity(0.6), width: 2.5),
-                  boxShadow: [BoxShadow(color: BooyahTheme.maroonGlow.withOpacity(0.2), blurRadius: 16)],
+                  border: Border.all(color: BooyahTheme.maroonGlow.withValues(alpha: 0.6), width: 2.5),
+                  boxShadow: [BoxShadow(color: BooyahTheme.maroonGlow.withValues(alpha: 0.2), blurRadius: 16)],
                 ),
                 child: const Center(child: Text('🏢', style: TextStyle(fontSize: 36))),
               ),
@@ -65,9 +65,9 @@ class PlatformProfileScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal:12, vertical:4),
                 decoration: BoxDecoration(
-                  color: BooyahTheme.maroonGlow.withOpacity(0.12),
+                  color: BooyahTheme.maroonGlow.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: BooyahTheme.maroonGlow.withOpacity(0.4)),
+                  border: Border.all(color: BooyahTheme.maroonGlow.withValues(alpha: 0.4)),
                 ),
                 child: const Text('SUPER ADMIN · PENGELOLA APLIKASI',
                   style: TextStyle(fontSize:9, color:BooyahTheme.maroonGlow, fontWeight:FontWeight.w700, letterSpacing:1)),
@@ -101,8 +101,8 @@ class PlatformProfileScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.red.withOpacity(0.08),
-                    border: Border.all(color: BooyahTheme.red.withOpacity(0.3)),
+                    color: BooyahTheme.red.withValues(alpha: 0.08),
+                    border: Border.all(color: BooyahTheme.red.withValues(alpha: 0.3)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -123,7 +123,7 @@ class PlatformProfileScreen extends StatelessWidget {
       Container(
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Padding(

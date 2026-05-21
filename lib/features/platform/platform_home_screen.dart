@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
-import '../../core/auth_service.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart';
 
@@ -74,7 +73,7 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.maroonGlow.withOpacity(0.15),
+                    color: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Row(children: [
@@ -87,7 +86,7 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.green.withOpacity(0.12),
+                    color: BooyahTheme.green.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Row(children: [
@@ -177,8 +176,8 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
-              border: Border.all(color: color.withOpacity(0.25)),
+              color: color.withValues(alpha: 0.08),
+              border: Border.all(color: color.withValues(alpha: 0.25)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(children: [
@@ -210,8 +209,8 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            border: Border.all(color: color.withOpacity(0.25)),
+            color: color.withValues(alpha: 0.08),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(children: [
@@ -228,8 +227,8 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                border: Border.all(color: color.withOpacity(0.5)),
+                color: color.withValues(alpha: 0.2),
+                border: Border.all(color: color.withValues(alpha: 0.5)),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(ctaLabel, style: TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: color)),

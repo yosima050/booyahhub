@@ -57,7 +57,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('LAPORAN PLATFORM'),
       actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: _loading
@@ -81,7 +81,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                     decoration: BoxDecoration(
                       color: _periodIdx == e.key ? BooyahTheme.maroon : BooyahTheme.surface,
                       borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: BooyahTheme.maroon.withOpacity(_periodIdx == e.key ? 0.8 : 0.2)),
+                      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: _periodIdx == e.key ? 0.8 : 0.2)),
                     ),
                     child: Text(e.value, textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
@@ -114,7 +114,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                     begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.3)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('PERTUMBUHAN PENGGUNA', style: TextStyle(fontSize: 10, color: Colors.white38, letterSpacing: 1.5)),
@@ -140,7 +140,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   _distRow('Peserta', 4678, 5847, BooyahTheme.maroonB),
@@ -159,7 +159,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                    border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                   ),
                   child: Row(children: [
                     Text(['🥇','🥈','🥉','#4'][e.key % 4], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
@@ -174,7 +174,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                     ),
                   ]),
                 );
-              }).toList(),
+              }),
               const SizedBox(height: 14),
 
               // System health
@@ -183,7 +183,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
                   BooyahProgress(label: 'Uptime Server',       valueLabel: '99.8%', percent: 0.998),
@@ -208,7 +208,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: BooyahTheme.maroon.withOpacity(0.25)),
+          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(ico, style: const TextStyle(fontSize: 18)),

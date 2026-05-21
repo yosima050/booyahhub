@@ -51,7 +51,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('KIRIM PENGUMUMAN'),
       actions: [Chip(label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withOpacity(0.15),
+        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
     body: SingleChildScrollView(
@@ -63,7 +63,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
         const Text('PILIH SCRIM TARGET *', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 0.8)),
         const SizedBox(height: 5),
         DropdownButtonFormField<String>(
-          value: _selectedScrim, dropdownColor: BooyahTheme.surface,
+          initialValue: _selectedScrim, dropdownColor: BooyahTheme.surface,
           style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 12, color: BooyahTheme.textPri),
           decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
           items: _scrims.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
@@ -80,9 +80,9 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
               margin: EdgeInsets.only(right: e.key < 2 ? 6 : 0),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: active ? BooyahTheme.maroon.withOpacity(0.15) : BooyahTheme.surface,
-                borderRadius: BorderRadius.circular(7),
-                border: Border.all(color: active ? BooyahTheme.maroonB : BooyahTheme.maroon.withOpacity(0.2)),
+                color: active ? BooyahTheme.maroon.withValues(alpha: 0.15) : BooyahTheme.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: active ? BooyahTheme.maroonB : BooyahTheme.maroon.withValues(alpha: 0.2)),
               ),
               child: Column(children: [
                 Text(e.value.$2, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
@@ -99,7 +99,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
         const Text('KATEGORI *', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 0.8)),
         const SizedBox(height: 5),
         DropdownButtonFormField<String>(
-          value: _kategori, dropdownColor: BooyahTheme.surface,
+          initialValue: _kategori, dropdownColor: BooyahTheme.surface,
           style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 12, color: BooyahTheme.textPri),
           decoration: const InputDecoration(contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
           items: _kategoriList.map((k) => DropdownMenuItem(value: k, child: Text(k))).toList(),
@@ -128,9 +128,9 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: BooyahTheme.maroon.withOpacity(0.08),
+            color: BooyahTheme.maroon.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.maroon.withOpacity(0.2)),
+            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [

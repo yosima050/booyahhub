@@ -101,7 +101,7 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor.withOpacity(0.35)),
+          border: Border.all(color: borderColor.withValues(alpha: 0.35)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
@@ -116,7 +116,7 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
           const SizedBox(height: 14),
           TimelineStep(title: 'Booking Dilakukan', subtitle: 'Selesai', isDone: true, isActive: false, stepLabel: '1', isLast: false),
           TimelineStep(title: 'Pembayaran', subtitle: regStatus.contains('waiting') ? 'Menunggu verifikasi' : 'Dikonfirmasi', isDone: !regStatus.contains('waiting'), isActive: regStatus.contains('waiting'), stepLabel: '2', isLast: false),
-          TimelineStep(title: 'Room ID', subtitle: roomId != null ? roomId : 'Belum tersedia', isDone: roomId != null, isActive: regStatus == 'waiting_room_id', stepLabel: '3', isLast: false),
+          TimelineStep(title: 'Room ID', subtitle: roomId ?? 'Belum tersedia', isDone: roomId != null, isActive: regStatus == 'waiting_room_id', stepLabel: '3', isLast: false),
           TimelineStep(title: 'Scrim Berlangsung', subtitle: regStatus == 'ongoing' ? 'Sedang berlangsung' : '', isDone: regStatus == 'finished' || regStatus == 'ongoing', isActive: regStatus == 'ongoing', stepLabel: '4', isLast: false),
           TimelineStep(title: 'Selesai & Leaderboard', subtitle: regStatus == 'finished' ? 'Selesai' : '', isDone: regStatus == 'finished', isActive: false, stepLabel: '5', isLast: true),
         ]),

@@ -29,7 +29,7 @@ class _AdminShellState extends State<AdminShell> {
       decoration: BoxDecoration(
         color: BooyahTheme.surface,
         border: const Border(top: BorderSide(color: BooyahTheme.yellow, width: 0.5)),
-        boxShadow: [BoxShadow(color: BooyahTheme.yellow.withOpacity(0.05), blurRadius: 12)],
+        boxShadow: [BoxShadow(color: BooyahTheme.yellow.withValues(alpha: 0.05), blurRadius: 12)],
       ),
       child: SafeArea(
         child: SizedBox(
