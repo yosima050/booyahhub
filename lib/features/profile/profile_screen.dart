@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../services/supabase_service.dart';
+import './admin_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,12 +23,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-  Future<void> _loadUserData() async {
+Future<void> _loadUserData() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
+        // 🟢 Pastikan UserService.getUserProfile di dalam supabase_service.dart
+        // sudah diubah query-nya dari .eq('id', userId) menjadi .eq('uuid', userId)
         final userData = await UserService.getUserProfile(user.id);
         final stats = await UserService.getUserStats(user.id);
+        
         setState(() {
           _userData = userData;
           _stats = stats;
@@ -35,6 +39,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
+      final backupRole = Supabase.instance.client.auth.currentUser?.userMetadata?['role'];
+      if (backupRole != null) {
+        setState(() {
+          _userData = {
+            'username': Supabase.instance.client.auth.currentUser?.email?.split('@')[0],
+            'role': backupRole,
+            'team_name': 'Sesi Token Lama',
+          };
+        });
+      }
     } finally {
       setState(() => _loading = false);
     }
@@ -107,6 +121,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Padding(
           padding: const EdgeInsets.all(14),
           child: Column(children: [
+            // Admin Mode Button (if user is admin)
+            if (_userData?['role'] == 'admin') ...[
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () => Navigator.push(ctx, MaterialPageRoute(
+                  builder: (_) => const AdminProfileScreen(),
+                )),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [BooyahTheme.yellow.withValues(alpha: 0.1), BooyahTheme.yellow.withValues(alpha: 0.05)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.5)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.admin_panel_settings, color: BooyahTheme.yellow, size: 20),
+                    SizedBox(width: 8),
+                    Text('MASUK MODE ADMIN', style: TextStyle(fontSize: 14, color: BooyahTheme.yellow, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
             _menuGroup('SCRIM', [
               _MenuItem(Icons.history, 'Riwayat Scrim', () => Navigator.pushNamed(ctx, AppRoutes.riwayat)),
               _MenuItem(Icons.emoji_events, 'Klaim Hadiah', () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah)),

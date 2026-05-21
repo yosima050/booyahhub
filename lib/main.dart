@@ -30,20 +30,17 @@ class BooyahHubApp extends StatelessWidget {
     // Cek session aktif
     String initialRoute = AppRoutes.login;
 
-// Check session and user safely
-    final user = supabase.auth.currentUser;
-    if (user != null) {
-      // Use a null-safe approach for metadata
-      final metadata = user.userMetadata;
-      final role = (metadata != null && metadata.containsKey('role')) 
-          ? metadata['role'] as String 
-          : 'peserta'; // Default role if metadata is missing
+      final user = supabase.auth.currentUser;
+      if (user != null) {
+        final metadata = user.userMetadata;
+        final role = (metadata != null && metadata.containsKey('role')) 
+            ? metadata['role'] as String 
+            : 'peserta';
 
-      initialRoute = AppRoutes.homeForRole(
-        role == 'admin'    ? UserRole.admin    :
-        role == 'platform' ? UserRole.platform : UserRole.peserta,
-      );
-    }
+        initialRoute = role == 'platform' 
+            ? AppRoutes.homeForRole(UserRole.platform) 
+            : AppRoutes.homeForRole(UserRole.peserta); 
+      }
 
     return MaterialApp(
       title: 'BooyahHub',
