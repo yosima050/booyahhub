@@ -12,7 +12,8 @@ class AdminShell extends StatefulWidget {
 
 class _AdminShellState extends State<AdminShell> {
   int _idx = 0;
-  final GlobalKey<AdminHomeScreenState> _adminHomeKey = GlobalKey<AdminHomeScreenState>();
+  final GlobalKey<AdminHomeScreenState> _adminHomeKey =
+      GlobalKey<AdminHomeScreenState>();
 
   late final List<Widget> _screens;
 
@@ -35,7 +36,10 @@ class _AdminShellState extends State<AdminShell> {
     body: IndexedStack(index: _idx, children: _screens),
     floatingActionButton: FloatingActionButton(
       onPressed: () async {
-        final result = await Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BuatScrimScreen()));
+        final result = await Navigator.push(
+          ctx,
+          MaterialPageRoute(builder: (_) => const BuatScrimScreen()),
+        );
         if (result == true) {
           _adminHomeKey.currentState?.load();
         }
@@ -48,8 +52,15 @@ class _AdminShellState extends State<AdminShell> {
     bottomNavigationBar: Container(
       decoration: BoxDecoration(
         color: BooyahTheme.surface,
-        border: const Border(top: BorderSide(color: BooyahTheme.yellow, width: 0.5)),
-        boxShadow: [BoxShadow(color: BooyahTheme.yellow.withValues(alpha: 0.05), blurRadius: 12)],
+        border: const Border(
+          top: BorderSide(color: BooyahTheme.yellow, width: 0.5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: BooyahTheme.yellow.withValues(alpha: 0.05),
+            blurRadius: 12,
+          ),
+        ],
       ),
       child: SafeArea(
         child: SizedBox(
@@ -60,13 +71,31 @@ class _AdminShellState extends State<AdminShell> {
               Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _idx = 0),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(_navItems[0].icon, size: 22, color: _idx == 0 ? BooyahTheme.yellow : BooyahTheme.textMuted),
-                    const SizedBox(height: 2),
-                    Text(_navItems[0].label, style: TextStyle(fontFamily:'Rajdhani', fontSize: 7,
-                      fontWeight: FontWeight.w700, letterSpacing: 0.4,
-                      color: _idx == 0 ? BooyahTheme.yellow : BooyahTheme.textMuted)),
-                  ]),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _navItems[0].icon,
+                        size: 22,
+                        color: _idx == 0
+                            ? BooyahTheme.yellow
+                            : BooyahTheme.textMuted,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _navItems[0].label,
+                        style: TextStyle(
+                          fontFamily: 'Rajdhani',
+                          fontSize: 7,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                          color: _idx == 0
+                              ? BooyahTheme.yellow
+                              : BooyahTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               // Spacer untuk FAB (Tengah)
@@ -75,13 +104,31 @@ class _AdminShellState extends State<AdminShell> {
               Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _idx = 1),
-                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(_navItems[1].icon, size: 22, color: _idx == 1 ? BooyahTheme.yellow : BooyahTheme.textMuted),
-                    const SizedBox(height: 2),
-                    Text(_navItems[1].label, style: TextStyle(fontFamily:'Rajdhani', fontSize: 7,
-                      fontWeight: FontWeight.w700, letterSpacing: 0.4,
-                      color: _idx == 1 ? BooyahTheme.yellow : BooyahTheme.textMuted)),
-                  ]),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _navItems[1].icon,
+                        size: 22,
+                        color: _idx == 1
+                            ? BooyahTheme.yellow
+                            : BooyahTheme.textMuted,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _navItems[1].label,
+                        style: TextStyle(
+                          fontFamily: 'Rajdhani',
+                          fontSize: 7,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                          color: _idx == 1
+                              ? BooyahTheme.yellow
+                              : BooyahTheme.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
