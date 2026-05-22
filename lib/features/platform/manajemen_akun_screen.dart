@@ -321,11 +321,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
             style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 14, fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ['peserta', 'admin', 'platform'].map((r) => Card(
-            color: currentRole == r ? BooyahTheme.maroon.withValues(alpha: 0.15) : Colors.transparent,
-            elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          children: ['peserta', 'admin', 'platform'].map((r) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
+              tileColor: currentRole == r ? BooyahTheme.maroon.withValues(alpha: 0.15) : Colors.transparent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
               title: Text(r.toUpperCase(), style: const TextStyle(fontFamily: 'Rajdhani', fontWeight: FontWeight.w700, fontSize: 13)),
               trailing: currentRole == r ? const Icon(Icons.check_circle, color: BooyahTheme.maroonB, size: 18) : null,
               onTap: () async {

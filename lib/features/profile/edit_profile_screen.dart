@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
+import '../../core/auth_service.dart';
 import '../../services/supabase_service.dart' show UserService;
 
-class edit_profile_screen extends StatefulWidget {
-  const edit_profile_screen({super.key});
+class EditProfileScreen extends StatefulWidget {
+  const EditProfileScreen({super.key});
 
   @override
-  State<edit_profile_screen> createState() => _edit_profile_screenState();
+  State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
-class _edit_profile_screenState extends State<edit_profile_screen> {
+class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controller Form
@@ -23,6 +24,7 @@ class _edit_profile_screenState extends State<edit_profile_screen> {
   bool _isLoading = true;
   bool _isSaving = false;
   String _userRole = 'peserta'; // Default role, akan diupdate dari DB
+  int? _userBigId;
 
   @override
   void initState() {
@@ -48,16 +50,15 @@ class _edit_profile_screenState extends State<edit_profile_screen> {
       // Mengambil data profile dari backend/service kamu
       final userData = await UserService.getUserProfile(user.id);
 
-      if (userData != null) {
-        setState(() {
-          _userRole = userData['role']?.toString().toLowerCase() ?? 'peserta';
-          _nameController.text = userData['name']?.toString() ?? '';
-          _usernameController.text = userData['username']?.toString() ?? '';
-          _phoneController.text = userData['phone']?.toString() ?? '';
-          _ffIdController.text = userData['ff_id']?.toString() ?? '';
-          _teamNameController.text = userData['team_name']?.toString() ?? '';
-        });
-      }
+      setState(() {
+        _userBigId = int.tryParse(userData['id']?.toString() ?? '');
+        _userRole = userData['role']?.toString().toLowerCase() ?? 'peserta';
+        _nameController.text = userData['name']?.toString() ?? '';
+        _usernameController.text = userData['username']?.toString() ?? '';
+        _phoneController.text = userData['phone']?.toString() ?? '';
+        _ffIdController.text = userData['ff_id']?.toString() ?? '';
+        _teamNameController.text = userData['team_name']?.toString() ?? '';
+      });
     } catch (e) {
       debugPrint('Error loading profile: $e');
     } finally {
@@ -100,6 +101,17 @@ class _edit_profile_screenState extends State<edit_profile_screen> {
           .from('users')
           .update(updateData)
           .eq('uuid', user.id);
+
+      // Jika role adalah admin, update juga tabel admin_profiles
+      if (_userRole == 'admin' && _userBigId != null) {
+        await Supabase.instance.client
+            .from('admin_profiles')
+            .update({'display_name': _nameController.text.trim()})
+            .eq('user_id', _userBigId!);
+      }
+
+      // Update local memory cache so other screens can rebuild with new name
+      AuthService().updateName(_nameController.text.trim());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

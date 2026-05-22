@@ -30,6 +30,11 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateName(String newName) {
+    _name = newName;
+    notifyListeners();
+  }
+
   void logout() {
     _role   = null;
     _name   = '';
