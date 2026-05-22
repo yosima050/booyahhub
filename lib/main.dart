@@ -7,7 +7,7 @@ import 'shared/models/models.dart';
 import 'package:booyahhub/features/notification/notification_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized(); 
 
   await Supabase.initialize(
     url:     SupabaseConfig.url,

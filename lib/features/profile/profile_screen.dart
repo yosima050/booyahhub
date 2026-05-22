@@ -1,6 +1,8 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'bantuan_faq_screen.dart';
+import 'tentang_aplikasi_screen.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../core/auth_service.dart';
@@ -422,19 +424,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
 
                           const SizedBox(height: 10),
-                          _menuGroup('LAINNYA', [
-                            _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
-                            _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
-                            _MenuItem(
-                              Icons.logout,
-                              'Keluar',
-                              () => _logout(ctx),
-                              isRed: true,
-                            ),
-                          ]),
+                        
+                          _menuGroup(
+                            'LAINNYA',
+                            [
+                              _MenuItem(
+                                Icons.help_outline,
+                                'Bantuan & FAQ',
+                                () => Navigator.push(
+                                  ctx,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const BantuanFaqScreen(),
+                                  ),
+                                ),
+                              ),
+
+                              _MenuItem(
+                                Icons.info_outline,
+                                'Tentang Aplikasi',
+                                () => Navigator.push(
+                                  ctx,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const TentangAplikasiScreen(),
+                                  ),
+                                ),
+                              ),
+
+                              _MenuItem(
+                                Icons.logout,
+                                'Keluar',
+                                () => _logout(ctx),
+                                isRed: true,
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -447,123 +476,157 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _fmtRupiah(int amount) {
     if (amount == 0) return 'Rp0';
+
     final chars = amount.toString().split('').reversed.toList();
+
     String result = '';
+
     for (int i = 0; i < chars.length; i++) {
       if (i > 0 && i % 3 == 0) result += '.';
       result += chars[i];
     }
+
     return 'Rp${result.split('').reversed.join('')}';
   }
 
   Widget _stat(String val, String label) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 22),
-    child: Column(
-      children: [
-        Text(
-          val,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: BooyahTheme.maroonB,
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        child: Column(
+          children: [
+            Text(
+              val,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: BooyahTheme.maroonB,
+              ),
+            ),
+
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 9,
+                color: BooyahTheme.textMuted,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 9,
-            color: BooyahTheme.textMuted,
-            letterSpacing: 0.3,
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
   Widget _menuGroup(
     String title,
     List<_MenuItem> items, {
     Color? borderColor,
     Color? titleColor,
-  }) => Container(
-    decoration: BoxDecoration(
-      color: BooyahTheme.card,
-      borderRadius: BorderRadius.circular(12),
-      border: Border.all(
-        color: borderColor ?? BooyahTheme.maroon.withValues(alpha: 0.2),
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 10,
-              color: titleColor ?? BooyahTheme.textMuted,
-              letterSpacing: 1.5,
-              fontWeight: FontWeight.w700,
-            ),
+  }) =>
+      Container(
+        decoration: BoxDecoration(
+          color: BooyahTheme.card,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color:
+                borderColor ??
+                BooyahTheme.maroon.withValues(alpha: 0.2),
           ),
         ),
-        ...items.map(
-          (m) => Column(
-            children: [
-              InkWell(
-                onTap: m.onTap,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        m.icon,
-                        color: m.isRed
-                            ? BooyahTheme.red
-                            : (m.iconColor ?? BooyahTheme.maroonB),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        m.label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: m.isRed
-                              ? BooyahTheme.red
-                              : BooyahTheme.textSec,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.chevron_right,
-                        color: m.isRed
-                            ? BooyahTheme.red.withValues(alpha: 0.5)
-                            : (m.iconColor?.withValues(alpha: 0.5) ?? BooyahTheme.textMuted),
-                        size: 18,
-                      ),
-                    ],
-                  ),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.fromLTRB(14, 10, 14, 4),
+
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 10,
+                  color:
+                      titleColor ??
+                      BooyahTheme.textMuted,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-              if (m != items.last)
-                Divider(
-                  height: 1,
-                  indent: 46,
-                  color: Colors.white.withValues(alpha: 0.04),
-                ),
-            ],
-          ),
+            ),
+
+            ...items.map(
+              (m) => Column(
+                children: [
+                  InkWell(
+                    onTap: m.onTap,
+                    borderRadius:
+                        BorderRadius.circular(8),
+
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+
+                      child: Row(
+                        children: [
+                          Icon(
+                            m.icon,
+                            color: m.isRed
+                                ? BooyahTheme.red
+                                : (m.iconColor ??
+                                    BooyahTheme.maroonB),
+                            size: 20,
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Text(
+                            m.label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight:
+                                  FontWeight.w600,
+                              color: m.isRed
+                                  ? BooyahTheme.red
+                                  : BooyahTheme.textSec,
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          Icon(
+                            Icons.chevron_right,
+                            color: m.isRed
+                                ? BooyahTheme.red
+                                    .withValues(
+                                    alpha: 0.5)
+                                : (m.iconColor
+                                        ?.withValues(
+                                      alpha: 0.5,
+                                    ) ??
+                                    BooyahTheme
+                                        .textMuted),
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  if (m != items.last)
+                    Divider(
+                      height: 1,
+                      indent: 46,
+                      color: Colors.white.withValues(
+                        alpha: 0.04,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 class _MenuItem {
@@ -572,6 +635,7 @@ class _MenuItem {
   final VoidCallback? onTap;
   final bool isRed;
   final Color? iconColor;
+
   const _MenuItem(
     this.icon,
     this.label,
@@ -579,8 +643,11 @@ class _MenuItem {
     this.isRed = false,
     this.iconColor,
   });
+
   @override
-  bool operator ==(Object other) => other is _MenuItem && other.label == label;
+  bool operator ==(Object other) =>
+      other is _MenuItem && other.label == label;
+
   @override
   int get hashCode => label.hashCode;
 }
