@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../services/supabase_service.dart';
-import './admin_profile_screen.dart';
+import '../../shared/models/models.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -125,9 +125,7 @@ Future<void> _loadUserData() async {
             if (_userData?['role'] == 'admin') ...[
               const SizedBox(height: 6),
               GestureDetector(
-                onTap: () => Navigator.push(ctx, MaterialPageRoute(
-                  builder: (_) => const AdminProfileScreen(),
-                )),
+                onTap: () => Navigator.pushReplacementNamed(ctx, AppRoutes.homeForRole(UserRole.admin)),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),

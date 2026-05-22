@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../core/auth_service.dart';
-import './profile_screen.dart';
+import '../../shared/models/models.dart';
 
 class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
@@ -120,10 +120,17 @@ class AdminProfileScreen extends StatelessWidget {
                 (Icons.help_outline, 'Bantuan & FAQ', null),
               ], ctx),
               const SizedBox(height: 8),
+// 🟢 PERBAIKAN: Gunakan rute resmi Shell Home Peserta agar menu bawah tidak hilang!
               GestureDetector(
-                onTap: () => Navigator.push(ctx, MaterialPageRoute(
-                  builder: (_) => const ProfileScreen(),
-                )),
+                onTap: () {
+                  // Menggunakan pushNamedAndRemoveUntil agar tumpukan halaman Admin dibersihkan,
+                  // dan user mendarat segar di Beranda Utama Peserta lengkap dengan Bottom Navigation Bar.
+                  Navigator.pushNamedAndRemoveUntil(
+                    ctx, 
+                    AppRoutes.homeForRole(UserRole.peserta), 
+                    (route) => false,
+                  );
+                },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
