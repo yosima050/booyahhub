@@ -142,7 +142,7 @@ void _register() async {
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('🔥 BUAT AKUN', style: TextStyle(
+                    Text(' BUAT AKUN', style: TextStyle(
                       fontFamily: 'Orbitron', fontSize: 16,
                       fontWeight: FontWeight.w700, letterSpacing: 2,
                     )),
