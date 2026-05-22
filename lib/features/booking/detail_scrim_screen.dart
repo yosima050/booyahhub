@@ -101,7 +101,11 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('🎮', style: TextStyle(fontSize: 32)),
+                      const Icon(
+                        Icons.sports_esports,
+                        size: 32,
+                        color: Colors.white,
+                      ),
                       const SizedBox(height: 8),
                       Text(_scrim!.title, style: const TextStyle(
                         fontFamily: 'Orbitron', fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
@@ -125,10 +129,28 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
                 crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8,
                 childAspectRatio: 3.2,
                 children: [
-                  _infoCell('🎯', 'MODE', _scrim!.mode),
-                  _infoCell('👥', 'KUOTA', '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM'),
-                  _infoCell('💰', 'BIAYA', 'Rp${_scrim!.fee ~/ 1000}k', valColor: BooyahTheme.gold),
-                  _infoCell('🏆', 'HADIAH', 'Rp${_scrim!.prize ~/ 1000}k', valColor: BooyahTheme.gold),
+                  _infoCell(
+                    const Icon(Icons.gps_fixed, size: 16, color: Colors.white),
+                    'MODE',
+                    _scrim!.mode,
+                  ),
+                  _infoCell(
+                    const Icon(Icons.groups, size: 16, color: Colors.white),
+                    'KUOTA',
+                    '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM',
+                  ),
+                  _infoCell(
+                    const Icon(Icons.payments, size: 16, color: Colors.white),
+                    'BIAYA',
+                    'Rp${_scrim!.fee ~/ 1000}k',
+                    valColor: BooyahTheme.gold,
+                  ),
+                  _infoCell(
+                    const Icon(Icons.emoji_events, size: 16, color: Colors.white),
+                    'HADIAH',
+                    'Rp${_scrim!.prize ~/ 1000}k',
+                    valColor: BooyahTheme.gold,
+                  ),
                 ],
               ),
             ),
@@ -183,11 +205,26 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
             _section('PEMBAGIAN HADIAH', Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(children: [
-                _prizeBox('🥇', 'JUARA 1', 'Rp${(_scrim!.prize * 0.5).toInt() ~/ 1000}k', BooyahTheme.gold),
+                _prizeBox(
+                  const Icon(Icons.workspace_premium, size: 22, color: BooyahTheme.gold),
+                  'JUARA 1',
+                  'Rp${(_scrim!.prize * 0.5).toInt() ~/ 1000}k',
+                  BooyahTheme.gold,
+                ),
                 const SizedBox(width: 8),
-                _prizeBox('🥈', 'JUARA 2', 'Rp${(_scrim!.prize * 0.3).toInt() ~/ 1000}k', BooyahTheme.silver),
+                _prizeBox(
+                  const Icon(Icons.military_tech, size: 22, color: BooyahTheme.silver),
+                  'JUARA 2',
+                  'Rp${(_scrim!.prize * 0.3).toInt() ~/ 1000}k',
+                  BooyahTheme.silver,
+                ),
                 const SizedBox(width: 8),
-                _prizeBox('🥉', 'JUARA 3', 'Rp${(_scrim!.prize * 0.2).toInt() ~/ 1000}k', BooyahTheme.bronze),
+                _prizeBox(
+                  const Icon(Icons.workspace_premium_outlined, size: 22, color: BooyahTheme.bronze),
+                  'JUARA 3',
+                  'Rp${(_scrim!.prize * 0.2).toInt() ~/ 1000}k',
+                  BooyahTheme.bronze,
+                ),
               ]),
             )),
 
@@ -206,7 +243,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
     ),
   );
 
-  Widget _infoCell(String icon, String label, String val, {Color? valColor}) =>
+  Widget _infoCell(Widget icon, String label, String val, {Color? valColor}) =>
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
@@ -214,7 +251,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
           border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
         ),
         child: Row(children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
+          icon,
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(label, style: const TextStyle(fontSize: 8, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
@@ -243,7 +280,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
     ]),
   );
 
-  Widget _prizeBox(String medal, String place, String amt, Color color) => Expanded(
+  Widget _prizeBox(Widget medal, String place, String amt, Color color) => Expanded(
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
@@ -251,7 +288,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
         border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Column(children: [
-        Text(medal, style: const TextStyle(fontSize: 22)),
+        medal,
         const SizedBox(height: 4),
         Text(place, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
         Text(amt, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
