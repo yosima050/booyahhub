@@ -95,18 +95,18 @@ Future<void> loadScrims() async {
     try {
       final dt = DateTime.parse(isoDate);
       const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-      return '⏰ ${dt.day} ${months[dt.month - 1]}';
+      return '${dt.day} ${months[dt.month - 1]}';
     } catch (e) {
-      return '⏰ N/A';
+      return 'N/A';
     }
   }
 
   String _formatTime(String isoDate) {
     try {
       final dt = DateTime.parse(isoDate);
-      return '❤️ ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB';
+      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB';
     } catch (e) {
-      return '❤️ N/A';
+      return 'N/A';
     }
   }
 
@@ -224,7 +224,13 @@ Future<void> loadScrims() async {
                                           border: Border.all(color: BooyahTheme.gold),
                                         ),
                                         child: const Row(children: [
-                                          Text('⭐ PREMIUM', style: TextStyle(fontSize: 8, color: BooyahTheme.gold, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                                          Icon(
+                                            Icons.star,
+                                            size: 10,
+                                            color: BooyahTheme.gold,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text('PREMIUM', style: TextStyle(fontSize: 8, color: BooyahTheme.gold, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
                                         ]),
                                       ),
                                       const SizedBox(width: 8),
@@ -242,6 +248,7 @@ Future<void> loadScrims() async {
                                 ],
                               ),
                             ),
+
                             // Judul scrim
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -250,6 +257,7 @@ Future<void> loadScrims() async {
                                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: BooyahTheme.textPri, letterSpacing: 0.5),
                               ),
                             ),
+
                             // Admin/organizer
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -258,20 +266,42 @@ Future<void> loadScrims() async {
                                 style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
                               ),
                             ),
+
                             const Divider(height: 12, color: Colors.white12),
+
                             // Info: date, time, region
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(_formatDate(scrim['scheduled_at'] ?? ''), style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                                  Text(_formatTime(scrim['scheduled_at'] ?? ''), style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                                  const Text('🇮🇩 BR', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.schedule, size: 12, color: BooyahTheme.textMuted),
+                                      const SizedBox(width: 4),
+                                      Text(_formatDate(scrim['scheduled_at'] ?? ''), style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.favorite, size: 12, color: BooyahTheme.textMuted),
+                                      const SizedBox(width: 4),
+                                      Text(_formatTime(scrim['scheduled_at'] ?? ''), style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: const [
+                                      Icon(Icons.flag, size: 12, color: BooyahTheme.textMuted),
+                                      SizedBox(width: 4),
+                                      Text('BR', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
+
                             const Divider(height: 1, color: Colors.white12),
+
                             // Stats boxes
                             Padding(
                               padding: const EdgeInsets.all(12),
@@ -284,6 +314,7 @@ Future<void> loadScrims() async {
                                 ],
                               ),
                             ),
+
                             // Button
                             Padding(
                               padding: const EdgeInsets.all(12),
