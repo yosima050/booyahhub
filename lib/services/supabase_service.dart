@@ -906,7 +906,7 @@ class UserService {
   static Future<Map<String, dynamic>> getUserProfile(String userId) async {
     final res = await _db
         .from('users')
-        .select('id, name, email, phone, ff_id, team_name, username, role')
+        .select('id, name, email, phone, ff_id, team_name, username, role, avatar_url')
         .eq('uuid', userId) // 🟢 DIPERBAIKI: Menyaring berdasarkan string UUID, bukan BIGINT id
         .single();
     return Map<String, dynamic>.from(res);
