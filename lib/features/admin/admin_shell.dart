@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import 'admin_home_screen.dart';
 import '../profile/admin_profile_screen.dart';
+import 'buat_scrim_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -25,6 +26,13 @@ class _AdminShellState extends State<AdminShell> {
   @override
   Widget build(BuildContext ctx) => Scaffold(
     body: IndexedStack(index: _idx, children: _screens),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BuatScrimScreen())),
+      backgroundColor: BooyahTheme.maroon,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: const Icon(Icons.add, color: Colors.white, size: 24),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     bottomNavigationBar: Container(
       decoration: BoxDecoration(
         color: BooyahTheme.surface,
@@ -35,22 +43,36 @@ class _AdminShellState extends State<AdminShell> {
         child: SizedBox(
           height: 60,
           child: Row(
-            children: _navItems.asMap().entries.map((e) {
-              final active = _idx == e.key;
-              final item   = e.value;
-              return Expanded(
+            children: [
+              // DASHBOARD (Kiri)
+              Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _idx = e.key),
+                  onTap: () => setState(() => _idx = 0),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(item.icon, size: 22, color: active ? BooyahTheme.yellow : BooyahTheme.textMuted),
+                    Icon(_navItems[0].icon, size: 22, color: _idx == 0 ? BooyahTheme.yellow : BooyahTheme.textMuted),
                     const SizedBox(height: 2),
-                    Text(item.label, style: TextStyle(fontFamily:'Rajdhani', fontSize: 7,
+                    Text(_navItems[0].label, style: TextStyle(fontFamily:'Rajdhani', fontSize: 7,
                       fontWeight: FontWeight.w700, letterSpacing: 0.4,
-                      color: active ? BooyahTheme.yellow : BooyahTheme.textMuted)),
+                      color: _idx == 0 ? BooyahTheme.yellow : BooyahTheme.textMuted)),
                   ]),
                 ),
-              );
-            }).toList(),
+              ),
+              // Spacer untuk FAB (Tengah)
+              const SizedBox(width: 56),
+              // PROFIL (Kanan)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _idx = 1),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(_navItems[1].icon, size: 22, color: _idx == 1 ? BooyahTheme.yellow : BooyahTheme.textMuted),
+                    const SizedBox(height: 2),
+                    Text(_navItems[1].label, style: TextStyle(fontFamily:'Rajdhani', fontSize: 7,
+                      fontWeight: FontWeight.w700, letterSpacing: 0.4,
+                      color: _idx == 1 ? BooyahTheme.yellow : BooyahTheme.textMuted)),
+                  ]),
+                ),
+              ),
+            ],
           ),
         ),
       ),
