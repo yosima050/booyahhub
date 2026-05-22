@@ -4,6 +4,7 @@ import 'config/supabase_config.dart';
 import 'core/theme.dart';
 import 'core/routes.dart';
 import 'shared/models/models.dart';
+import 'package:booyahhub/features/notification/notification_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,7 +48,11 @@ class BooyahHubApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: BooyahTheme.dark(),
       initialRoute: initialRoute,
-      routes: AppRoutes.routes,
+      routes: {
+        ...AppRoutes.routes, 
+        
+        '/notification': (context) => const NotificationScreen(),
+      },
     );
   }
 }

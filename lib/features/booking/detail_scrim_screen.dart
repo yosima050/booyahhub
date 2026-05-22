@@ -34,7 +34,21 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
 
   Future<void> _loadScrim() async {
     try {
-      final scrimId = ModalRoute.of(context)?.settings.arguments as String? ?? '1';
+      final args = ModalRoute.of(context)?.settings.arguments;
+      String scrimId = '1';
+      if (args is String) {
+        scrimId = args;
+      } else if (args is num) {
+        scrimId = args.toString();
+      } else if (args is ScrimModel) {
+        scrimId = args.id;
+      } else if (args != null) {
+        if (args is Map && args['id'] != null) {
+          scrimId = args['id'].toString();
+        } else {
+          scrimId = args.toString();
+        }
+      }
       final data = await ScrimService.getById(scrimId);
       
       setState(() {

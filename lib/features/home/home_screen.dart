@@ -317,14 +317,25 @@ class _HomeScreenState extends State<HomeScreen> {
               const Spacer(),
               Stack(
                 children: [
-                  Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: BooyahTheme.maroon.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
+                  InkWell(
+                    onTap: () {
+                      // TODO: buka halaman notifikasi
+                      Navigator.pushNamed(context, '/notification');
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: BooyahTheme.maroon.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_outlined,
+                        color: BooyahTheme.textPri,
+                        size: 20,
+                      ),
                     ),
-                    child: const Icon(Icons.notifications_outlined,
-                      color: BooyahTheme.textPri, size: 20),
                   ),
                   Positioned(
                     right: 6, top: 6,
