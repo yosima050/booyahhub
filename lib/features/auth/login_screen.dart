@@ -56,8 +56,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
 
+        // 3. Sekarang parameter 'role' sudah bertipe UserRole dan dijamin aman!
         Navigator.pushReplacementNamed(
-          context,
+          context, 
           AppRoutes.homeForRole(role),
         );
       }
