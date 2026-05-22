@@ -500,38 +500,33 @@ class ClaimService {
 // ══════════════════════════════════════════════════════════
 class NotificationService {
   // UC-13: Ambil notifikasi
-static Future<List<Map<String, dynamic>>> getAll({int limit = 20}) async {
+  static Future<List<Map<String, dynamic>>> getAll({int limit = 20}) async {
     final user = AuthService.currentUser;
     if (user == null) return [];
 
-    final res = await _db
-        .from('notifications')
-        .select()
-        .eq('user_id', user.id)
-        .order('created_at', ascending: false)
-        .limit(limit);
-    return List<Map<String, dynamic>>.from(res);
-  }
-
-// Hitung unread (Versi Mutakhir Supabase Flutter SDK)
-  static Future<int> getUnreadCount() async {
-    final user = AuthService.currentUser;
-    if (user == null) return 0;
-
     try {
-      // Menggunakan metode .count() bawaan PostgrestFilterBuilder terbaru
+      // 🟢 LANGKAH 1: Cari baris profil user berdasarkan UUID-nya untuk mendapatkan BIGINT id
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', user.id)
+          .maybeSingle();
+      
+      if (userProfile == null) return [];
+      final int profileId = userProfile['id']; // Ini baru ID berbentuk angka bulat sah!
+
+      // 🟢 LANGKAH 2: Tembak tabel notifications menggunakan BIGINT profileId yang valid
       final res = await _db
           .from('notifications')
-          .select('*') // atau select('id')
-          .eq('user_id', user.id)
-          .eq('is_read', false)
-          .count(CountOption.exact); // Tambahkan opsi exact langsung di sini
-
-      // Hasil hitungan dibungkus di dalam properti .count bawaan PostgrestResponse
-      return res.count; 
+          .select()
+          .eq('user_id', profileId) // Tembak ID angka bulat ke kolom user_id
+          .order('created_at', ascending: false)
+          .limit(limit);
+          
+      return List<Map<String, dynamic>>.from(res);
     } catch (e) {
-      debugPrint('Error getting unread count: $e');
-      return 0;
+      debugPrint('Error loading notifications database: $e');
+      return [];
     }
   }
 
@@ -886,7 +881,7 @@ class UserService {
     final res = await _db
         .from('users')
         .select('id, name, email, phone, ff_id, team_name, username, role')
-        .eq('id', userId)
+        .eq('uuid', userId) // 🟢 DIPERBAIKI: Menyaring berdasarkan string UUID, bukan BIGINT id
         .single();
     return Map<String, dynamic>.from(res);
   }

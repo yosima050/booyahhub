@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../core/auth_service.dart';
+import '../../shared/models/models.dart';
 
 class AdminProfileScreen extends StatelessWidget {
   const AdminProfileScreen({super.key});
@@ -118,6 +119,33 @@ class AdminProfileScreen extends StatelessWidget {
                 (Icons.person_outline, 'Edit Profil', null),
                 (Icons.help_outline, 'Bantuan & FAQ', null),
               ], ctx),
+              const SizedBox(height: 8),
+// 🟢 PERBAIKAN: Gunakan rute resmi Shell Home Peserta agar menu bawah tidak hilang!
+              GestureDetector(
+                onTap: () {
+                  // Menggunakan pushNamedAndRemoveUntil agar tumpukan halaman Admin dibersihkan,
+                  // dan user mendarat segar di Beranda Utama Peserta lengkap dengan Bottom Navigation Bar.
+                  Navigator.pushNamedAndRemoveUntil(
+                    ctx, 
+                    AppRoutes.homeForRole(UserRole.peserta), 
+                    (route) => false,
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: BooyahTheme.maroon.withValues(alpha: 0.08),
+                    border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.person, color: BooyahTheme.maroonB, size: 18),
+                    SizedBox(width: 8),
+                    Text('KEMBALI KE MODE PESERTA', style: TextStyle(fontSize: 14, color: BooyahTheme.maroonB, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                  ]),
+                ),
+              ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () => _logout(ctx),

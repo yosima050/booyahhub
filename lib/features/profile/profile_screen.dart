@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../services/supabase_service.dart';
+import '../../shared/models/models.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -26,8 +27,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
+        // 🟢 Pastikan UserService.getUserProfile di dalam supabase_service.dart
+        // sudah diubah query-nya dari .eq('id', userId) menjadi .eq('uuid', userId)
         final userData = await UserService.getUserProfile(user.id);
         final stats = await UserService.getUserStats(user.id);
+
         setState(() {
           _userData = userData;
           _stats = stats;
@@ -35,6 +39,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
+      final backupRole =
+          Supabase.instance.client.auth.currentUser?.userMetadata?['role'];
+      if (backupRole != null) {
+        setState(() {
+          _userData = {
+            'username': Supabase.instance.client.auth.currentUser?.email?.split(
+              '@',
+            )[0],
+            'role': backupRole,
+            'team_name': 'Sesi Token Lama',
+          };
+        });
+      }
     } finally {
       setState(() => _loading = false);
     }

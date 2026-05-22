@@ -56,10 +56,16 @@ if (mounted) {
           ),
         );
 
-        // 3. Sekarang parameter 'role' sudah bertipe UserRole dan dijamin aman!
+        // 3. Tentukan rute navigasi berdasarkan multi-role rules:
+        // - Role 'platform' → Home Platform
+        // - Role 'admin' atau 'peserta' → Home Peserta
+        final UserRole destinationRole = role == UserRole.platform 
+          ? UserRole.platform 
+          : UserRole.peserta;
+        
         Navigator.pushReplacementNamed(
           context, 
-          AppRoutes.homeForRole(role),
+          AppRoutes.homeForRole(destinationRole),
         );
       }
     } catch (e) {
