@@ -52,10 +52,12 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
         backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
         labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
       ), const SizedBox(width: 8)]),
-    body: !_hasData
-        ? const Center(child: Text('Belum ada data scrim untuk ditampilkan.',
-            style: TextStyle(color: BooyahTheme.textMuted)))
-        : SingleChildScrollView(
+    body: _loading
+        ? const Center(child: CircularProgressIndicator(color: BooyahTheme.maroon))
+        : !_hasData
+            ? const Center(child: Text('Belum ada data scrim untuk ditampilkan.',
+                style: TextStyle(color: BooyahTheme.textMuted)))
+            : SingleChildScrollView(
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               // Period filter

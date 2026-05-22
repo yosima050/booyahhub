@@ -91,7 +91,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<ScrimModel> get _scrims {
-    return _rawScrims.map((s) => ScrimModel(
+    Iterable<Map<String, dynamic>> filtered = _rawScrims;
+
+    // Filter by category/mode
+    if (_activeFilter != 'SEMUA') {
+      if (_activeFilter == 'PREMIUM') {
+        filtered = filtered.where((s) => s['is_premium'] == true);
+      } else {
+        filtered = filtered.where((s) {
+          final m = (s['mode'] as String? ?? '').toUpperCase();
+          return m == _activeFilter;
+        });
+      }
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      filtered = filtered.where((s) {
+        final title = (s['title'] as String? ?? '').toLowerCase();
+        final adminName = (s['admin_profiles']?['display_name'] as String? ?? '').toLowerCase();
+        return title.contains(q) || adminName.contains(q);
+      });
+    }
+
+    return filtered.map((s) => ScrimModel(
       id:          s['id'].toString(),
       title:       s['title'] as String,
       adminName:   (s['admin_profiles']?['display_name'] ?? '') as String,
@@ -307,8 +331,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Image.asset(
-                  'assets/images/logo2.jpeg',
+                  'assets/images/logo.jpeg',
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Text('🎮', style: TextStyle(fontSize: 16)),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),

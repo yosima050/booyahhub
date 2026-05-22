@@ -30,7 +30,6 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
   Future<void> _loadReport() async {
     try {
       setState(() => _loading = true);
-      final days = _getDays(_periodIdx);
       final data = await PlatformService.getReport();
       setState(() {
         _report = data;
@@ -42,16 +41,7 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
     }
   }
 
-  int _getDays(int periodIdx) {
-    switch(periodIdx) {
-      case 0: return 7;
-      case 1: return 30;
-      case 2: return 90;
-      case 3: return 180;
-      case 4: return 365;
-      default: return 9999;
-    }
-  }
+
 
   @override
   Widget build(BuildContext ctx) => Scaffold(

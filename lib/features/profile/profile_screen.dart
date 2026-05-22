@@ -19,11 +19,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic> _stats = {};
   bool _loading = true;
   bool _uploadingPhoto = false;
+  RealtimeChannel? _profileChannel;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _subscribeToProfileChanges();
+  }
+
+  void _subscribeToProfileChanges() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    _profileChannel = Supabase.instance.client
+        .channel('profile_sync_peserta_${user.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'users',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'uuid',
+            value: user.id,
+          ),
+          callback: (payload) {
+            debugPrint('Realtime user profile updated: ${payload.newRecord}');
+            _loadUserData();
+          },
+        )
+        .subscribe();
+  }
+
+  @override
+  void dispose() {
+    _profileChannel?.unsubscribe();
+    super.dispose();
   }
 
   // ── Ambil kata pertama dari email (sebelum titik atau @) ──────────────────
@@ -233,148 +264,184 @@ class _ProfileScreenState extends State<ProfileScreen> {
   );
 
   @override
-  Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text('PROFIL')),
-    body: _loading
-        ? const Center(
-            child: CircularProgressIndicator(color: Color(0xFFB22222)),
-          )
-        : SingleChildScrollView(
-            child: Column(
-              children: [
-                // ── Hero Section ─────────────────────────────────────────
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        BooyahTheme.maroonD.withValues(alpha: 0.8),
-                        BooyahTheme.bg,
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildAvatar(),
-                      const SizedBox(height: 12),
+  Widget build(BuildContext ctx) {
+    final isAdmin = AuthService().role == UserRole.admin ||
+        _userData?['role']?.toString().toLowerCase() == 'admin';
 
-                      // Username → kata pertama email
-                      Text(
-                        _usernameFromEmail(
-                          Supabase.instance.client.auth.currentUser?.email,
-                        ),
-                        style: const TextStyle(
-                          fontFamily: 'Orbitron',
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
+    return Scaffold(
+      appBar: AppBar(title: const Text('PROFIL')),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFB22222)),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadUserData,
+              color: BooyahTheme.maroon,
+              backgroundColor: BooyahTheme.card,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // ── Hero Section ─────────────────────────────────────────
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            BooyahTheme.maroonD.withValues(alpha: 0.8),
+                            BooyahTheme.bg,
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                       ),
-
-                      // Nama tim scrim · role
-                      Text(
-                        '${_userData?['team_name'] ?? 'Belum ada tim'} · ${_userData?['role'] ?? 'Peserta'}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: BooyahTheme.textMuted,
-                        ),
-                      ),
-
-                      const SizedBox(height: 18),
-
-                      // Stats row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
                         children: [
-                          _stat(
-                            '${_stats['total_scrims'] ?? 0}',
-                            'SCRIM\nDIIKUTI',
+                          _buildAvatar(),
+                          const SizedBox(height: 12),
+
+                          // Username → kata pertama email
+                          Text(
+                            _usernameFromEmail(
+                              Supabase.instance.client.auth.currentUser?.email,
+                            ),
+                            style: const TextStyle(
+                              fontFamily: 'Orbitron',
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2,
+                            ),
                           ),
-                          Container(
-                            width: 1,
-                            height: 36,
-                            color: BooyahTheme.maroon.withValues(alpha: 0.4),
+
+                          // Nama tim scrim · role
+                          Text(
+                            '${_userData?['team_name'] ?? 'Belum ada tim'} · ${_userData?['role'] ?? 'Peserta'}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: BooyahTheme.textMuted,
+                            ),
                           ),
-                          _stat(
-                            '${_stats['total_kills'] ?? 0}',
-                            'TOTAL\nKILLS',
-                          ),
-                          Container(
-                            width: 1,
-                            height: 36,
-                            color: BooyahTheme.maroon.withValues(alpha: 0.4),
-                          ),
-                          _stat(
-                            _fmtRupiah(_stats['total_rewards'] ?? 0),
-                            'HADIAH\nDITERIMA',
+
+                          const SizedBox(height: 18),
+
+                          // Stats row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _stat(
+                                '${_stats['total_scrims'] ?? 0}',
+                                'SCRIM\nDIIKUTI',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 36,
+                                color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                              ),
+                              _stat(
+                                '${_stats['total_kills'] ?? 0}',
+                                'TOTAL\nKILLS',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 36,
+                                color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                              ),
+                              _stat(
+                                _fmtRupiah(_stats['total_rewards'] ?? 0),
+                                'HADIAH\nDITERIMA',
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
 
-                // ── Menu Section ─────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    children: [
-                      _menuGroup('SCRIM', [
-                        _MenuItem(
-                          Icons.history,
-                          'Riwayat Scrim',
-                          () => Navigator.pushNamed(ctx, AppRoutes.riwayat),
-                        ),
-                        _MenuItem(
-                          Icons.emoji_events,
-                          'Klaim Hadiah',
-                          () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah),
-                        ),
-                        _MenuItem(
-                          Icons.pending_actions,
-                          'Status Pendaftaran',
-                          () => Navigator.pushNamed(
-                            ctx,
-                            AppRoutes.statusPendaftaran,
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 10),
-                      _menuGroup('AKUN', [
-                        _MenuItem(Icons.person_outline, 'Edit Profil', null),
-                        _MenuItem(
-                          Icons.account_balance_wallet,
-                          'Rekening & E-Wallet',
-                          null,
-                        ),
-                        _MenuItem(
-                          Icons.receipt_long,
-                          'Riwayat Pembayaran',
-                          null,
-                        ),
-                      ]),
-                      const SizedBox(height: 10),
-                      _menuGroup('LAINNYA', [
-                        _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
-                        _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
-                        _MenuItem(
-                          Icons.logout,
-                          'Keluar',
-                          () => _logout(ctx),
-                          isRed: true,
-                        ),
-                      ]),
-                    ],
-                  ),
+                    // ── Menu Section ─────────────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        children: [
+                          _menuGroup('SCRIM', [
+                            _MenuItem(
+                              Icons.history,
+                              'Riwayat Scrim',
+                              () => Navigator.pushNamed(ctx, AppRoutes.riwayat),
+                            ),
+                            _MenuItem(
+                              Icons.emoji_events,
+                              'Klaim Hadiah',
+                              () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah),
+                            ),
+                            _MenuItem(
+                              Icons.pending_actions,
+                              'Status Pendaftaran',
+                              () => Navigator.pushNamed(
+                                ctx,
+                                AppRoutes.statusPendaftaran,
+                              ),
+                            ),
+                          ]),
+                          const SizedBox(height: 10),
+                          _menuGroup('AKUN', [
+                            _MenuItem(Icons.person_outline, 'Edit Profil', null),
+                            _MenuItem(
+                              Icons.account_balance_wallet,
+                              'Rekening & E-Wallet',
+                              null,
+                            ),
+                            _MenuItem(
+                              Icons.receipt_long,
+                              'Riwayat Pembayaran',
+                              null,
+                            ),
+                          ]),
+
+                          // Conditional Admin Section
+                          if (isAdmin) ...[
+                            const SizedBox(height: 10),
+                            _menuGroup(
+                              'ADMINISTRATOR',
+                              [
+                                _MenuItem(
+                                  Icons.admin_panel_settings_rounded,
+                                  'KEMBALI KE PROFIL ADMIN',
+                                  () {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      ctx,
+                                      AppRoutes.adminShell,
+                                      (route) => false,
+                                    );
+                                  },
+                                  iconColor: BooyahTheme.yellow,
+                                ),
+                              ],
+                              borderColor: BooyahTheme.yellow.withValues(alpha: 0.35),
+                              titleColor: BooyahTheme.yellow,
+                            ),
+                          ],
+
+                          const SizedBox(height: 10),
+                          _menuGroup('LAINNYA', [
+                            _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
+                            _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
+                            _MenuItem(
+                              Icons.logout,
+                              'Keluar',
+                              () => _logout(ctx),
+                              isRed: true,
+                            ),
+                          ]),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
-                const SizedBox(height: 20),
-              ],
+              ),
             ),
-          ),
-  );
+    );
+  }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -414,11 +481,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ),
   );
 
-  Widget _menuGroup(String title, List<_MenuItem> items) => Container(
+  Widget _menuGroup(
+    String title,
+    List<_MenuItem> items, {
+    Color? borderColor,
+    Color? titleColor,
+  }) => Container(
     decoration: BoxDecoration(
       color: BooyahTheme.card,
       borderRadius: BorderRadius.circular(12),
-      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
+      border: Border.all(
+        color: borderColor ?? BooyahTheme.maroon.withValues(alpha: 0.2),
+      ),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,9 +501,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
-              color: BooyahTheme.textMuted,
+              color: titleColor ?? BooyahTheme.textMuted,
               letterSpacing: 1.5,
               fontWeight: FontWeight.w700,
             ),
@@ -450,7 +524,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Icon(
                         m.icon,
-                        color: m.isRed ? BooyahTheme.red : BooyahTheme.maroonB,
+                        color: m.isRed
+                            ? BooyahTheme.red
+                            : (m.iconColor ?? BooyahTheme.maroonB),
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -469,7 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Icons.chevron_right,
                         color: m.isRed
                             ? BooyahTheme.red.withValues(alpha: 0.5)
-                            : BooyahTheme.textMuted,
+                            : (m.iconColor?.withValues(alpha: 0.5) ?? BooyahTheme.textMuted),
                         size: 18,
                       ),
                     ],
@@ -495,7 +571,14 @@ class _MenuItem {
   final String label;
   final VoidCallback? onTap;
   final bool isRed;
-  const _MenuItem(this.icon, this.label, this.onTap, {this.isRed = false});
+  final Color? iconColor;
+  const _MenuItem(
+    this.icon,
+    this.label,
+    this.onTap, {
+    this.isRed = false,
+    this.iconColor,
+  });
   @override
   bool operator ==(Object other) => other is _MenuItem && other.label == label;
   @override

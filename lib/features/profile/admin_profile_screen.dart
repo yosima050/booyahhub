@@ -18,11 +18,42 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   Map<String, dynamic>? _userData;
   bool _loading = true;
   bool _uploadingPhoto = false;
+  RealtimeChannel? _profileChannel;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _subscribeToProfileChanges();
+  }
+
+  void _subscribeToProfileChanges() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    _profileChannel = Supabase.instance.client
+        .channel('profile_sync_admin_${user.id}')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.update,
+          schema: 'public',
+          table: 'users',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'uuid',
+            value: user.id,
+          ),
+          callback: (payload) {
+            debugPrint('Realtime admin profile updated: ${payload.newRecord}');
+            _loadUserData();
+          },
+        )
+        .subscribe();
+  }
+
+  @override
+  void dispose() {
+    _profileChannel?.unsubscribe();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
