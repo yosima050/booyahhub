@@ -110,7 +110,7 @@ class ScrimCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: scrim.isFull ? null : () {},
+              onPressed: scrim.isFull ? null : onTap,
               style: ElevatedButton.styleFrom(
                 backgroundColor: scrim.isFull
                     ? BooyahTheme.surface : BooyahTheme.maroon,
