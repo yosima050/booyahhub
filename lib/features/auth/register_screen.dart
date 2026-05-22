@@ -102,6 +102,32 @@ void _register() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+    child: Container(
+      width: 160,
+      height: 160,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: BooyahTheme.maroon.withValues(alpha: 0.6),
+            blurRadius: 30,
+            spreadRadius: 3,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Image.asset(
+          'assets/images/logo.jpeg',
+          fit: BoxFit.cover,
+        ),
+      ),
+    ),
+  ),
+
+  const SizedBox(height: 24),
+
               // Header
               Container(
                 padding: const EdgeInsets.all(16),
