@@ -61,9 +61,12 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
         _jamMulai!.minute,
       );
 
+      // Hitung waktu tutup pendaftaran (1 jam sebelum jadwal mulai scrim)
+      final registrationClosesAt = scheduledDateTime.subtract(const Duration(hours: 1));
+
       // Ambil current user ID dari Supabase Auth
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
+      final currentAuthUser = Supabase.instance.client.auth.currentUser;
+      if (currentAuthUser == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('❌ Anda harus login terlebih dahulu'),
@@ -73,16 +76,28 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
         return;
       }
 
+      // Ambil bigint ID dari tabel users berdasarkan UUID auth
+      final userProfile = await Supabase.instance.client
+          .from('users')
+          .select('id')
+          .eq('uuid', currentAuthUser.id)
+          .single();
+      final int adminBigId = userProfile['id'];
+
+      // Konversi mode ke format enum database ('battle_royale' atau 'clash_squad')
+      final String dbMode = _mode == 'Clash Squad' ? 'clash_squad' : 'battle_royale';
+
       // INSERT data scrim baru ke tabel 'scrims'
       await Supabase.instance.client.from('scrims').insert({
         'title': _namaCtrl.text.trim(),
-        'mode': _mode,
+        'mode': dbMode,
         'description': _deskCtrl.text.trim(),
         'scheduled_at': scheduledDateTime.toIso8601String(),
+        'registration_closes_at': registrationClosesAt.toIso8601String(),
         'slot_total': int.parse(_kuotaCtrl.text),
-        'entry_fee': int.parse(_biayaCtrl.text),
+        'fee': int.parse(_biayaCtrl.text),
         'rules': _aturCtrl.text.trim(),
-        'admin_id': userId,
+        'admin_id': adminBigId,
         'status': status,
       });
 
@@ -90,7 +105,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(status == 'published'
+            content: Text(status == 'open'
                 ? '✅ Scrim berhasil dibuat dan dipublikasikan!'
                 : '📥 Scrim berhasil disimpan sebagai Draft!'),
             backgroundColor: BooyahTheme.green,
@@ -251,7 +266,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
           style: const TextStyle(color: BooyahTheme.textPri),
           decoration: const InputDecoration(hintText: 'Opsional...')),
         const SizedBox(height: 20),
-        BooyahButton(label: 'SIMPAN & PUBLIKASIKAN', onTap: () => _saveScrim(status: 'published'), isLoading: _loading),
+        BooyahButton(label: 'SIMPAN & PUBLIKASIKAN', onTap: () => _saveScrim(status: 'open'), isLoading: _loading),
         const SizedBox(height: 8),
         BooyahButton(label: 'SIMPAN SEBAGAI DRAFT', outlined: true,
           onTap: _loading ? null : () => _saveScrim(status: 'draft')),

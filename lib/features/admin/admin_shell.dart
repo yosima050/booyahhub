@@ -12,11 +12,18 @@ class AdminShell extends StatefulWidget {
 
 class _AdminShellState extends State<AdminShell> {
   int _idx = 0;
+  final GlobalKey<AdminHomeScreenState> _adminHomeKey = GlobalKey<AdminHomeScreenState>();
 
-  final List<Widget> _screens = const [
-    AdminHomeScreen(),
-    AdminProfileScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      AdminHomeScreen(key: _adminHomeKey),
+      const AdminProfileScreen(),
+    ];
+  }
 
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Icons.dashboard_rounded, label: 'DASHBOARD'),
@@ -27,7 +34,12 @@ class _AdminShellState extends State<AdminShell> {
   Widget build(BuildContext ctx) => Scaffold(
     body: IndexedStack(index: _idx, children: _screens),
     floatingActionButton: FloatingActionButton(
-      onPressed: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BuatScrimScreen())),
+      onPressed: () async {
+        final result = await Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BuatScrimScreen()));
+        if (result == true) {
+          _adminHomeKey.currentState?.load();
+        }
+      },
       backgroundColor: BooyahTheme.maroon,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: const Icon(Icons.add, color: Colors.white, size: 24),

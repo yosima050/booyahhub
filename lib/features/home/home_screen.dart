@@ -24,30 +24,69 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
 
+  RealtimeChannel? _scrimsSubscription;
+
   @override
   void initState() {
     super.initState();
     _loadScrims();
+    _subscribeRealtime();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocus.dispose();
+    if (_scrimsSubscription != null) {
+      Supabase.instance.client.removeChannel(_scrimsSubscription!);
+    }
     super.dispose();
   }
 
-  Future<void> _loadScrims() async {
-    setState(() { _loading = true; _error = null; });
+  void _subscribeRealtime() {
+    try {
+      _scrimsSubscription = Supabase.instance.client
+          .channel('public:scrims')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'scrims',
+            callback: (payload) {
+              if (mounted) {
+                _loadScrims(silent: true);
+              }
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint('Realtime subscription error: $e');
+    }
+  }
+
+  Future<void> _loadScrims({bool silent = false}) async {
+    if (!silent) {
+      setState(() { _loading = true; _error = null; });
+    }
     try {
       final data = await ScrimService.getAll(status: 'open');
-      setState(() => _rawScrims = data);
+      if (mounted) {
+        setState(() {
+          _rawScrims = data;
+          _error = null;
+        });
+      }
     } on PostgrestException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted && !silent) {
+        setState(() => _error = e.message);
+      }
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted && !silent) {
+        setState(() => _error = e.toString());
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted && !silent) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -81,8 +120,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        color: BooyahTheme.maroonB,
+        backgroundColor: BooyahTheme.card,
+        onRefresh: () => _loadScrims(silent: true),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           // ── Hero Header ──
           SliverToBoxAdapter(
             child: _buildHero(),
@@ -235,6 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
+      ),
       ),
     );
   }
