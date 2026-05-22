@@ -16,7 +16,11 @@ class DataPendaftarScreen extends StatefulWidget {
 
 class _DataPendaftarScreenState extends State<DataPendaftarScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tab = TabController(length: 3, vsync: this, initialIndex: 0);
+  late final TabController _tab = TabController(
+    length: 3,
+    vsync: this,
+    initialIndex: 0,
+  );
   List<Map<String, dynamic>> _rawData = [];
   bool _loading = true;
 
@@ -46,21 +50,30 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
   }
 
   // Konversi ke PendaftarModel
-  List<PendaftarModel> get _allPendaftar => _rawData.map((d) => PendaftarModel(
-    id:            d['id'].toString(),
-    teamName:      d['team_name'] as String,
-    captainId:     d['captain_ff_id'] as String,
-    paymentMethod: d['payment_method'] as String? ?? '-',
-    amount:        _fmtRupiah(d['payment_amount'] as int? ?? 0),
-    time:          d['created_at'] != null
-                     ? _fmtTime(d['created_at']) : '-',
-    isApproved:    d['status'] == 'verified',
-    isRejected:    d['status'] == 'rejected' || d['status'] == 'expired' || d['status'] == 'failed',
-  )).toList();
+  List<PendaftarModel> get _allPendaftar => _rawData
+      .map(
+        (d) => PendaftarModel(
+          id: d['id'].toString(),
+          teamName: d['team_name'] as String,
+          captainId: d['captain_ff_id'] as String,
+          paymentMethod: d['payment_method'] as String? ?? '-',
+          amount: _fmtRupiah(d['payment_amount'] as int? ?? 0),
+          time: d['created_at'] != null ? _fmtTime(d['created_at']) : '-',
+          isApproved: d['status'] == 'verified',
+          isRejected:
+              d['status'] == 'rejected' ||
+              d['status'] == 'expired' ||
+              d['status'] == 'failed',
+        ),
+      )
+      .toList();
 
-  List<PendaftarModel> get _pending   => _allPendaftar.where((d) => !d.isApproved && !d.isRejected).toList();
-  List<PendaftarModel> get _approved  => _allPendaftar.where((d) => d.isApproved).toList();
-  List<PendaftarModel> get _rejected  => _allPendaftar.where((d) => d.isRejected).toList();
+  List<PendaftarModel> get _pending =>
+      _allPendaftar.where((d) => !d.isApproved && !d.isRejected).toList();
+  List<PendaftarModel> get _approved =>
+      _allPendaftar.where((d) => d.isApproved).toList();
+  List<PendaftarModel> get _rejected =>
+      _allPendaftar.where((d) => d.isRejected).toList();
 
   String _fmtTime(String iso) {
     final d = DateTime.parse(iso).toLocal();
@@ -83,17 +96,27 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(
       title: const Text('DATA PENDAFTAR'),
-      actions: [Chip(
-        label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-        labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
-      ), const SizedBox(width: 8)],
+      actions: [
+        Chip(
+          label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
+          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
+          labelStyle: const TextStyle(
+            color: BooyahTheme.yellow,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 8),
+      ],
       bottom: TabBar(
         controller: _tab,
         indicatorColor: BooyahTheme.maroonB,
         labelColor: BooyahTheme.maroonB,
         unselectedLabelColor: BooyahTheme.textMuted,
-        labelStyle: const TextStyle(fontFamily: 'Rajdhani', fontWeight: FontWeight.w700, fontSize: 11),
+        labelStyle: const TextStyle(
+          fontFamily: 'Rajdhani',
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+        ),
         tabs: [
           Tab(text: 'PENDING (${_pending.length})'),
           Tab(text: 'TERVERIFIKASI (${_approved.length})'),
@@ -102,7 +125,9 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
       ),
     ),
     body: _loading
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
+        ? const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB22222)),
+          )
         : TabBarView(
             controller: _tab,
             children: [
@@ -116,7 +141,10 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
   Widget _buildList(List<PendaftarModel> list) {
     if (list.isEmpty) {
       return const Center(
-        child: Text('Tidak ada data.', style: TextStyle(color: BooyahTheme.textMuted)),
+        child: Text(
+          'Tidak ada data.',
+          style: TextStyle(color: BooyahTheme.textMuted),
+        ),
       );
     }
 
@@ -131,26 +159,61 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
           decoration: BoxDecoration(
             color: BooyahTheme.card,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
-          ),
-          child: Row(children: [
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: BooyahTheme.maroon.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
-              ),
-              child: const Center(child: Text('⚔️', style: TextStyle(fontSize: 16))),
+            border: Border.all(
+              color: BooyahTheme.maroon.withValues(alpha: 0.2),
             ),
-            const SizedBox(width: 10),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(d.teamName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-              Text(d.captainId, style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-              Text('${d.paymentMethod} · ${d.amount} · ${d.time} WIB',
-                style: const TextStyle(fontSize: 10, color: BooyahTheme.yellow)),
-            ])),
-          ]),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: BooyahTheme.maroon.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: BooyahTheme.maroon.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.sports_esports_rounded,
+                    size: 16,
+                    color: BooyahTheme.textPri,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      d.teamName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      d.captainId,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: BooyahTheme.textMuted,
+                      ),
+                    ),
+                    Text(
+                      '${d.paymentMethod} · ${d.amount} · ${d.time} WIB',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: BooyahTheme.yellow,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
