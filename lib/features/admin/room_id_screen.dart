@@ -41,7 +41,13 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
     if (_roomCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('⚠️ Data tidak boleh kosong!'),
+          content: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('Data tidak boleh kosong!'),
+            ],
+          ),
           backgroundColor: BooyahTheme.red,
         ),
       );
@@ -53,7 +59,13 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ Room ID terkirim ke semua peserta terverifikasi!'),
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('Room ID terkirim ke semua peserta terverifikasi!'),
+            ],
+          ),
           backgroundColor: BooyahTheme.green,
         ),
       );
@@ -101,7 +113,11 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Text('🎮', style: TextStyle(fontSize: 18)),
+                    const Icon(
+                      Icons.sports_esports,
+                      size: 18,
+                      color: BooyahTheme.textMuted,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -261,13 +277,24 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('', style: TextStyle(fontSize: 20)),
-                const SizedBox(height: 6),
-                const Text(
-                  'Room ID Tersedia',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                const Row(
+                  children: [
+                    Icon(
+                      Icons.vpn_key_outlined,
+                      size: 20,
+                      color: BooyahTheme.yellow,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Room ID Tersedia',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
                     style: const TextStyle(

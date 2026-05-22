@@ -42,7 +42,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
               (d) => TeamScoreModel(
                 id: d['id'].toString(),
                 teamName: d['team_name'] as String,
-                icon: '🎮',
+                icon: '', // Dihapus karena diganti Icon Flutter di UI
                 placement: 1,
                 kills: 0,
               ),
@@ -89,7 +89,13 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Leaderboard diperbarui & hadiah dialokasikan!'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Leaderboard diperbarui & hadiah dialokasikan!'),
+              ],
+            ),
             backgroundColor: BooyahTheme.green,
           ),
         );
@@ -100,7 +106,13 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
         setState(() => _error = e.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ $e'),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text('$e')),
+              ],
+            ),
             backgroundColor: const Color(0xFFFF1744),
           ),
         );
@@ -134,7 +146,11 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
           color: BooyahTheme.surface,
           child: const Row(
             children: [
-              Text('🎮', style: TextStyle(fontSize: 16)),
+              Icon(
+                Icons.sports_esports,
+                size: 16,
+                color: BooyahTheme.textMuted,
+              ),
               SizedBox(width: 8),
               Text(
                 'BOOYAH CUP S7 · 11 Mar · 19:00 WIB · 6 Tim',
@@ -213,7 +229,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                         padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
                         child: Row(
                           children: const [
-                            SizedBox(width: 28),
+                            SizedBox(width: 24),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -336,8 +352,12 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                           children: [
                             _rankBadge(rank),
                             const SizedBox(width: 10),
-                            Text(t.icon, style: const TextStyle(fontSize: 16)),
-                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.shield_outlined,
+                              size: 16,
+                              color: BooyahTheme.textMuted,
+                            ),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 t.teamName,
@@ -405,7 +425,11 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
       ),
       child: Row(
         children: [
-          Text(t.icon, style: const TextStyle(fontSize: 18)),
+          const Icon(
+            Icons.shield_outlined,
+            size: 16,
+            color: BooyahTheme.textMuted,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
