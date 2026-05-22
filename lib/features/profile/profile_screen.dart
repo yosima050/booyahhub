@@ -23,7 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
   }
 
-Future<void> _loadUserData() async {
+  Future<void> _loadUserData() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
@@ -31,7 +31,7 @@ Future<void> _loadUserData() async {
         // sudah diubah query-nya dari .eq('id', userId) menjadi .eq('uuid', userId)
         final userData = await UserService.getUserProfile(user.id);
         final stats = await UserService.getUserStats(user.id);
-        
+
         setState(() {
           _userData = userData;
           _stats = stats;
@@ -39,11 +39,14 @@ Future<void> _loadUserData() async {
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
-      final backupRole = Supabase.instance.client.auth.currentUser?.userMetadata?['role'];
+      final backupRole =
+          Supabase.instance.client.auth.currentUser?.userMetadata?['role'];
       if (backupRole != null) {
         setState(() {
           _userData = {
-            'username': Supabase.instance.client.auth.currentUser?.email?.split('@')[0],
+            'username': Supabase.instance.client.auth.currentUser?.email?.split(
+              '@',
+            )[0],
             'role': backupRole,
             'team_name': 'Sesi Token Lama',
           };
@@ -54,18 +57,65 @@ Future<void> _loadUserData() async {
     }
   }
 
+  String _getUsername() {
+    // Cek apakah _userData tidak null dan memiliki username
+    if (_userData != null &&
+        _userData!.containsKey('username') &&
+        _userData!['username'] != null &&
+        _userData!['username'].toString().isNotEmpty) {
+      return _userData!['username'].toString();
+    }
+
+    // Ambil dari email user
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null && user.email != null && user.email!.contains('@')) {
+      return user.email!.split('@')[0];
+    }
+
+    return '';
+  }
+
+  String _getTeamName() {
+    if (_userData != null &&
+        _userData!.containsKey('team_name') &&
+        _userData!['team_name'] != null &&
+        _userData!['team_name'].toString().isNotEmpty) {
+      return _userData!['team_name'].toString();
+    }
+    return _getUsername();
+  }
+
   void _logout(BuildContext ctx) => showDialog(
     context: ctx,
     builder: (_) => AlertDialog(
       backgroundColor: BooyahTheme.card,
-      title: const Text('LOGOUT', style: TextStyle(fontFamily:'Orbitron', fontSize: 14, fontWeight: FontWeight.w700)),
-      content: const Text('Kamu yakin ingin keluar?', style: TextStyle(fontSize: 13)),
+      title: const Text(
+        'LOGOUT',
+        style: TextStyle(
+          fontFamily: 'Orbitron',
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      content: const Text(
+        'Kamu yakin ingin keluar?',
+        style: TextStyle(fontSize: 13),
+      ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx),
-          child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted))),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text(
+            'BATAL',
+            style: TextStyle(color: BooyahTheme.textMuted),
+          ),
+        ),
         ElevatedButton(
           onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.login, (r) => false);
+            Navigator.pushNamedAndRemoveUntil(
+              ctx,
+              AppRoutes.login,
+              (r) => false,
+            );
           },
           style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
           child: const Text('KELUAR'),
@@ -78,97 +128,152 @@ Future<void> _loadUserData() async {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('PROFIL')),
     body: _loading
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
+        ? const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB22222)),
+          )
         : SingleChildScrollView(
-      child: Column(children: [
-        // Hero
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [BooyahTheme.maroonD.withValues(alpha: 0.8), BooyahTheme.bg],
-              begin: Alignment.topCenter, end: Alignment.bottomCenter),
-          ),
-          child: Column(children: [
-            Container(
-              width: 86, height: 86,
-              decoration: BoxDecoration(
-                color: BooyahTheme.maroon.withValues(alpha: 0.3),
-                shape: BoxShape.circle,
-                border: Border.all(color: BooyahTheme.maroon),
-                boxShadow: [BoxShadow(color: BooyahTheme.maroon.withValues(alpha: 0.5), blurRadius: 20)],
-              ),
-              child: const Center(child: Text('🐺', style: TextStyle(fontSize: 40))),
-            ),
-            const SizedBox(height: 12),
-            Text(_userData?['team_name'] ?? 'Unknown', style: const TextStyle(
-              fontFamily: 'Orbitron', fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 2)),
-            Text('${_userData?['username'] ?? 'Player'} · ${_userData?['role'] ?? 'Peserta'}',
-              style: const TextStyle(fontSize: 12, color: BooyahTheme.textMuted)),
-            const SizedBox(height: 18),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _stat('${_stats['total_scrims'] ?? 0}', 'SCRIM\nDIIKUTI'),
-              Container(width: 1, height: 36, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-              _stat('${_stats['total_kills'] ?? 0}', 'TOTAL\nKILLS'),
-              Container(width: 1, height: 36, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-              _stat(_fmtRupiah(_stats['total_rewards'] ?? 0), 'HADIAH\nDITERIMA'),
-            ]),
-          ]),
-        ),
-
-        // Menu
-        Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(children: [
-            // Admin Mode Button (if user is admin)
-            if (_userData?['role'] == 'admin') ...[
-              const SizedBox(height: 6),
-              GestureDetector(
-                onTap: () => Navigator.pushReplacementNamed(ctx, AppRoutes.homeForRole(UserRole.admin)),
-                child: Container(
+            child: Column(
+              children: [
+                // Hero
+                Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [BooyahTheme.yellow.withValues(alpha: 0.1), BooyahTheme.yellow.withValues(alpha: 0.05)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      colors: [
+                        BooyahTheme.maroonD.withValues(alpha: 0.8),
+                        BooyahTheme.bg,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                    border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.5)),
-                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Icon(Icons.admin_panel_settings, color: BooyahTheme.yellow, size: 20),
-                    SizedBox(width: 8),
-                    Text('MASUK MODE ADMIN', style: TextStyle(fontSize: 14, color: BooyahTheme.yellow, fontWeight: FontWeight.w700, letterSpacing: 1)),
-                  ]),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 86,
+                        height: 86,
+                        decoration: BoxDecoration(
+                          color: BooyahTheme.maroon.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: BooyahTheme.maroon),
+                          boxShadow: [
+                            BoxShadow(
+                              color: BooyahTheme.maroon.withValues(alpha: 0.5),
+                              blurRadius: 20,
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text('🐺', style: TextStyle(fontSize: 40)),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _getTeamName(),
+                        style: const TextStyle(
+                          fontFamily: 'Orbitron',
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      Text(
+                        '${_getUsername()} · ${_userData?['role'] ?? 'Peserta'}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: BooyahTheme.textMuted,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _stat(
+                            '${_stats['total_scrims'] ?? 0}',
+                            'SCRIM\nDIIKUTI',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 36,
+                            color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                          ),
+                          _stat(
+                            '${_stats['total_kills'] ?? 0}',
+                            'TOTAL\nKILLS',
+                          ),
+                          Container(
+                            width: 1,
+                            height: 36,
+                            color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                          ),
+                          _stat(
+                            _fmtRupiah(_stats['total_rewards'] ?? 0),
+                            'HADIAH\nDITERIMA',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            _menuGroup('SCRIM', [
-              _MenuItem(Icons.history, 'Riwayat Scrim', () => Navigator.pushNamed(ctx, AppRoutes.riwayat)),
-              _MenuItem(Icons.emoji_events, 'Klaim Hadiah', () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah)),
-              _MenuItem(Icons.pending_actions, 'Status Pendaftaran', () => Navigator.pushNamed(ctx, AppRoutes.statusPendaftaran)),
-            ]),
-            const SizedBox(height: 10),
-            _menuGroup('AKUN', [
-              _MenuItem(Icons.person_outline, 'Edit Profil', null),
-              _MenuItem(Icons.account_balance_wallet, 'Rekening & E-Wallet', null),
-              _MenuItem(Icons.receipt_long, 'Riwayat Pembayaran', null),
-            ]),
-            const SizedBox(height: 10),
-            _menuGroup('LAINNYA', [
-              _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
-              _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
-              _MenuItem(Icons.logout, 'Keluar', () => _logout(ctx), isRed: true),
-            ]),
-          ]),
-        ),
-        const SizedBox(height: 20),
-      ]),
-    ),
+
+                // Menu
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    children: [
+                      _menuGroup('SCRIM', [
+                        _MenuItem(
+                          Icons.history,
+                          'Riwayat Scrim',
+                          () => Navigator.pushNamed(ctx, AppRoutes.riwayat),
+                        ),
+                        _MenuItem(
+                          Icons.emoji_events,
+                          'Klaim Hadiah',
+                          () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah),
+                        ),
+                        _MenuItem(
+                          Icons.pending_actions,
+                          'Status Pendaftaran',
+                          () => Navigator.pushNamed(
+                            ctx,
+                            AppRoutes.statusPendaftaran,
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 10),
+                      _menuGroup('AKUN', [
+                        _MenuItem(Icons.person_outline, 'Edit Profil', null),
+                        _MenuItem(
+                          Icons.account_balance_wallet,
+                          'Rekening & E-Wallet',
+                          null,
+                        ),
+                        _MenuItem(
+                          Icons.receipt_long,
+                          'Riwayat Pembayaran',
+                          null,
+                        ),
+                      ]),
+                      const SizedBox(height: 10),
+                      _menuGroup('LAINNYA', [
+                        _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
+                        _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
+                        _MenuItem(
+                          Icons.logout,
+                          'Keluar',
+                          () => _logout(ctx),
+                          isRed: true,
+                        ),
+                      ]),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
   );
 
   String _fmtRupiah(int amount) {
@@ -184,42 +289,102 @@ Future<void> _loadUserData() async {
 
   Widget _stat(String val, String label) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 22),
-    child: Column(children: [
-      Text(val, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: BooyahTheme.maroonB)),
-      Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted, letterSpacing: 0.3)),
-    ]),
+    child: Column(
+      children: [
+        Text(
+          val,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: BooyahTheme.maroonB,
+          ),
+        ),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 9,
+            color: BooyahTheme.textMuted,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ],
+    ),
   );
 
   Widget _menuGroup(String title, List<_MenuItem> items) => Container(
     decoration: BoxDecoration(
-      color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
+      color: BooyahTheme.card,
+      borderRadius: BorderRadius.circular(12),
       border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
     ),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
-        child: Text(title, style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 1.5, fontWeight: FontWeight.w700)),
-      ),
-      ...items.map((m) => Column(children: [
-        InkWell(
-          onTap: m.onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(children: [
-              Icon(m.icon, color: m.isRed ? BooyahTheme.red : BooyahTheme.maroonB, size: 20),
-              const SizedBox(width: 12),
-              Text(m.label, style: TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w600,
-                color: m.isRed ? BooyahTheme.red : BooyahTheme.textSec)),
-              const Spacer(),
-              Icon(Icons.chevron_right, color: m.isRed ? BooyahTheme.red.withValues(alpha: 0.5) : BooyahTheme.textMuted, size: 18),
-            ]),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 10,
+              color: BooyahTheme.textMuted,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        if (m != items.last) Divider(height: 1, indent: 46, color: Colors.white.withValues(alpha: 0.04)),
-      ])),
-    ]),
+        ...items.map(
+          (m) => Column(
+            children: [
+              InkWell(
+                onTap: m.onTap,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        m.icon,
+                        color: m.isRed ? BooyahTheme.red : BooyahTheme.maroonB,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        m.label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: m.isRed
+                              ? BooyahTheme.red
+                              : BooyahTheme.textSec,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.chevron_right,
+                        color: m.isRed
+                            ? BooyahTheme.red.withValues(alpha: 0.5)
+                            : BooyahTheme.textMuted,
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (m != items.last)
+                Divider(
+                  height: 1,
+                  indent: 46,
+                  color: Colors.white.withValues(alpha: 0.04),
+                ),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 
