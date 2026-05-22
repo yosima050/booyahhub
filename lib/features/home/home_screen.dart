@@ -91,19 +91,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<ScrimModel> get _scrims {
-    return _rawScrims.map((s) => ScrimModel(
-      id:          s['id'].toString(),
-      title:       s['title'] as String,
-      adminName:   (s['admin_profiles']?['display_name'] ?? '') as String,
-      date:        _fmtDate(s['scheduled_at'] as String),
-      time:        _fmtTime(s['scheduled_at'] as String),
-      mode:        s['mode'] as String,
-      slotFilled:  s['slot_filled'] as int,
-      slotTotal:   s['slot_total'] as int,
-      fee:         s['fee'] as int,
-      prize:       s['prize_pool'] as int,
-      isPremium:   s['is_premium'] as bool? ?? false,
-    )).toList();
+    final query = _searchQuery.trim().toLowerCase();
+    final filter = _activeFilter.toUpperCase();
+
+    return _rawScrims
+        .map((s) => ScrimModel(
+              id: s['id'].toString(),
+              title: s['title'] as String,
+              adminName: (s['admin_profiles']?['display_name'] ?? '') as String,
+              date: _fmtDate(s['scheduled_at'] as String),
+              time: _fmtTime(s['scheduled_at'] as String),
+              mode: s['mode'] as String,
+              slotFilled: s['slot_filled'] as int,
+              slotTotal: s['slot_total'] as int,
+              fee: s['fee'] as int,
+              prize: s['prize_pool'] as int,
+              isPremium: s['is_premium'] as bool? ?? false,
+            ))
+        .where((scrim) {
+      if (query.isNotEmpty) {
+        final titleMatch = scrim.title.toLowerCase().contains(query);
+        final adminMatch = scrim.adminName.toLowerCase().contains(query);
+        if (!titleMatch && !adminMatch) return false;
+      }
+      if (filter == 'PREMIUM') {
+        return scrim.isPremium;
+      } else if (filter == 'BATTLE ROYALE') {
+        return scrim.mode.toUpperCase() == 'BATTLE ROYALE';
+      } else if (filter == 'CLASH SQUAD') {
+        return scrim.mode.toUpperCase() == 'CLASH SQUAD';
+      }
+      return true;
+    }).toList();
   }
 
   String _fmtDate(String iso) {
