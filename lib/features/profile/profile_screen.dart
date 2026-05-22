@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
@@ -15,11 +16,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   Map<String, dynamic> _stats = {};
   bool _loading = true;
+  bool _uploadingPhoto = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  // ── Ambil kata pertama dari email (sebelum titik atau @) ──────────────────
+  String _usernameFromEmail(String? email) {
+    if (email == null || email.isEmpty) return 'Player';
+    final local = email.split('@').first;
+    final word = local.split(RegExp(r'[._\-+]')).first;
+    return word.isNotEmpty
+        ? '${word[0].toUpperCase()}${word.substring(1)}'
+        : 'Player';
+  }
+
+  // ── Ambil avatar URL (dari profiles atau Google OAuth) ────────────────────
+  String? _getAvatarUrl() {
+    final fromProfile = _userData?['avatar_url'] as String?;
+    if (fromProfile != null && fromProfile.isNotEmpty) return fromProfile;
+
+    final user = Supabase.instance.client.auth.currentUser;
+    return user?.userMetadata?['avatar_url'] as String? ??
+        user?.userMetadata?['picture'] as String?;
   }
 
   Future<void> _loadUserData() async {
@@ -40,32 +62,135 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  String _getUsername() {
-    // Cek apakah _userData tidak null dan memiliki username
-    if (_userData != null &&
-        _userData!.containsKey('username') &&
-        _userData!['username'] != null &&
-        _userData!['username'].toString().isNotEmpty) {
-      return _userData!['username'].toString();
-    }
+  Future<void> _pickAndUploadPhoto() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
 
-    // Ambil dari email user
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user != null && user.email != null && user.email!.contains('@')) {
-      return user.email!.split('@')[0];
-    }
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    if (file.bytes == null) return;
 
-    return '';
+    setState(() => _uploadingPhoto = true);
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final ext = (file.extension ?? 'jpg').toLowerCase();
+      final filePath = 'avatars/${user.id}.$ext';
+
+      // Upload ke Supabase Storage bucket "avatars"
+      await Supabase.instance.client.storage
+          .from('avatars')
+          .uploadBinary(
+            filePath,
+            file.bytes!,
+            fileOptions: FileOptions(contentType: 'image/$ext', upsert: true),
+          );
+
+      // Ambil public URL
+      final publicUrl = Supabase.instance.client.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+      // Simpan ke tabel profiles
+      await Supabase.instance.client
+          .from('profiles')
+          .update({'avatar_url': publicUrl})
+          .eq('id', user.id);
+
+      setState(() {
+        _userData = {...?_userData, 'avatar_url': publicUrl};
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profil berhasil diperbarui!')),
+        );
+      }
+    } catch (e) {
+      debugPrint('Upload photo error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal upload foto: $e')));
+      }
+    } finally {
+      setState(() => _uploadingPhoto = false);
+    }
   }
 
-  String _getTeamName() {
-    if (_userData != null &&
-        _userData!.containsKey('team_name') &&
-        _userData!['team_name'] != null &&
-        _userData!['team_name'].toString().isNotEmpty) {
-      return _userData!['team_name'].toString();
-    }
-    return _getUsername();
+  // ── Widget foto profil ─────────────────────────────────────────────────────
+  Widget _buildAvatar() {
+    final avatarUrl = _getAvatarUrl();
+
+    return GestureDetector(
+      onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 86,
+            height: 86,
+            decoration: BoxDecoration(
+              color: BooyahTheme.maroon.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+              border: Border.all(color: BooyahTheme.maroon),
+              boxShadow: [
+                BoxShadow(
+                  color: BooyahTheme.maroon.withValues(alpha: 0.5),
+                  blurRadius: 20,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: _uploadingPhoto
+                  ? Container(
+                      color: Colors.black54,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                    )
+                  : avatarUrl != null && avatarUrl.isNotEmpty
+                  ? Image.network(
+                      avatarUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Center(
+                        child: Text('🐺', style: TextStyle(fontSize: 40)),
+                      ),
+                    )
+                  : const Center(
+                      child: Text('🐺', style: TextStyle(fontSize: 40)),
+                    ),
+            ),
+          ),
+          // Badge kamera pojok kanan bawah
+          if (!_uploadingPhoto)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: BooyahTheme.maroon,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: BooyahTheme.bg, width: 2),
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 13,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   void _logout(BuildContext ctx) => showDialog(
@@ -93,13 +218,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         ElevatedButton(
-          onPressed: () {
-            Navigator.pushNamedAndRemoveUntil(
-              ctx,
-              AppRoutes.login,
-              (r) => false,
-            );
-          },
+          onPressed: () => Navigator.pushNamedAndRemoveUntil(
+            ctx,
+            AppRoutes.login,
+            (r) => false,
+          ),
           style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
           child: const Text('KELUAR'),
         ),
@@ -117,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         : SingleChildScrollView(
             child: Column(
               children: [
-                // Hero
+                // ── Hero Section ─────────────────────────────────────────
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -133,27 +256,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      Container(
-                        width: 86,
-                        height: 86,
-                        decoration: BoxDecoration(
-                          color: BooyahTheme.maroon.withValues(alpha: 0.3),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: BooyahTheme.maroon),
-                          boxShadow: [
-                            BoxShadow(
-                              color: BooyahTheme.maroon.withValues(alpha: 0.5),
-                              blurRadius: 20,
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text('🐺', style: TextStyle(fontSize: 40)),
-                        ),
-                      ),
+                      _buildAvatar(),
                       const SizedBox(height: 12),
+
+                      // Username → kata pertama email
                       Text(
-                        _getTeamName(),
+                        _usernameFromEmail(
+                          Supabase.instance.client.auth.currentUser?.email,
+                        ),
                         style: const TextStyle(
                           fontFamily: 'Orbitron',
                           fontSize: 20,
@@ -161,14 +271,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           letterSpacing: 2,
                         ),
                       ),
+
+                      // Nama tim scrim · role
                       Text(
-                        '${_getUsername()} · ${_userData?['role'] ?? 'Peserta'}',
+                        '${_userData?['team_name'] ?? 'Belum ada tim'} · ${_userData?['role'] ?? 'Peserta'}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: BooyahTheme.textMuted,
                         ),
                       ),
+
                       const SizedBox(height: 18),
+
+                      // Stats row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -200,7 +315,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
 
-                // Menu
+                // ── Menu Section ─────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -259,13 +374,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
   );
 
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   String _fmtRupiah(int amount) {
     if (amount == 0) return 'Rp0';
-    final formatter = amount.toString().split('').reversed.toList();
+    final chars = amount.toString().split('').reversed.toList();
     String result = '';
-    for (int i = 0; i < formatter.length; i++) {
+    for (int i = 0; i < chars.length; i++) {
       if (i > 0 && i % 3 == 0) result += '.';
-      result += formatter[i];
+      result += chars[i];
     }
     return 'Rp${result.split('').reversed.join('')}';
   }
