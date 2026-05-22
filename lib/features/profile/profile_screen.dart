@@ -6,6 +6,7 @@ import '../../core/routes.dart';
 import '../../core/auth_service.dart';
 import '../../shared/models/models.dart';
 import '../../services/supabase_service.dart' show UserService;
+import 'edit_profile_screen.dart'; // Pastikan import screen baru kamu di sini
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -265,7 +266,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext ctx) {
-    final isAdmin = AuthService().role == UserRole.admin ||
+    final isAdmin =
+        AuthService().role == UserRole.admin ||
         _userData?['role']?.toString().toLowerCase() == 'admin';
 
     return Scaffold(
@@ -336,7 +338,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 width: 1,
                                 height: 36,
-                                color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                                color: BooyahTheme.maroon.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                               _stat(
                                 '${_stats['total_kills'] ?? 0}',
@@ -345,7 +349,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 width: 1,
                                 height: 36,
-                                color: BooyahTheme.maroon.withValues(alpha: 0.4),
+                                color: BooyahTheme.maroon.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                               _stat(
                                 _fmtRupiah(_stats['total_rewards'] ?? 0),
@@ -371,7 +377,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _MenuItem(
                               Icons.emoji_events,
                               'Klaim Hadiah',
-                              () => Navigator.pushNamed(ctx, AppRoutes.klaimHadiah),
+                              () => Navigator.pushNamed(
+                                ctx,
+                                AppRoutes.klaimHadiah,
+                              ),
                             ),
                             _MenuItem(
                               Icons.pending_actions,
@@ -384,7 +393,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ]),
                           const SizedBox(height: 10),
                           _menuGroup('AKUN', [
-                            _MenuItem(Icons.person_outline, 'Edit Profil', null),
+                            _MenuItem(Icons.person_outline, 'Edit Profil', () {
+                              Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const edit_profile_screen(),
+                                ),
+                              ).then((_) => _loadUserData());
+                            }),
                             _MenuItem(
                               Icons.account_balance_wallet,
                               'Rekening & E-Wallet',
@@ -416,15 +432,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   iconColor: BooyahTheme.yellow,
                                 ),
                               ],
-                              borderColor: BooyahTheme.yellow.withValues(alpha: 0.35),
+                              borderColor: BooyahTheme.yellow.withValues(
+                                alpha: 0.35,
+                              ),
                               titleColor: BooyahTheme.yellow,
                             ),
                           ],
 
                           const SizedBox(height: 10),
                           _menuGroup('LAINNYA', [
-                            _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
-                            _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
+                            _MenuItem(
+                              Icons.help_outline,
+                              'Bantuan & FAQ',
+                              null,
+                            ),
+                            _MenuItem(
+                              Icons.info_outline,
+                              'Tentang Aplikasi',
+                              null,
+                            ),
                             _MenuItem(
                               Icons.logout,
                               'Keluar',
@@ -545,7 +571,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Icons.chevron_right,
                         color: m.isRed
                             ? BooyahTheme.red.withValues(alpha: 0.5)
-                            : (m.iconColor?.withValues(alpha: 0.5) ?? BooyahTheme.textMuted),
+                            : (m.iconColor?.withValues(alpha: 0.5) ??
+                                  BooyahTheme.textMuted),
                         size: 18,
                       ),
                     ],
