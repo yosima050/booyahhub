@@ -94,7 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 50),
 
-              // ================= LOGO =================
 
               Center(
                 child: Container(
