@@ -477,11 +477,11 @@ class _HomeScreenState extends State<HomeScreen> {
         offset: const Offset(0, 6),
         child: Row(
           children: [
-            _StatBox(icon: '🇮🇩', value: '192M+', label: 'GAMER ID'),
+            _StatBox(icon: Icons.flag, value: '192M+', label: 'GAMER ID'),
             const SizedBox(width: 8),
-            _StatBox(icon: '🎮', value: '30M+', label: 'PEMAIN AKTIF'),
+            _StatBox(icon: Icons.sports_esports, value: '30M+', label: 'PEMAIN AKTIF'),
             const SizedBox(width: 8),
-            _StatBox(icon: '🏆', value: '618K+', label: 'REKOR PESERTA'),
+            _StatBox(icon: Icons.emoji_events, value: '618K+', label: 'REKOR PESERTA'),
           ],
         ),
       ),
@@ -531,7 +531,8 @@ class _FilterChipSmall extends StatelessWidget {
 }
 
 class _StatBox extends StatelessWidget {
-  final String icon, value, label;
+  final IconData icon;
+  final String value, label;
   const _StatBox({required this.icon, required this.value, required this.label});
 
   @override
@@ -545,8 +546,12 @@ class _StatBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 2),
+          Icon(
+            icon,
+            size: 18,
+            color: BooyahTheme.maroonB,
+          ),
+          const SizedBox(height: 4),
           Text(value, style: const TextStyle(
             fontSize: 12, fontWeight: FontWeight.w800, color: BooyahTheme.maroonB)),
           Text(label, style: const TextStyle(
