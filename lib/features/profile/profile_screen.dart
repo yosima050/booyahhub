@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
-import '../../services/supabase_service.dart';
+import '../../core/auth_service.dart';
+import '../../shared/models/models.dart';
+import '../../services/supabase_service.dart' show UserService;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
