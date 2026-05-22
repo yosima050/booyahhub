@@ -1,6 +1,6 @@
 name: booyahhub
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0+1
 
 environment:
@@ -9,12 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # All these must align vertically with 'flutter:' above
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.5.6
   http: ^1.2.1
   uuid: ^4.3.3
+  file_picker: ^8.1.2
 
 dev_dependencies:
   flutter_test:

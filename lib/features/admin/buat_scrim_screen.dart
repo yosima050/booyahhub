@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 
@@ -27,7 +28,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
   int get _feeAdm  => (_gross * 0.0375).round();
   int get _hadiah  => (_gross * 0.85).round();
 
-  void _save() async {
+  void _saveScrim({required String status}) async {
     // Validasi UC-02 Langkah 6a
     if (_namaCtrl.text.isEmpty || _kuotaCtrl.text.isEmpty || _biayaCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,20 +36,94 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
           backgroundColor: BooyahTheme.red));
       return;
     }
-    if (_tanggal != null && _tanggal!.isBefore(DateTime.now())) {
+    if (_tanggal == null || _jamMulai == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('⚠️ Tanggal dan jam mulai harus dipilih!'),
+          backgroundColor: BooyahTheme.red));
+      return;
+    }
+    if (_tanggal!.isBefore(DateTime.now().add(const Duration(days: -1)))) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('⚠️ Tanggal tidak valid (backdate)!'),
           backgroundColor: BooyahTheme.red));
       return;
     }
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Scrim berhasil dibuat dan dipublikasikan!'),
-          backgroundColor: BooyahTheme.green));
-      Navigator.pop(context);
+
+    try {
+      // Gabungkan DateTime dan TimeOfDay ke format ISO8601
+      final scheduledDateTime = DateTime(
+        _tanggal!.year,
+        _tanggal!.month,
+        _tanggal!.day,
+        _jamMulai!.hour,
+        _jamMulai!.minute,
+      );
+
+      // Hitung waktu tutup pendaftaran (1 jam sebelum jadwal mulai scrim)
+      final registrationClosesAt = scheduledDateTime.subtract(const Duration(hours: 1));
+
+      // Ambil current user ID dari Supabase Auth
+      final currentAuthUser = Supabase.instance.client.auth.currentUser;
+      if (currentAuthUser == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('❌ Anda harus login terlebih dahulu'),
+              backgroundColor: BooyahTheme.red));
+        }
+        setState(() => _loading = false);
+        return;
+      }
+
+      // Ambil bigint ID dari tabel users berdasarkan UUID auth
+      final userProfile = await Supabase.instance.client
+          .from('users')
+          .select('id')
+          .eq('uuid', currentAuthUser.id)
+          .single();
+      final int adminBigId = userProfile['id'];
+
+      // Konversi mode ke format enum database ('battle_royale' atau 'clash_squad')
+      final String dbMode = _mode == 'Clash Squad' ? 'clash_squad' : 'battle_royale';
+
+      // INSERT data scrim baru ke tabel 'scrims'
+      await Supabase.instance.client.from('scrims').insert({
+        'title': _namaCtrl.text.trim(),
+        'mode': dbMode,
+        'description': _deskCtrl.text.trim(),
+        'scheduled_at': scheduledDateTime.toIso8601String(),
+        'registration_closes_at': registrationClosesAt.toIso8601String(),
+        'slot_total': int.parse(_kuotaCtrl.text),
+        'fee': int.parse(_biayaCtrl.text),
+        'rules': _aturCtrl.text.trim(),
+        'admin_id': adminBigId,
+        'status': status,
+      });
+
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(status == 'open'
+                ? '✅ Scrim berhasil dibuat dan dipublikasikan!'
+                : '📥 Scrim berhasil disimpan sebagai Draft!'),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+        Navigator.pop(context, true); // Return true untuk trigger refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString()}'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+      debugPrint('Error saving scrim: $e');
     }
   }
 
@@ -191,10 +266,10 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
           style: const TextStyle(color: BooyahTheme.textPri),
           decoration: const InputDecoration(hintText: 'Opsional...')),
         const SizedBox(height: 20),
-        BooyahButton(label: 'SIMPAN & PUBLIKASIKAN', onTap: _save, isLoading: _loading),
+        BooyahButton(label: 'SIMPAN & PUBLIKASIKAN', onTap: () => _saveScrim(status: 'open'), isLoading: _loading),
         const SizedBox(height: 8),
         BooyahButton(label: 'SIMPAN SEBAGAI DRAFT', outlined: true,
-          onTap: () => Navigator.pop(context)),
+          onTap: _loading ? null : () => _saveScrim(status: 'draft')),
         const SizedBox(height: 20),
       ]),
     ),

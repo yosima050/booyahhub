@@ -110,7 +110,7 @@ class ScrimService {
           scheduled_at, registration_closes_at,
           slot_total, slot_filled, fee, prize_pool,
           is_premium, is_featured, status,
-          admin_profiles!inner(display_name, is_trusted, rating)
+          admin_profiles(display_name, is_trusted, rating)
         ''')
         .eq('status', status)
         .isFilter('deleted_at', null); // BERHENTI DI SINI, jangan .order() dulu
@@ -763,42 +763,68 @@ class AdminService {
     
     if (user == null) {
       return {
-        'total_scrims': 0,
-        'total_teams': 0,
-        'active_scrims': 0,
-        'gross_income': 0,
-        'pending_verify': 0,
+        'stats': {
+          'total_scrims': 0,
+          'total_teams': 0,
+          'active_scrims': 0,
+          'gross_income': 0,
+          'pending_verifications': 0,
+        },
+        'recent_scrims': <Map<String, dynamic>>[],
       };
     }
 
-    final uid = user.id;
+    try {
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', user.id)
+          .single();
+      final int adminBigId = userProfile['id'];
 
-    // Parallel queries
-    final results = await Future.wait([
-      _db
-          .from('scrims')
-          .select('id, status, slot_filled, slot_total, fee')
-          .eq('admin_id', uid)
-          .isFilter('deleted_at', null),
-      _db
-          .from('registrations')
-          .select('id, status')
-          .eq('status', 'waiting_verify'),
-    ]);
+      // Parallel queries
+      final results = await Future.wait([
+        _db
+            .from('scrims')
+            .select('id, status, slot_filled, slot_total, fee')
+            .eq('admin_id', adminBigId)
+            .isFilter('deleted_at', null),
+        _db
+            .from('registrations')
+            .select('id, status')
+            .eq('status', 'waiting_verify'),
+        _db
+            .from('scrims')
+            .select('id, uuid, title, scheduled_at, slot_filled, slot_total, status')
+            .eq('admin_id', adminBigId)
+            .isFilter('deleted_at', null)
+            .order('scheduled_at', ascending: true),
+      ]);
 
-    final myScrims = results[0] as List;
-    final pending = results[1] as List;
+      final myScrims = results[0] as List;
+      final pending = results[1] as List;
+      final recentScrims = results[2] as List;
 
-    final grossIncome = myScrims.fold<int>(0, (sum, s) =>
-        sum + ((s['fee'] as int) * (s['slot_filled'] as int)));
+      final grossIncome = myScrims.fold<int>(0, (sum, s) {
+        final fee = (s['fee'] as num? ?? 0).toInt();
+        final filled = (s['slot_filled'] as num? ?? 0).toInt();
+        return sum + (fee * filled);
+      });
 
-    return {
-      'total_scrims': myScrims.length,
-      'total_teams': myScrims.fold(0, (s, x) => s + (x['slot_filled'] as int)),
-      'active_scrims': myScrims.where((s) => s['status'] == 'open').length,
-      'gross_income': grossIncome,
-      'pending_verify': pending.length,
-    };
+      return {
+        'stats': {
+          'total_scrims': myScrims.length,
+          'total_teams': myScrims.fold(0, (s, x) => s + ((x['slot_filled'] as num? ?? 0).toInt())),
+          'active_scrims': myScrims.where((s) => s['status'] == 'open').length,
+          'gross_income': grossIncome,
+          'pending_verifications': pending.length,
+        },
+        'recent_scrims': List<Map<String, dynamic>>.from(recentScrims),
+      };
+    } catch (e) {
+      debugPrint('Error getDashboard: $e');
+      rethrow;
+    }
   }
 
   static Future<List<Map<String, dynamic>>> getReport(

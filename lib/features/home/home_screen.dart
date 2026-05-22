@@ -14,6 +14,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final FocusNode _searchFocus = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
   String _activeFilter = 'SEMUA';
   final List<String> _filters = ['SEMUA', 'PREMIUM', 'BATTLE ROYALE', 'CLASH SQUAD'];
   
@@ -21,23 +24,69 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
 
+  RealtimeChannel? _scrimsSubscription;
+
   @override
   void initState() {
     super.initState();
     _loadScrims();
+    _subscribeRealtime();
   }
 
-  Future<void> _loadScrims() async {
-    setState(() { _loading = true; _error = null; });
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocus.dispose();
+    if (_scrimsSubscription != null) {
+      Supabase.instance.client.removeChannel(_scrimsSubscription!);
+    }
+    super.dispose();
+  }
+
+  void _subscribeRealtime() {
+    try {
+      _scrimsSubscription = Supabase.instance.client
+          .channel('public:scrims')
+          .onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'scrims',
+            callback: (payload) {
+              if (mounted) {
+                _loadScrims(silent: true);
+              }
+            },
+          )
+          .subscribe();
+    } catch (e) {
+      debugPrint('Realtime subscription error: $e');
+    }
+  }
+
+  Future<void> _loadScrims({bool silent = false}) async {
+    if (!silent) {
+      setState(() { _loading = true; _error = null; });
+    }
     try {
       final data = await ScrimService.getAll(status: 'open');
-      setState(() => _rawScrims = data);
+      if (mounted) {
+        setState(() {
+          _rawScrims = data;
+          _error = null;
+        });
+      }
     } on PostgrestException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted && !silent) {
+        setState(() => _error = e.message);
+      }
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted && !silent) {
+        setState(() => _error = e.toString());
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted && !silent) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -71,8 +120,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        color: BooyahTheme.maroonB,
+        backgroundColor: BooyahTheme.card,
+        onRefresh: () => _loadScrims(silent: true),
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
           // ── Hero Header ──
           SliverToBoxAdapter(
             child: _buildHero(),
@@ -96,14 +150,61 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
                   ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.search, color: BooyahTheme.textMuted, size: 18),
-                      SizedBox(width: 8),
-                      Text('Cari scrim...', style: TextStyle(color: BooyahTheme.textMuted, fontSize: 13)),
-                      Spacer(),
-                      _FilterChipSmall(label: 'FILTER'),
-                    ],
+                  child: Row(
+                  children: [
+                    const Icon(
+                      Icons.search,
+                      color: BooyahTheme.textMuted,
+                      size: 18,
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Cari scrim...',
+                          hintStyle: TextStyle(
+                            color: BooyahTheme.textMuted,
+                            fontSize: 13,
+                          ),
+                          border: InputBorder.none,
+                          isCollapsed: true,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        setState(() {
+                          _activeFilter = value;
+                        });
+                      },
+                      color: BooyahTheme.surface,
+                      itemBuilder: (context) => _filters.map((filter) {
+                        return PopupMenuItem<String>(
+                          value: filter,
+                          child: Text(
+                            filter,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }).toList(),
+
+                      child: const _FilterChipSmall(label: 'FILTER'),
+                    ),
+                  ],
                   ),
                 ),
               ),
@@ -179,18 +280,20 @@ class _HomeScreenState extends State<HomeScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildHero() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
-      decoration: const BoxDecoration(
+    return SafeArea(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
+        decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF6B0000), Color(0xFF2A0000), BooyahTheme.bg],
           begin: Alignment.topLeft, end: Alignment.bottomCenter,
+          ),
         ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -203,8 +306,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: BooyahTheme.maroon,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Center(child: Text('B',
-                  style: TextStyle(fontFamily: 'Orbitron', fontWeight: FontWeight.w900, fontSize: 16))),
+                child: Image.asset(
+                  'assets/images/logo.jpeg',
+                  fit: BoxFit.cover,
+                ),
               ),
               const SizedBox(width: 8),
               const Text('BooyahHub', style: TextStyle(
@@ -271,6 +376,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -322,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
       child: Transform.translate(
-        offset: const Offset(0, -6),
+        offset: const Offset(0, 6),
         child: Row(
           children: [
             _StatBox(icon: '🇮🇩', value: '192M+', label: 'GAMER ID'),

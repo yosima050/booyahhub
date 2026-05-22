@@ -1,29 +1,48 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../core/auth_service.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart' as supabase_svc;
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
   @override
-  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+  State<AdminHomeScreen> createState() => AdminHomeScreenState();
 }
 
-class _AdminHomeScreenState extends State<AdminHomeScreen> {
+class AdminHomeScreenState extends State<AdminHomeScreen> {
   Map<String, dynamic> _stats = {};
   List<Map<String, dynamic>> _myScrim = [];
   bool _loading = true;
+  String _activeFilter = 'SEMUA';
 
   @override
   void initState() {
     super.initState();
-    _load();
+    load();
   }
 
-  Future<void> _load() async {
+  Future<void> load() async {
     setState(() => _loading = true);
     try {
+      // Sinkronisasi data profile admin jika belum terisi di AuthService
+      final currentAuthUser = supabase_svc.AuthService.currentUser;
+      if (currentAuthUser != null && AuthService().userId == 0) {
+        final profile = await supabase_svc.UserService.getUserProfile(currentAuthUser.id);
+        final roleStr = profile['role'] as String? ?? 'admin';
+        UserRole finalRole = UserRole.admin;
+        if (roleStr == 'peserta') finalRole = UserRole.peserta;
+        if (roleStr == 'platform') finalRole = UserRole.platform;
+
+        AuthService().login(
+          role: finalRole,
+          name: profile['name'] as String? ?? profile['email'] as String? ?? 'Admin',
+          email: profile['email'] as String? ?? currentAuthUser.email ?? '',
+          userId: profile['id'] as int? ?? 0,
+        );
+      }
+
       final dash = await supabase_svc.AdminService.getDashboard();
       setState(() {
         _stats   = dash['stats'] as Map<String,dynamic>? ?? {};
@@ -38,6 +57,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   Color _statusColor(String s) {
     switch (s) {
+      case 'draft':    return BooyahTheme.textMuted;
       case 'open':     return BooyahTheme.yellow;
       case 'closed':   return BooyahTheme.red;
       case 'ongoing':  return BooyahTheme.maroonGlow;
@@ -48,6 +68,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   String _statusLabel(String s) {
     switch (s) {
+      case 'draft':    return 'DRAFT';
       case 'open':     return 'BUKA';
       case 'closed':   return 'PENUH';
       case 'ongoing':  return 'LIVE';
@@ -138,45 +159,109 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const SectionHeader(title: 'SCRIM SAYA'),
-                      if (_myScrim.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: Text('Belum ada scrim.', style: TextStyle(color: BooyahTheme.textMuted))))
-                      else
-                        ..._myScrim.map((s) => Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: BooyahTheme.card,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
-                              ),
-                              child: Row(children: [
-                                Container(width: 40, height: 40,
-                                  decoration: BoxDecoration(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(8)),
-                                  child: const Center(child: Text('🎮', style: TextStyle(fontSize: 18)))),
-                                const SizedBox(width: 10),
-                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                  Text(s['title'] as String? ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                                  Text('${s['scheduled_at'] ?? ''}', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                                ])),
-                                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.4)),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: ['SEMUA', 'DRAFT', 'BUKA', 'LIVE', 'SELESAI'].map((filter) {
+                            final bool isSelected = _activeFilter == filter;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: GestureDetector(
+                                onTap: () => setState(() => _activeFilter = filter),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? BooyahTheme.gold.withValues(alpha: 0.2) : BooyahTheme.card,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isSelected ? BooyahTheme.gold : BooyahTheme.maroon.withValues(alpha: 0.3),
+                                      width: 1.5,
                                     ),
-                                    child: Text(_statusLabel(s['status'] as String? ?? 'open'), style: TextStyle(
-                                      fontSize: 9, color: _statusColor(s['status'] as String? ?? 'open'), fontWeight: FontWeight.w700)),
+                                    boxShadow: isSelected ? [
+                                      BoxShadow(
+                                        color: BooyahTheme.gold.withValues(alpha: 0.15),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      )
+                                    ] : null,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text('${s['slot_filled'] ?? 0}/${s['slot_total'] ?? 0}', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted, fontWeight: FontWeight.w600)),
+                                  child: Text(
+                                    filter,
+                                    style: TextStyle(
+                                      fontFamily: 'Orbitron',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1,
+                                      color: isSelected ? BooyahTheme.gold : BooyahTheme.textMuted,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      Builder(builder: (context) {
+                        final filteredScrims = _myScrim.where((s) {
+                          final status = s['status'] as String? ?? 'open';
+                          if (_activeFilter == 'SEMUA') return true;
+                          if (_activeFilter == 'DRAFT') return status == 'draft';
+                          if (_activeFilter == 'BUKA') return status == 'open' || status == 'closed';
+                          if (_activeFilter == 'LIVE') return status == 'ongoing';
+                          if (_activeFilter == 'SELESAI') return status == 'finished';
+                          return true;
+                        }).toList();
+
+                        if (filteredScrims.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: Text(
+                                'Belum ada scrim di kategori ini.',
+                                style: TextStyle(color: BooyahTheme.textMuted),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: filteredScrims.map((s) => Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: BooyahTheme.card,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
+                                ),
+                                child: Row(children: [
+                                  Container(width: 40, height: 40,
+                                    decoration: BoxDecoration(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8)),
+                                    child: const Center(child: Text('🎮', style: TextStyle(fontSize: 18)))),
+                                  const SizedBox(width: 10),
+                                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    Text(s['title'] as String? ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                    Text('${s['scheduled_at'] ?? ''}', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                  ])),
+                                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: _statusColor(s['status'] as String? ?? 'open').withValues(alpha: 0.4)),
+                                      ),
+                                      child: Text(_statusLabel(s['status'] as String? ?? 'open'), style: TextStyle(
+                                        fontSize: 9, color: _statusColor(s['status'] as String? ?? 'open'), fontWeight: FontWeight.w700)),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text('${s['slot_filled'] ?? 0}/${s['slot_total'] ?? 0}', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted, fontWeight: FontWeight.w600)),
+                                  ]),
                                 ]),
-                              ]),
-                            )),
+                              )).toList(),
+                        );
+                      }),
                     ]),
                   ),
                 ),
