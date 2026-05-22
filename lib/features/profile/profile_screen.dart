@@ -94,11 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .from('avatars')
           .getPublicUrl(filePath);
 
-      // Simpan ke tabel profiles
+      // Simpan ke tabel users berdasarkan uuid
       await Supabase.instance.client
           .from('users')
           .update({'avatar_url': publicUrl})
-          .eq('id', user.id);
+          .eq('uuid', user.id);
 
       setState(() {
         _userData = {...?_userData, 'avatar_url': publicUrl};

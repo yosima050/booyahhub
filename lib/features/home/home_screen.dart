@@ -307,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Image.asset(
-                  'assets/images/logo.jpeg',
+                  'assets/images/logo2.jpeg',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -359,17 +359,25 @@ class _HomeScreenState extends State<HomeScreen> {
               color: BooyahTheme.maroon,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: const Row(
+            child: Row (
               mainAxisSize: MainAxisSize.min,
               children: [
-                _LiveDot(),
-                SizedBox(width: 6),
-                Text('LIVE · 3 SCRIM AKTIF', style: TextStyle(
-                  fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+                const _LiveDot(),
+                const SizedBox(width: 6),
+                Text(
+                  _loading 
+                      ? 'LIVE · MEMUAT...' 
+                      : 'LIVE · ${_rawScrims.length} SCRIM AKTIF', 
+                  style: const TextStyle(
+                    fontSize: 11, 
+                    fontWeight: FontWeight.w700, 
+                    letterSpacing: 1.5,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
 
           // Hero title
           RichText(
