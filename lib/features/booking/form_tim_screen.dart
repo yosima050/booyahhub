@@ -18,8 +18,21 @@ class _FormTimScreenState extends State<FormTimScreen> {
   void _addMember() {
     if (_memberCtrls.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maksimal 3 anggota tambahan (total 4 dengan captain).'),
-          backgroundColor: BooyahTheme.yellow));
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.black),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Maksimal 3 anggota tambahan (total 4 dengan captain).',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: BooyahTheme.yellow,
+        ),
+      );
       return;
     }
     setState(() => _memberCtrls.add(TextEditingController()));
@@ -30,8 +43,21 @@ class _FormTimScreenState extends State<FormTimScreen> {
   void _next() {
     if (_namaCtrl.text.isEmpty || _captainCtrl.text.isEmpty || _hpCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('⚠️ Nama tim, ID Captain, dan HP wajib diisi!'),
-          backgroundColor: BooyahTheme.red));
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Nama tim, ID Captain, dan HP wajib diisi!',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: BooyahTheme.red,
+        ),
+      );
       return;
     }
     Navigator.pushNamed(context, AppRoutes.pembayaran);
@@ -80,7 +106,14 @@ class _FormTimScreenState extends State<FormTimScreen> {
             Expanded(child: TextField(
               controller: _memberCtrls[i],
               style: const TextStyle(color: BooyahTheme.textPri),
-              decoration: InputDecoration(hintText: 'ID Free Fire anggota ke-${i+1}'),
+              decoration: InputDecoration(
+                hintText: 'ID Free Fire anggota ke-${i+1}',
+                prefixIcon: const Icon(
+                  Icons.person,
+                  color: BooyahTheme.maroonB,
+                  size: 18,
+                ),
+              ),
             )),
             if (_memberCtrls.length > 1) ...[
               const SizedBox(width: 8),

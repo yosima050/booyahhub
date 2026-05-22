@@ -34,130 +34,393 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   }
 
   Future<void> _load() async {
-      if (mounted) setState(() => _loading = true);
-      
-      try {
-        final data = await ResultService.getLeaderboard(scrimId);
-        if (mounted) setState(() => _teams = data);
-      } catch (e) {
-        debugPrint('Error leaderboard: $e');
-      } finally {
-        if (mounted) setState(() => _loading = false);
-      }
+    if (mounted) setState(() => _loading = true);
+
+    try {
+      final data = await ResultService.getLeaderboard(scrimId);
+      if (mounted) setState(() => _teams = data);
+    } catch (e) {
+      debugPrint('Error leaderboard: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
+  }
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text('LEADERBOARD'),
-      actions: [Container(margin: const EdgeInsets.only(right: 14),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: BooyahTheme.maroon.withValues(alpha: 0.2),
-          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-          borderRadius: BorderRadius.circular(4)),
-        child: const Text('SCRIM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: BooyahTheme.maroonB)))],
+    appBar: AppBar(
+      title: const Text('LEADERBOARD'),
+      actions: [
+        Container(
+          margin: const EdgeInsets.only(right: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: BooyahTheme.maroon.withValues(alpha: 0.2),
+            border: Border.all(
+              color: BooyahTheme.maroon.withValues(alpha: 0.4),
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: const Text(
+            'SCRIM',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: BooyahTheme.maroonB,
+            ),
+          ),
+        ),
+      ],
     ),
     body: _loading
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
+        ? const Center(
+            child: CircularProgressIndicator(color: Color(0xFFB22222)),
+          )
         : SingleChildScrollView(
-            child: Column(children: [
-              // Podium
-              if (_teams.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [BooyahTheme.maroonD.withValues(alpha: 0.8), BooyahTheme.bg],
-                      begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                  ),
-                  child: Column(children: [
-                    const Text('🏆 TOP 3 SCRIM WARRIORS 🏆',
-                      style: TextStyle(fontSize: 11, color: BooyahTheme.gold, letterSpacing: 2, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 20),
-                    Row(crossAxisAlignment: CrossAxisAlignment.end, mainAxisAlignment: MainAxisAlignment.center, children: [
-                      if (_teams.length > 1) _podiumItem(_teams[1]['team_name'], '${_teams[1]['points']} PTS', BooyahTheme.silver, 85, 68),
-                      const SizedBox(width: 8),
-                      if (_teams.isNotEmpty) Column(children: [
-                        const Text('⭐', style: TextStyle(fontSize: 24)),
-                        _podiumItem(_teams[0]['team_name'], '${_teams[0]['points']} PTS', BooyahTheme.gold, 110, 80),
-                      ]),
-                      const SizedBox(width: 8),
-                      if (_teams.length > 2) _podiumItem(_teams[2]['team_name'], '${_teams[2]['points']} PTS', BooyahTheme.bronze, 65, 56),
-                    ]),
-                  ]),
-                ),
-
-              // Prize banner
-              Container(
-                margin: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [BooyahTheme.maroon, BooyahTheme.maroonD]),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(children: [
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('TOTAL HADIAH', style: TextStyle(fontSize: 10, color: Colors.white54, letterSpacing: 1.5)),
-                    Text(_fmtRupiah(int.parse((_teams.fold<int>(0, (sum, t) => sum + (t['prize_amount'] as int? ?? 0))).toString())),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: BooyahTheme.gold)),
-                    const Text('Dari distribusi hadiah scrim', style: TextStyle(fontSize: 10, color: Colors.white38)),
-                  ])),
-                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    if (_teams.isNotEmpty) _prizeRow('🥇 Juara 1 · 50%', _fmtRupiah((_teams[0]['prize_amount'] as int?) ?? 0), BooyahTheme.gold),
-                    if (_teams.length > 1) _prizeRow('🥈 Juara 2 · 30%', _fmtRupiah((_teams[1]['prize_amount'] as int?) ?? 0), BooyahTheme.silver),
-                    if (_teams.length > 2) _prizeRow('🥉 Juara 3 · 20%', _fmtRupiah((_teams[2]['prize_amount'] as int?) ?? 0), BooyahTheme.bronze),
-                  ]),
-                ]),
-              ),
-
-              // Rankings
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                child: Column(children: [
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 8),
-                    child: Row(children: [
-                      Expanded(flex: 1, child: Text('RANK', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 0.8))),
-                      Expanded(flex: 2, child: Text('TIM', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 0.8))),
-                      Expanded(flex: 1, child: Align(alignment: Alignment.centerRight, child: Text('POIN', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 0.8)))),
-                    ]),
-                  ),
-                  ..._teams.asMap().entries.map((e) {
-                    final idx = e.key;
-                    final t = e.value;
-                    final rank = idx + 1;
-                    final isMe = t['user_id'] == Supabase.instance.client.auth.currentUser?.id;
-                    final rankColors = {1: BooyahTheme.gold, 2: BooyahTheme.silver, 3: BooyahTheme.bronze};
-                    final ptColor = rankColors[rank] ?? (isMe ? BooyahTheme.maroonB : BooyahTheme.textSec);
-                    final borderColor = rank == 1 ? BooyahTheme.gold : rank == 2 ? BooyahTheme.silver : rank == 3 ? BooyahTheme.bronze : BooyahTheme.maroon.withValues(alpha: 0.2);
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isMe ? BooyahTheme.maroon.withValues(alpha: 0.1) : BooyahTheme.card,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: isMe ? BooyahTheme.maroonB : borderColor),
+            child: Column(
+              children: [
+                // Podium
+                if (_teams.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          BooyahTheme.maroonD.withValues(alpha: 0.8),
+                          BooyahTheme.bg,
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
-                      child: Row(children: [
-                        Expanded(flex: 1, child: Text('#$rank', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: ptColor))),
-                        Expanded(flex: 2, child: Row(children: [
-                          const Text('🎮', style: TextStyle(fontSize: 16)),
-                          const SizedBox(width: 6),
-                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(t['team_name'].toString(), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, overflow: TextOverflow.ellipsis)),
-                            Text(t['captain_id']?.toString() ?? '', style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted, overflow: TextOverflow.ellipsis)),
-                          ])),
-                        ])),
-                        Expanded(flex: 1, child: Align(alignment: Alignment.centerRight, child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                          Text('${t['points']}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: ptColor)),
-                          Text('${t['kills'] ?? 0} Kills', style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted)),
-                        ]))),
-                      ]),
-                    );
-                  }),
-                ]),
-              ),
-            ]),
+                    ),
+                    child: Column(
+                      children: [
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.emoji_events,
+                              color: BooyahTheme.gold,
+                              size: 14,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'TOP 3 SCRIM WARRIORS',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: BooyahTheme.gold,
+                                letterSpacing: 2,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(
+                              Icons.emoji_events,
+                              color: BooyahTheme.gold,
+                              size: 14,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_teams.length > 1)
+                              _podiumItem(
+                                _teams[1]['team_name'],
+                                '${_teams[1]['points']} PTS',
+                                BooyahTheme.silver,
+                                85,
+                                68,
+                              ),
+                            const SizedBox(width: 8),
+                            if (_teams.isNotEmpty)
+                              Column(
+                                children: [
+                                  const Icon(
+                                    Icons.star,
+                                    color: BooyahTheme.gold,
+                                    size: 24,
+                                  ),
+                                  _podiumItem(
+                                    _teams[0]['team_name'],
+                                    '${_teams[0]['points']} PTS',
+                                    BooyahTheme.gold,
+                                    110,
+                                    80,
+                                  ),
+                                ],
+                              ),
+                            const SizedBox(width: 8),
+                            if (_teams.length > 2)
+                              _podiumItem(
+                                _teams[2]['team_name'],
+                                '${_teams[2]['points']} PTS',
+                                BooyahTheme.bronze,
+                                65,
+                                56,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Prize banner
+                Container(
+                  margin: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [BooyahTheme.maroon, BooyahTheme.maroonD],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'TOTAL HADIAH',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white54,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            Text(
+                              _fmtRupiah(
+                                int.parse(
+                                  (_teams.fold<int>(
+                                    0,
+                                    (sum, t) =>
+                                        sum + (t['prize_amount'] as int? ?? 0),
+                                  )).toString(),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: BooyahTheme.gold,
+                              ),
+                            ),
+                            const Text(
+                              'Dari distribusi hadiah scrim',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.white38,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (_teams.isNotEmpty)
+                            _prizeRow(
+                              Icons.looks_one,
+                              'Juara 1 · 50%',
+                              _fmtRupiah(
+                                (_teams[0]['prize_amount'] as int?) ?? 0,
+                              ),
+                              BooyahTheme.gold,
+                            ),
+                          if (_teams.length > 1)
+                            _prizeRow(
+                              Icons.looks_two,
+                              'Juara 2 · 30%',
+                              _fmtRupiah(
+                                (_teams[1]['prize_amount'] as int?) ?? 0,
+                              ),
+                              BooyahTheme.silver,
+                            ),
+                          if (_teams.length > 2)
+                            _prizeRow(
+                              Icons.looks_3,
+                              'Juara 3 · 20%',
+                              _fmtRupiah(
+                                (_teams[2]['prize_amount'] as int?) ?? 0,
+                              ),
+                              BooyahTheme.bronze,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Rankings
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                  child: Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                'RANK',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: BooyahTheme.textMuted,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                'TIM',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: BooyahTheme.textMuted,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  'POIN',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: BooyahTheme.textMuted,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ..._teams.asMap().entries.map((e) {
+                        final idx = e.key;
+                        final t = e.value;
+                        final rank = idx + 1;
+                        final isMe =
+                            t['user_id'] ==
+                            Supabase.instance.client.auth.currentUser?.id;
+                        final rankColors = {
+                          1: BooyahTheme.gold,
+                          2: BooyahTheme.silver,
+                          3: BooyahTheme.bronze,
+                        };
+                        final ptColor =
+                            rankColors[rank] ??
+                            (isMe ? BooyahTheme.maroonB : BooyahTheme.textSec);
+                        final borderColor = rank == 1
+                            ? BooyahTheme.gold
+                            : rank == 2
+                            ? BooyahTheme.silver
+                            : rank == 3
+                            ? BooyahTheme.bronze
+                            : BooyahTheme.maroon.withValues(alpha: 0.2);
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isMe
+                                ? BooyahTheme.maroon.withValues(alpha: 0.1)
+                                : BooyahTheme.card,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isMe ? BooyahTheme.maroonB : borderColor,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  '#$rank',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: ptColor,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.sports_esports,
+                                      size: 16,
+                                      color: BooyahTheme.textSec,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            t['team_name'].toString(),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Text(
+                                            t['captain_id']?.toString() ?? '',
+                                            style: const TextStyle(
+                                              fontSize: 9,
+                                              color: BooyahTheme.textMuted,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '${t['points']}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w800,
+                                          color: ptColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${t['kills'] ?? 0} Kills',
+                                        style: const TextStyle(
+                                          fontSize: 9,
+                                          color: BooyahTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
   );
 
@@ -172,29 +435,81 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return 'Rp${result.split('').reversed.join('')}';
   }
 
-  Widget _podiumItem(String name, String pts, Color color, double baseH, double avaSize) =>
-      Column(children: [
-        Text('🎮', style: TextStyle(fontSize: avaSize * 0.35)),
-        Text(name, style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w700, overflow: TextOverflow.ellipsis), maxLines: 1),
-        Text(pts, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
-        Container(
-          width: baseH * 0.8, height: baseH,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.3),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-            border: Border.all(color: color.withValues(alpha: 0.5)),
-          ),
-          child: Center(child: Text(pts.startsWith('1') ? '1' : pts.startsWith('2') ? '2' : '3',
-            style: const TextStyle(fontFamily:'Orbitron', fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white))),
+  Widget _podiumItem(
+    String name,
+    String pts,
+    Color color,
+    double baseH,
+    double avaSize,
+  ) => Column(
+    children: [
+      Icon(Icons.sports_esports, size: avaSize * 0.35, color: color),
+      Text(
+        name,
+        style: TextStyle(
+          fontSize: 9,
+          color: color,
+          fontWeight: FontWeight.w700,
+          overflow: TextOverflow.ellipsis,
         ),
-      ]);
-
-  Widget _prizeRow(String label, String amt, Color color) => Padding(
-    padding: const EdgeInsets.only(bottom: 3),
-    child: Row(children: [
-      Text(label, style: const TextStyle(fontSize: 9, color: Colors.white54)),
-      const SizedBox(width: 8),
-      Text(amt, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
-    ]),
+        maxLines: 1,
+      ),
+      Text(
+        pts,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: color,
+        ),
+      ),
+      Container(
+        width: baseH * 0.8,
+        height: baseH,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.3),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+          border: Border.all(color: color.withValues(alpha: 0.5)),
+        ),
+        child: Center(
+          child: Text(
+            pts.startsWith('1')
+                ? '1'
+                : pts.startsWith('2')
+                ? '2'
+                : '3',
+            style: const TextStyle(
+              fontFamily: 'Orbitron',
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    ],
   );
+
+  Widget _prizeRow(IconData icon, String label, String amt, Color color) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 3),
+        child: Row(
+          children: [
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 9, color: Colors.white54),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              amt,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      );
 }
