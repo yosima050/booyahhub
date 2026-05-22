@@ -40,6 +40,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  String _getUsername() {
+    // Cek apakah _userData tidak null dan memiliki username
+    if (_userData != null &&
+        _userData!.containsKey('username') &&
+        _userData!['username'] != null &&
+        _userData!['username'].toString().isNotEmpty) {
+      return _userData!['username'].toString();
+    }
+
+    // Ambil dari email user
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null && user.email != null && user.email!.contains('@')) {
+      return user.email!.split('@')[0];
+    }
+
+    return '';
+  }
+
+  String _getTeamName() {
+    if (_userData != null &&
+        _userData!.containsKey('team_name') &&
+        _userData!['team_name'] != null &&
+        _userData!['team_name'].toString().isNotEmpty) {
+      return _userData!['team_name'].toString();
+    }
+    return _getUsername();
+  }
+
   void _logout(BuildContext ctx) => showDialog(
     context: ctx,
     builder: (_) => AlertDialog(
@@ -125,9 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _userData?['team_name'] ??
-                            _userData?['username'] ??
-                            'Player',
+                        _getTeamName(),
                         style: const TextStyle(
                           fontFamily: 'Orbitron',
                           fontSize: 20,
@@ -136,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Text(
-                        '${_userData?['username'] ?? 'Player'} · ${_userData?['role'] ?? 'Peserta'}',
+                        '${_getUsername()} · ${_userData?['role'] ?? 'Peserta'}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: BooyahTheme.textMuted,
