@@ -13,27 +13,110 @@ class BantuanFaqScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
+          // =========================
+          // BANTUAN
+          // =========================
+
+          _SectionTitle('BANTUAN'),
+
           _FaqTile(
-            question: 'Bagaimana cara mengikuti scrim?',
+            question: 'Cara Daftar Akun',
             answer:
-                'Masuk ke halaman scrim lalu pilih turnamen yang tersedia dan lakukan pendaftaran.',
+                'Buka halaman registrasi lalu isi nama, email, password, dan data lainnya. Setelah data valid, akun akan otomatis tersimpan dan dapat digunakan untuk login.',
           ),
+
           _FaqTile(
-            question: 'Bagaimana cara klaim hadiah?',
+            question: 'Cara Booking Slot Scrim',
             answer:
-                'Hadiah dapat diklaim melalui menu Klaim Hadiah setelah pertandingan selesai.',
+                'Pilih jadwal scrim yang tersedia pada halaman beranda atau kalender scrim, lalu isi formulir pendaftaran tim dan lakukan booking slot.',
           ),
+
           _FaqTile(
-            question: 'Kenapa pembayaran belum terverifikasi?',
+            question: 'Cara Upload Bukti Pembayaran',
             answer:
-                'Verifikasi pembayaran biasanya membutuhkan waktu beberapa menit.',
+                'Setelah memilih metode pembayaran seperti QRIS atau transfer bank, upload bukti pembayaran melalui halaman pembayaran agar admin dapat melakukan verifikasi.',
           ),
+
           _FaqTile(
-            question: 'Bagaimana cara mengganti foto profil?',
+            question: 'Cara Klaim Hadiah',
             answer:
-                'Tekan foto profil pada halaman profil lalu pilih gambar dari perangkat.',
+                'Masuk ke menu Klaim Hadiah lalu isi data rekening bank atau e-wallet dengan benar. Setelah diverifikasi, hadiah akan diproses oleh platform.',
           ),
+
+          _FaqTile(
+            question: 'Cara Melihat Room ID',
+            answer:
+                'Room ID akan dikirim otomatis melalui sistem notifikasi setelah pembayaran diverifikasi oleh admin scrim.',
+          ),
+
+          SizedBox(height: 24),
+
+          // =========================
+          // FAQ
+          // =========================
+
+          _SectionTitle('FAQ'),
+
+          _FaqTile(
+            question: 'Apa itu BooyahHub?',
+            answer:
+                'BooyahHub adalah platform manajemen scrim dan turnamen game yang mendukung pendaftaran scrim, pembayaran, leaderboard, distribusi hadiah, dan monitoring pertandingan.',
+          ),
+
+          _FaqTile(
+            question: 'Kenapa status pembayaran masih menunggu?',
+            answer:
+                'Pembayaran masih dalam proses pengecekan admin. Pastikan bukti transfer yang diupload jelas dan sesuai nominal.',
+          ),
+
+          _FaqTile(
+            question: 'Apakah slot scrim bisa penuh?',
+            answer:
+                'Ya. Sistem akan otomatis menutup slot scrim jika kuota tim sudah terpenuhi.',
+          ),
+
+          _FaqTile(
+            question: 'Bagaimana jika pembayaran ditolak?',
+            answer:
+                'Jika pembayaran tidak valid, status pendaftaran akan ditolak dan slot akan dibuka kembali oleh sistem.',
+          ),
+
+          _FaqTile(
+            question: 'Apakah leaderboard dihitung otomatis?',
+            answer:
+                'Ya. Sistem akan menghitung poin pertandingan dan memperbarui leaderboard secara otomatis setelah admin menginput hasil pertandingan.',
+          ),
+
+          _FaqTile(
+            question: 'Bagaimana cara melihat riwayat scrim?',
+            answer:
+                'Buka menu Riwayat untuk melihat daftar scrim yang pernah diikuti beserta status pertandingan.',
+          ),
+
+          SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle(this.title);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1,
+          color: BooyahTheme.maroonB,
+        ),
       ),
     );
   }
@@ -77,6 +160,7 @@ class _FaqTile extends StatelessWidget {
               style: const TextStyle(
                 color: BooyahTheme.textMuted,
                 fontSize: 12,
+                height: 1.5,
               ),
             ),
           ),

@@ -7,10 +7,10 @@ import 'shared/models/models.dart';
 import 'package:booyahhub/features/notification/notification_screen.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
+  WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url:     SupabaseConfig.url,
+    url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
     // Aktifkan realtime
     realtimeClientOptions: const RealtimeClientOptions(
@@ -31,17 +31,17 @@ class BooyahHubApp extends StatelessWidget {
     // Cek session aktif
     String initialRoute = AppRoutes.login;
 
-      final user = supabase.auth.currentUser;
-      if (user != null) {
-        final metadata = user.userMetadata;
-        final role = (metadata != null && metadata.containsKey('role')) 
-            ? metadata['role'] as String 
-            : 'peserta';
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      final metadata = user.userMetadata;
+      final role = (metadata != null && metadata.containsKey('role'))
+          ? metadata['role'] as String
+          : 'peserta';
 
-        initialRoute = role == 'platform' 
-            ? AppRoutes.homeForRole(UserRole.platform) 
-            : AppRoutes.homeForRole(UserRole.peserta); 
-      }
+      initialRoute = role == 'platform'
+          ? AppRoutes.homeForRole(UserRole.platform)
+          : AppRoutes.homeForRole(UserRole.peserta);
+    }
 
     return MaterialApp(
       title: 'BooyahHub',
@@ -49,8 +49,8 @@ class BooyahHubApp extends StatelessWidget {
       theme: BooyahTheme.dark(),
       initialRoute: initialRoute,
       routes: {
-        ...AppRoutes.routes, 
-        
+        ...AppRoutes.routes,
+
         '/notification': (context) => const NotificationScreen(),
       },
     );
