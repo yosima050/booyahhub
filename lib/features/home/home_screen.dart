@@ -496,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => Navigator.pushNamed(
               ctx,
               AppRoutes.detailScrim,
-              arguments: _scrims[i],
+              arguments: _scrims[i].id,
             ),
           ),
         ),
