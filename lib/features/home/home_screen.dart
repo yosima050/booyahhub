@@ -5,6 +5,7 @@ import '../../core/routes.dart';
 import '../../shared/widgets/scrim_card.dart';
 import '../../shared/models/scrim_model.dart';
 import '../../services/supabase_service.dart';
+import 'package:booyahhub/features/booking/booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -259,12 +260,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      'LIHAT SEMUA →',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: BooyahTheme.maroonB,
-                        fontWeight: FontWeight.w600,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BookingScreen()),
+                        );
+                      },
+                      child: Text(
+                        'LIHAT SEMUA →',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: BooyahTheme.maroonB,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
