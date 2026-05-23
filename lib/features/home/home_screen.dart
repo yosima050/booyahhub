@@ -94,49 +94,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<ScrimModel> get _scrims {
-    Iterable<Map<String, dynamic>> filtered = _rawScrims;
+    // 1. Ubah dulu semua data mentah dari Supabase menjadi List<ScrimModel>
+    List<ScrimModel> filtered = _rawScrims.map((s) => ScrimModel(
+      id:          s['id'].toString(),
+      title:       s['title'] as String,
+      adminName:   (s['admin_profiles']?['display_name'] ?? '') as String,
+      date:        _fmtDate(s['scheduled_at'] as String),
+      time:        _fmtTime(s['scheduled_at'] as String),
+      mode:        _convertToTitleCase(s['mode'] as String), 
+      slotFilled:  s['slot_filled'] as int,
+      slotTotal:   s['slot_total'] as int,
+      fee:         s['fee'] as int,
+      prize:       s['prize_pool'] as int,
+      isPremium:   s['is_premium'] as bool? ?? false,
+    )).toList();
 
-    // Filter by category/mode
-    if (_activeFilter != 'SEMUA') {
-      if (_activeFilter == 'PREMIUM') {
-        filtered = filtered.where((s) => s['is_premium'] == true);
-      } else {
-        filtered = filtered.where((s) {
-          final m = (s['mode'] as String? ?? '').toUpperCase();
-          return m == _activeFilter;
-        });
-      }
+    // 2. Saring berdasarkan Kategori / Mode (jika bukan 'SEMUA')
+    if (_activeFilter == 'PREMIUM') {
+      filtered = filtered.where((scrim) => scrim.isPremium).toList();
+    } else if (_activeFilter == 'BATTLE ROYALE') {
+      filtered = filtered.where((scrim) => scrim.mode.toUpperCase() == 'BATTLE ROYALE').toList();
+    } else if (_activeFilter == 'CLASH SQUAD') {
+      filtered = filtered.where((scrim) => scrim.mode.toUpperCase() == 'CLASH SQUAD').toList();
     }
 
-    // Filter by search query
+    // 3. Saring berdasarkan Kolom Pencarian (jika user sedang mengetik sesuatu)
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      filtered = filtered.where((s) {
-        final title = (s['title'] as String? ?? '').toLowerCase();
-        final adminName =
-            (s['admin_profiles']?['display_name'] as String? ?? '')
-                .toLowerCase();
-        return title.contains(q) || adminName.contains(q);
-      });
+      filtered = filtered.where((scrim) {
+        final title = scrim.title.toLowerCase();
+        final admin = scrim.adminName.toLowerCase();
+        return title.contains(q) || admin.contains(q);
+      }).toList();
     }
 
-    return filtered
-        .map(
-          (s) => ScrimModel(
-            id: s['id'].toString(),
-            title: s['title'] as String,
-            adminName: (s['admin_profiles']?['display_name'] ?? '') as String,
-            date: _fmtDate(s['scheduled_at'] as String),
-            time: _fmtTime(s['scheduled_at'] as String),
-            mode: _convertToTitleCase(s['mode'] as String),
-            slotFilled: s['slot_filled'] as int,
-            slotTotal: s['slot_total'] as int,
-            fee: s['fee'] as int,
-            prize: s['prize_pool'] as int,
-            isPremium: s['is_premium'] as bool? ?? false,
-          ),
-        )
-        .toList();
+    // 4. Kembalikan hasil akhir yang sudah melewati semua filter
+    return filtered;
   }
 
   String _fmtDate(String iso) {
@@ -163,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final d = DateTime.parse(iso).toLocal();
     return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')} WIB';
   }
-  
+
   String _convertToTitleCase(String text) {
       final words = text.replaceAll('_', ' ').split(' ');
       final titleCasedWords = words.map((word) {
