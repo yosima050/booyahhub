@@ -421,6 +421,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
+            const SizedBox(height: 5),
+
             // Hero title
             RichText(
               text: const TextSpan(
