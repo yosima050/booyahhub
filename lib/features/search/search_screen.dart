@@ -65,7 +65,7 @@ class _SearchScreenState extends State<SearchScreen> {
       adminName:   (s['admin_profiles']?['display_name'] ?? '') as String,
       date:        _fmtDate(s['scheduled_at'] as String),
       time:        _fmtTime(s['scheduled_at'] as String),
-      mode:        s['mode'] as String,
+      mode:        _convertToTitleCase(s['mode'] as String),
       slotFilled:  s['slot_filled'] as int,
       slotTotal:   s['slot_total'] as int,
       fee:         s['fee'] as int,
@@ -94,6 +94,15 @@ class _SearchScreenState extends State<SearchScreen> {
   String _fmtTime(String iso) {
     final d = DateTime.parse(iso).toLocal();
     return '${d.hour.toString().padLeft(2,'0')}:${d.minute.toString().padLeft(2,'0')} WIB';
+  }
+  
+  String _convertToTitleCase(String text) {
+    final words = text.replaceAll('_', ' ').split(' ');
+    final titleCasedWords = words.map((word) {
+      if (word.isEmpty) return '';
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    });
+    return titleCasedWords.join(' ');
   }
 
   @override
