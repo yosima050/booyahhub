@@ -133,6 +133,25 @@ class _HomeScreenState extends State<HomeScreen> {
     return filtered;
   }
 
+  int get _totalPemainAktif {
+    int total = 0;
+    for (var s in _rawScrims) {
+      total += (s['slot_filled'] as int? ?? 0);
+    }
+    return total;
+  }
+
+  int get _rekorPeserta {
+    int maxFilled = 0;
+    for (var s in _rawScrims) {
+      final filled = s['slot_filled'] as int? ?? 0;
+      if (filled > maxFilled) {
+        maxFilled = filled;
+      }
+    }
+    return maxFilled;
+  }
+
   String _fmtDate(String iso) {
     final d = DateTime.parse(iso).toLocal();
     const months = [
@@ -505,6 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // 💡 GANTI fungsi _buildQuickStats milikmu dengan yang ini:
   Widget _buildQuickStats() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
@@ -512,17 +532,26 @@ class _HomeScreenState extends State<HomeScreen> {
         offset: const Offset(0, 6),
         child: Row(
           children: [
-            _StatBox(icon: Icons.flag, value: '192M+', label: 'GAMER ID'),
+            // GAMER ID: Otomatis nampilin jumlah room/scrim yang terbuka saat ini
+            _StatBox(
+              icon: Icons.flag, 
+              value: '${_rawScrims.length}', 
+              label: 'GAMER ID',
+            ),
             const SizedBox(width: 8),
+            
+            // PEMAIN AKTIF: Akumulasi total slot_filled dari database
             _StatBox(
               icon: Icons.sports_esports,
-              value: '30M+',
+              value: '$_totalPemainAktif',
               label: 'PEMAIN AKTIF',
             ),
             const SizedBox(width: 8),
+            
+            // REKOR PESERTA: Mengambil nilai slot_filled tertinggi
             _StatBox(
               icon: Icons.emoji_events,
-              value: '618K+',
+              value: '$_rekorPeserta',
               label: 'REKOR PESERTA',
             ),
           ],
