@@ -85,11 +85,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final userData = await UserService.getUserProfile(user.id);
-        final stats = await UserService.getUserStats(user.id);
         setState(() {
           _userData = userData;
-          _stats = stats;
         });
+
+        // Gunakan bigint ID (dikirim sebagai string) untuk menghindari error syntax bigint
+        final userBigId = userData['id']?.toString();
+        if (userBigId != null) {
+          final stats = await UserService.getUserStats(userBigId);
+          setState(() {
+            _stats = stats;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
@@ -305,18 +312,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           _buildAvatar(),
                           const SizedBox(height: 12),
 
-                          // Username → kata pertama email
+                          // Nama utama pengguna
                           Text(
-                            _usernameFromEmail(
-                              Supabase.instance.client.auth.currentUser?.email,
-                            ),
+                            (_userData?['name'] != null && (_userData?['name'] as String).trim().isNotEmpty)
+                                ? _userData!['name'] as String
+                                : _usernameFromEmail(Supabase.instance.client.auth.currentUser?.email),
                             style: const TextStyle(
                               fontFamily: 'Orbitron',
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 2,
                             ),
+                            textAlign: TextAlign.center,
                           ),
+
+                          // Username handle dari database jika diisi
+                          if (_userData?['username'] != null && (_userData?['username'] as String).trim().isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              '@${_userData!['username']}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: BooyahTheme.gold,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
 
                           // Nama tim scrim · role
                           Text(
@@ -399,7 +421,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Navigator.push(
                                 ctx,
                                 MaterialPageRoute(
-                                  builder: (_) => const edit_profile_screen(),
+                                  builder: (_) => const EditProfileScreen(),
                                 ),
                               ).then((_) => _loadUserData());
                             }),
@@ -443,8 +465,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           const SizedBox(height: 10),
                           _menuGroup('LAINNYA', [
-                            _MenuItem(Icons.help_outline, 'Bantuan & FAQ', null),
-                            _MenuItem(Icons.info_outline, 'Tentang Aplikasi', null),
+                            _MenuItem(
+                              Icons.help_outline,
+                              'Bantuan & FAQ',
+                              () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const BantuanFaqScreen(),
+                                ),
+                              ),
+                            ),
+                            _MenuItem(
+                              Icons.info_outline,
+                              'Tentang Aplikasi',
+                              () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const TentangAplikasiScreen(),
+                                ),
+                              ),
+                            ),
                             _MenuItem(
                               Icons.logout,
                               'Keluar',

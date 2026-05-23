@@ -6,6 +6,8 @@ import '../../core/routes.dart';
 import '../../core/auth_service.dart';
 import '../../shared/models/models.dart';
 import '../../services/supabase_service.dart' show UserService;
+import 'edit_profile_screen.dart';
+import 'bantuan_faq_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -187,7 +189,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   child: Column(children: [
                     _buildAvatar(),
                     const SizedBox(height: 10),
-                    Text(auth.name, style: const TextStyle(
+                    Text(_userData?['name'] ?? auth.name, style: const TextStyle(
                       fontFamily: 'Orbitron', fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1)),
                     const SizedBox(height: 4),
                     Container(
@@ -242,8 +244,30 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     const SizedBox(height: 14),
 
                     _menuGroup('AKUN', [
-                      (Icons.person_outline, 'Edit Profil', null),
-                      (Icons.help_outline, 'Bantuan & FAQ', null),
+                      (
+                        Icons.person_outline,
+                        'Edit Profil',
+                        () {
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          ).then((_) => _loadUserData());
+                        }
+                      ),
+                      (
+                        Icons.help_outline,
+                        'Bantuan & FAQ',
+                        () {
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => const BantuanFaqScreen(),
+                            ),
+                          );
+                        }
+                      ),
                     ], ctx),
                     const SizedBox(height: 8),
                     GestureDetector(
@@ -368,7 +392,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     ]),
   );
 
-  Widget _menuGroup(String title, List<(IconData, String, String?)> items, BuildContext ctx) =>
+  Widget _menuGroup(String title, List<(IconData, String, VoidCallback?)> items, BuildContext ctx) =>
       Container(
         decoration: BoxDecoration(
           color: BooyahTheme.card, borderRadius: BorderRadius.circular(12),
@@ -380,7 +404,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             child: Text(title, style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted, letterSpacing: 1.5, fontWeight: FontWeight.w700)),
           ),
           ...items.map((m) => InkWell(
-            onTap: m.$3 != null ? () => Navigator.pushNamed(ctx, m.$3!) : null,
+            onTap: m.$3,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(children: [

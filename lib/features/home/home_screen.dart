@@ -5,6 +5,7 @@ import '../../core/routes.dart';
 import '../../shared/widgets/scrim_card.dart';
 import '../../shared/models/scrim_model.dart';
 import '../../services/supabase_service.dart';
+import 'package:booyahhub/features/booking/booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,49 +95,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<ScrimModel> get _scrims {
-    Iterable<Map<String, dynamic>> filtered = _rawScrims;
+    // 1. Ubah dulu semua data mentah dari Supabase menjadi List<ScrimModel>
+    List<ScrimModel> filtered = _rawScrims.map((s) => ScrimModel(
+      id:          s['id'].toString(),
+      title:       s['title'] as String,
+      adminName:   (s['admin_profiles']?['display_name'] ?? '') as String,
+      date:        _fmtDate(s['scheduled_at'] as String),
+      time:        _fmtTime(s['scheduled_at'] as String),
+      mode:        _convertToTitleCase(s['mode'] as String), 
+      slotFilled:  s['slot_filled'] as int,
+      slotTotal:   s['slot_total'] as int,
+      fee:         s['fee'] as int,
+      prize:       s['prize_pool'] as int,
+      isPremium:   s['is_premium'] as bool? ?? false,
+    )).toList();
 
-    // Filter by category/mode
-    if (_activeFilter != 'SEMUA') {
-      if (_activeFilter == 'PREMIUM') {
-        filtered = filtered.where((s) => s['is_premium'] == true);
-      } else {
-        filtered = filtered.where((s) {
-          final m = (s['mode'] as String? ?? '').toUpperCase();
-          return m == _activeFilter;
-        });
-      }
+    // 2. Saring berdasarkan Kategori / Mode (jika bukan 'SEMUA')
+    if (_activeFilter == 'PREMIUM') {
+      filtered = filtered.where((scrim) => scrim.isPremium).toList();
+    } else if (_activeFilter == 'BATTLE ROYALE') {
+      filtered = filtered.where((scrim) => scrim.mode.toUpperCase() == 'BATTLE ROYALE').toList();
+    } else if (_activeFilter == 'CLASH SQUAD') {
+      filtered = filtered.where((scrim) => scrim.mode.toUpperCase() == 'CLASH SQUAD').toList();
     }
 
-    // Filter by search query
+    // 3. Saring berdasarkan Kolom Pencarian (jika user sedang mengetik sesuatu)
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      filtered = filtered.where((s) {
-        final title = (s['title'] as String? ?? '').toLowerCase();
-        final adminName =
-            (s['admin_profiles']?['display_name'] as String? ?? '')
-                .toLowerCase();
-        return title.contains(q) || adminName.contains(q);
-      });
+      filtered = filtered.where((scrim) {
+        final title = scrim.title.toLowerCase();
+        final admin = scrim.adminName.toLowerCase();
+        return title.contains(q) || admin.contains(q);
+      }).toList();
     }
 
-    return filtered
-        .map(
-          (s) => ScrimModel(
-            id: s['id'].toString(),
-            title: s['title'] as String,
-            adminName: (s['admin_profiles']?['display_name'] ?? '') as String,
-            date: _fmtDate(s['scheduled_at'] as String),
-            time: _fmtTime(s['scheduled_at'] as String),
-            mode: s['mode'] as String,
-            slotFilled: s['slot_filled'] as int,
-            slotTotal: s['slot_total'] as int,
-            fee: s['fee'] as int,
-            prize: s['prize_pool'] as int,
-            isPremium: s['is_premium'] as bool? ?? false,
-          ),
-        )
-        .toList();
+    // 4. Kembalikan hasil akhir yang sudah melewati semua filter
+    return filtered;
   }
 
   String _fmtDate(String iso) {
@@ -164,6 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')} WIB';
   }
 
+  String _convertToTitleCase(String text) {
+      final words = text.replaceAll('_', ' ').split(' ');
+      final titleCasedWords = words.map((word) {
+        if (word.isEmpty) return '';
+        return word[0].toUpperCase() + word.substring(1).toLowerCase();
+      });
+      return titleCasedWords.join(' ');
+    }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -181,101 +184,25 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildQuickStats()),
 
             // ── Search Bar ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: GestureDetector(
-                  onTap: () {}, // TODO: navigate to search
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: BooyahTheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: BooyahTheme.maroon.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search,
-                          color: BooyahTheme.textMuted,
-                          size: 18,
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        Expanded(
-                          child: TextField(
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value;
-                              });
-                            },
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: 'Cari scrim...',
-                              hintStyle: TextStyle(
-                                color: BooyahTheme.textMuted,
-                                fontSize: 13,
-                              ),
-                              border: InputBorder.none,
-                              isCollapsed: true,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            setState(() {
-                              _activeFilter = value;
-                            });
-                          },
-                          color: BooyahTheme.surface,
-                          itemBuilder: (context) => _filters.map((filter) {
-                            return PopupMenuItem<String>(
-                              value: filter,
-                              child: Text(
-                                filter,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            );
-                          }).toList(),
-
-                          child: const _FilterChipSmall(label: 'FILTER'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
             // ── Filter Chips ──
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 40,
+                height: 36,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _filters.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, i) {
-                    final f = _filters[i];
+                    final f = _filters[i];  
                     final active = _activeFilter == f;
                     return GestureDetector(
                       onTap: () => setState(() => _activeFilter = f),
                       child: Container(
+                        alignment: Alignment.center,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
+                          horizontal: 16,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
@@ -334,12 +261,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      'LIHAT SEMUA →',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: BooyahTheme.maroonB,
-                        fontWeight: FontWeight.w600,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BookingScreen()),
+                        );
+                      },
+                      child: Text(
+                        'LIHAT SEMUA →',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: BooyahTheme.maroonB,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -399,11 +334,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Spacer(),
+                InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/search'); 
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      color: BooyahTheme.maroon.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.search, 
+                      color: BooyahTheme.textPri,
+                      size: 20,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+    
                 Stack(
                   children: [
                     InkWell(
                       onTap: () {
-                        // TODO: buka halaman notifikasi
                         Navigator.pushNamed(context, '/notification');
                       },
                       borderRadius: BorderRadius.circular(8),
@@ -465,6 +420,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 5),
 
             // Hero title
             RichText(
@@ -539,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () => Navigator.pushNamed(
               ctx,
               AppRoutes.detailScrim,
-              arguments: _scrims[i],
+              arguments: _scrims[i].id,
             ),
           ),
         ),

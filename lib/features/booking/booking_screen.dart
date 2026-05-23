@@ -47,11 +47,12 @@ Future<void> loadScrims() async {
       // 2. Saring data di sisi aplikasi agar HANYA menampilkan scrim yang tanggalnya cocok dengan _selectedDate
       final filteredData = data.where((scrim) {
         if (scrim['scheduled_at'] == null) return false;
-        final scrimDate = DateTime.parse(scrim['scheduled_at']);
+        
+        final scrimDate = DateTime.parse(scrim['scheduled_at']).toLocal(); 
         
         return scrimDate.year == _selectedDate.year &&
-               scrimDate.month == _selectedDate.month &&
-               scrimDate.day == _selectedDate.day;
+              scrimDate.month == _selectedDate.month &&
+              scrimDate.day == _selectedDate.day;
       }).toList();
 
       setState(() {
@@ -93,7 +94,7 @@ Future<void> loadScrims() async {
 
   String _formatDate(String isoDate) {
     try {
-      final dt = DateTime.parse(isoDate);
+      final dt = DateTime.parse(isoDate).toLocal();
       const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
       return '${dt.day} ${months[dt.month - 1]}';
     } catch (e) {
@@ -103,7 +104,7 @@ Future<void> loadScrims() async {
 
   String _formatTime(String isoDate) {
     try {
-      final dt = DateTime.parse(isoDate);
+      final dt = DateTime.parse(isoDate).toLocal();
       return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB';
     } catch (e) {
       return 'N/A';
@@ -290,10 +291,15 @@ Future<void> loadScrims() async {
                                     ],
                                   ),
                                   Row(
-                                    children: const [
-                                      Icon(Icons.flag, size: 12, color: BooyahTheme.textMuted),
-                                      SizedBox(width: 4),
-                                      Text('BR', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                    children: [ 
+                                      const Icon(Icons.flag, size: 12, color: BooyahTheme.textMuted),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        (scrim['mode'] as String? ?? '').toLowerCase().contains('clash_squad') 
+                                            ? 'CS' 
+                                            : 'BR', 
+                                        style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
+                                      ),
                                     ],
                                   ),
                                 ],

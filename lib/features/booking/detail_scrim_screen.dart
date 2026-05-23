@@ -94,167 +94,213 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
             ? Center(child: Text('Error: $_error', style: const TextStyle(color: BooyahTheme.red)))
             : _scrim == null
                 ? const Center(child: Text('Scrim tidak ditemukan', style: TextStyle(color: BooyahTheme.textMuted)))
-                : CustomScrollView(
-      slivers: [
-        // Banner SliverAppBar
-        SliverAppBar(
-          expandedHeight: 160,
-          pinned: true,
-          backgroundColor: BooyahTheme.maroonD,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [BooyahTheme.maroonD, BooyahTheme.bg],
-                  begin: Alignment.topLeft, end: Alignment.bottomCenter,
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(
-                        Icons.sports_esports,
-                        size: 32,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(_scrim!.title, style: const TextStyle(
-                        fontFamily: 'Orbitron', fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                      Text('${_scrim!.adminName} • ${_scrim!.date} · ${_scrim!.time}',
-                        style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted)),
-                    ],
+                : SafeArea(
+                    top: true, 
+                    child: CustomScrollView(
+                      slivers: [
+                        SliverAppBar(
+                          expandedHeight: 160,
+                          pinned: true,
+                          backgroundColor: BooyahTheme.maroonD,
+                          flexibleSpace: FlexibleSpaceBar(
+                            background: Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [BooyahTheme.maroonD, BooyahTheme.bg],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(
+                                      Icons.sports_esports,
+                                      size: 32,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      _scrim!.title,
+                                      style: const TextStyle(
+                                        fontFamily: 'Orbitron',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${_scrim!.adminName} • ${_scrim!.date} · ${_scrim!.time}',
+                                      style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              // Info grid
+                              Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: GridView.count(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: 8,
+                                  crossAxisSpacing: 8,
+                                  childAspectRatio: 3.2,
+                                  children: [
+                                    _infoCell(
+                                      const Icon(Icons.gps_fixed, size: 16, color: Colors.white),
+                                      'MODE',
+                                      _scrim!.mode,
+                                    ),
+                                    _infoCell(
+                                      const Icon(Icons.groups, size: 16, color: Colors.white),
+                                      'KUOTA',
+                                      '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM',
+                                    ),
+                                    _infoCell(
+                                      const Icon(Icons.payments, size: 16, color: Colors.white),
+                                      'BIAYA',
+                                      'Rp${_scrim!.fee ~/ 1000}k',
+                                      valColor: BooyahTheme.gold,
+                                    ),
+                                    _infoCell(
+                                      const Icon(Icons.emoji_events, size: 16, color: Colors.white),
+                                      'HADIAH',
+                                      'Rp${_scrim!.prize ~/ 1000}k',
+                                      valColor: BooyahTheme.gold,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Slot progress
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text('PERKEMBANGAN SLOT', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                        Text('${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        minHeight: 8,
+                                        value: _scrim!.slotFilled / _scrim!.slotTotal,
+                                        valueColor: const AlwaysStoppedAnimation(BooyahTheme.maroonB),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${(_scrim!.slotFilled / _scrim!.slotTotal * 100).toStringAsFixed(0)}% TERISI',
+                                          style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Deskripsi
+                              _section(
+                                'DESKRIPSI',
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Text(_scrim!.description, style: const TextStyle(fontSize: 12, color: BooyahTheme.textSec, height: 1.6)),
+                                ),
+                              ),
+
+                              // Peraturan
+                              _section(
+                                'PERATURAN',
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: BooyahTheme.surface,
+                                      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        _rule('Daftar tim maksimal 1 jam sebelum pertandingan dimulai'),
+                                        _rule('Setiap anggota harus aktif bermain'),
+                                        _rule('Dilarang menggunakan cheat atau bug exploit'),
+                                        _rule('Keputusan admin bersifat final dan tidak dapat diganggu gugat'),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Hadiah
+                              _section(
+                                'PEMBAGIAN HADIAH',
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Row(
+                                    children: [
+                                      _prizeBox(
+                                        const Icon(Icons.workspace_premium, size: 22, color: BooyahTheme.gold),
+                                        'JUARA 1',
+                                        'Rp${(_scrim!.prize * 0.5).toInt() ~/ 1000}k',
+                                        BooyahTheme.gold,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _prizeBox(
+                                        const Icon(Icons.military_tech, size: 22, color: BooyahTheme.silver),
+                                        'JUARA 2',
+                                        'Rp${(_scrim!.prize * 0.3).toInt() ~/ 1000}k',
+                                        BooyahTheme.silver,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _prizeBox(
+                                        const Icon(Icons.workspace_premium_outlined, size: 22, color: BooyahTheme.bronze),
+                                        'JUARA 3',
+                                        'Rp${(_scrim!.prize * 0.2).toInt() ~/ 1000}k',
+                                        BooyahTheme.bronze,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 100),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+    bottomNavigationBar: _scrim == null
+        ? null
+        : Container(
+            padding: const EdgeInsets.all(14),
+            color: BooyahTheme.surface,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pushNamed(
+                ctx,
+                AppRoutes.formTim,
+                arguments: _scrim, 
               ),
+              child: Text('DAFTAR SEKARANG → Rp${_scrim!.fee ~/ 1000}k'),
             ),
-          ),
         ),
-
-        SliverToBoxAdapter(
-          child: Column(children: [
-            // Info grid
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: GridView.count(
-                shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8,
-                childAspectRatio: 3.2,
-                children: [
-                  _infoCell(
-                    const Icon(Icons.gps_fixed, size: 16, color: Colors.white),
-                    'MODE',
-                    _scrim!.mode,
-                  ),
-                  _infoCell(
-                    const Icon(Icons.groups, size: 16, color: Colors.white),
-                    'KUOTA',
-                    '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM',
-                  ),
-                  _infoCell(
-                    const Icon(Icons.payments, size: 16, color: Colors.white),
-                    'BIAYA',
-                    'Rp${_scrim!.fee ~/ 1000}k',
-                    valColor: BooyahTheme.gold,
-                  ),
-                  _infoCell(
-                    const Icon(Icons.emoji_events, size: 16, color: Colors.white),
-                    'HADIAH',
-                    'Rp${_scrim!.prize ~/ 1000}k',
-                    valColor: BooyahTheme.gold,
-                  ),
-                ],
-              ),
-            ),
-
-            // Slot progress
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-              child: Column(children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('PERKEMBANGAN SLOT', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                  Text('${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                ]),
-                const SizedBox(height: 6),
-                ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(
-                  minHeight: 8,
-                  value: _scrim!.slotFilled / _scrim!.slotTotal,
-                  valueColor: const AlwaysStoppedAnimation(BooyahTheme.maroonB),
-                )),
-                const SizedBox(height: 5),
-                Row(children: [
-                  Text('${(_scrim!.slotFilled / _scrim!.slotTotal * 100).toStringAsFixed(0)}% TERISI',
-                    style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                ]),
-              ]),
-            ),
-
-            // Deskripsi
-            _section('DESKRIPSI', Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Text(_scrim!.description, style: const TextStyle(fontSize: 12, color: BooyahTheme.textSec, height: 1.6)),
-            )),
-
-            // Peraturan
-            _section('PERATURAN', Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: BooyahTheme.surface,
-                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
-                ),
-                child: Column(children: [
-                  _rule('Daftar tim maksimal 1 jam sebelum pertandingan dimulai'),
-                  _rule('Setiap anggota harus aktif bermain'),
-                  _rule('Dilarang menggunakan cheat atau bug exploit'),
-                  _rule('Keputusan admin bersifat final dan tidak dapat diganggu gugat'),
-                ]),
-              ),
-            )),
-
-            // Hadiah
-            _section('PEMBAGIAN HADIAH', Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              child: Row(children: [
-                _prizeBox(
-                  const Icon(Icons.workspace_premium, size: 22, color: BooyahTheme.gold),
-                  'JUARA 1',
-                  'Rp${(_scrim!.prize * 0.5).toInt() ~/ 1000}k',
-                  BooyahTheme.gold,
-                ),
-                const SizedBox(width: 8),
-                _prizeBox(
-                  const Icon(Icons.military_tech, size: 22, color: BooyahTheme.silver),
-                  'JUARA 2',
-                  'Rp${(_scrim!.prize * 0.3).toInt() ~/ 1000}k',
-                  BooyahTheme.silver,
-                ),
-                const SizedBox(width: 8),
-                _prizeBox(
-                  const Icon(Icons.workspace_premium_outlined, size: 22, color: BooyahTheme.bronze),
-                  'JUARA 3',
-                  'Rp${(_scrim!.prize * 0.2).toInt() ~/ 1000}k',
-                  BooyahTheme.bronze,
-                ),
-              ]),
-            )),
-
-            const SizedBox(height: 100),
-          ]),
-        ),
-      ],
-    ),
-    bottomNavigationBar: _scrim == null ? null : Container(
-      padding: const EdgeInsets.all(14),
-      color: BooyahTheme.surface,
-      child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(ctx, AppRoutes.formTim),
-        child: Text('DAFTAR SEKARANG → Rp${_scrim!.fee ~/ 1000}k'),
-      ),
-    ),
   );
 
   Widget _infoCell(Widget icon, String label, String val, {Color? valColor}) =>
