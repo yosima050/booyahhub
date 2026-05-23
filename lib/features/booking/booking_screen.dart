@@ -290,10 +290,15 @@ Future<void> loadScrims() async {
                                     ],
                                   ),
                                   Row(
-                                    children: const [
-                                      Icon(Icons.flag, size: 12, color: BooyahTheme.textMuted),
-                                      SizedBox(width: 4),
-                                      Text('BR', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                    children: [ 
+                                      const Icon(Icons.flag, size: 12, color: BooyahTheme.textMuted),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        (scrim['mode'] as String? ?? '').toLowerCase().contains('clash_squad') 
+                                            ? 'CS' 
+                                            : 'BR', 
+                                        style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
+                                      ),
                                     ],
                                   ),
                                 ],
