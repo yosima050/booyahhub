@@ -22,31 +22,52 @@ class BantuanFaqScreen extends StatelessWidget {
           _FaqTile(
             question: 'Cara Daftar Akun',
             answer:
-                'Buka halaman registrasi lalu isi nama, email, password, dan data lainnya. Setelah data valid, akun akan otomatis tersimpan dan dapat digunakan untuk login.',
+                '1. Buka halaman registrasi.\n\n'
+                '2. Isi nama, email, password, dan data lainnya.\n\n'
+                '3. Tekan tombol daftar.\n\n'
+                '4. Sistem akan memvalidasi data.\n\n'
+                '5. Jika data valid, akun berhasil dibuat dan dapat digunakan untuk login.',
           ),
 
           _FaqTile(
             question: 'Cara Booking Slot Scrim',
             answer:
-                'Pilih jadwal scrim yang tersedia pada halaman beranda atau kalender scrim, lalu isi formulir pendaftaran tim dan lakukan booking slot.',
+                '1. Buka halaman daftar scrim.\n\n'
+                '2. Pilih jadwal scrim yang tersedia.\n\n'
+                '3. Isi formulir pendaftaran tim.\n\n'
+                '4. Pilih slot scrim yang diinginkan.\n\n'
+                '5. Tekan tombol booking.\n\n'
+                '6. Sistem akan menyimpan data pendaftaran.',
           ),
 
           _FaqTile(
             question: 'Cara Upload Bukti Pembayaran',
             answer:
-                'Setelah memilih metode pembayaran seperti QRIS atau transfer bank, upload bukti pembayaran melalui halaman pembayaran agar admin dapat melakukan verifikasi.',
+                '1. Masuk ke halaman pembayaran.\n\n'
+                '2. Pilih metode pembayaran.\n\n'
+                '3. Lakukan transfer sesuai nominal.\n\n'
+                '4. Upload screenshot atau bukti transfer.\n\n'
+                '5. Tunggu proses verifikasi admin.',
           ),
 
           _FaqTile(
             question: 'Cara Klaim Hadiah',
             answer:
-                'Masuk ke menu Klaim Hadiah lalu isi data rekening bank atau e-wallet dengan benar. Setelah diverifikasi, hadiah akan diproses oleh platform.',
+                '1. Buka menu Klaim Hadiah.\n\n'
+                '2. Pilih hadiah yang tersedia.\n\n'
+                '3. Masukkan data rekening atau e-wallet.\n\n'
+                '4. Pastikan data sudah benar.\n\n'
+                '5. Kirim permintaan klaim.\n\n'
+                '6. Sistem akan memproses verifikasi hadiah.',
           ),
 
           _FaqTile(
             question: 'Cara Melihat Room ID',
             answer:
-                'Room ID akan dikirim otomatis melalui sistem notifikasi setelah pembayaran diverifikasi oleh admin scrim.',
+                '1. Pastikan pembayaran sudah diverifikasi.\n\n'
+                '2. Buka menu notifikasi atau detail scrim.\n\n'
+                '3. Sistem akan menampilkan Room ID dan password room.\n\n'
+                '4. Gunakan Room ID untuk masuk ke pertandingan.',
           ),
 
           SizedBox(height: 24),

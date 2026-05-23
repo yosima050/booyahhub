@@ -5,7 +5,7 @@ import 'core/theme.dart';
 import 'core/routes.dart';
 import 'shared/models/models.dart';
 import 'package:booyahhub/features/notification/notification_screen.dart';
-import 'package:booyahhub/features/search/search_screen.dart'; 
+import 'package:booyahhub/features/search/search_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
