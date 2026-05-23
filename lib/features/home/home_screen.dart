@@ -181,83 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(child: _buildQuickStats()),
 
             // ── Search Bar ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: GestureDetector(
-                  onTap: () {}, // TODO: navigate to search
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: BooyahTheme.surface,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: BooyahTheme.maroon.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.search,
-                          color: BooyahTheme.textMuted,
-                          size: 18,
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        Expanded(
-                          child: TextField(
-                            onChanged: (value) {
-                              setState(() {
-                                _searchQuery = value;
-                              });
-                            },
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                            ),
-                            decoration: const InputDecoration(
-                              hintText: 'Cari scrim...',
-                              hintStyle: TextStyle(
-                                color: BooyahTheme.textMuted,
-                                fontSize: 13,
-                              ),
-                              border: InputBorder.none,
-                              isCollapsed: true,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            setState(() {
-                              _activeFilter = value;
-                            });
-                          },
-                          color: BooyahTheme.surface,
-                          itemBuilder: (context) => _filters.map((filter) {
-                            return PopupMenuItem<String>(
-                              value: filter,
-                              child: Text(
-                                filter,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            );
-                          }).toList(),
-
-                          child: const _FilterChipSmall(label: 'FILTER'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
             // ── Filter Chips ──
             SliverToBoxAdapter(
@@ -399,11 +322,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Spacer(),
+                InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(context, '/search'); 
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      color: BooyahTheme.maroon.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.search, 
+                      color: BooyahTheme.textPri,
+                      size: 20,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+    
                 Stack(
                   children: [
                     InkWell(
                       onTap: () {
-                        // TODO: buka halaman notifikasi
                         Navigator.pushNamed(context, '/notification');
                       },
                       borderRadius: BorderRadius.circular(8),
