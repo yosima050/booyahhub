@@ -99,7 +99,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
                     child: CustomScrollView(
                       slivers: [
                         SliverAppBar(
-                          expandedHeight: 160,
+                          expandedHeight: 180,
                           pinned: true,
                           backgroundColor: BooyahTheme.maroonD,
                           flexibleSpace: FlexibleSpaceBar(
@@ -112,16 +112,16 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 50),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const Icon(
                                       Icons.sports_esports,
-                                      size: 32,
+                                      size: 35,
                                       color: Colors.white,
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 3),
                                     Text(
                                       _scrim!.title,
                                       style: const TextStyle(
