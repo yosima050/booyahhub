@@ -188,20 +188,21 @@ class _HomeScreenState extends State<HomeScreen> {
             // ── Filter Chips ──
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 40,
+                height: 36,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _filters.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 8),
                   itemBuilder: (_, i) {
-                    final f = _filters[i];
+                    final f = _filters[i];  
                     final active = _activeFilter == f;
                     return GestureDetector(
                       onTap: () => setState(() => _activeFilter = f),
                       child: Container(
+                        alignment: Alignment.center,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
+                          horizontal: 16,
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
