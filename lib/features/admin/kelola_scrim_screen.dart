@@ -11,6 +11,7 @@ import '../admin/room_id_screen.dart';
 import '../admin/input_hasil_screen.dart';
 import '../admin/kirim_pengumuman_screen.dart';
 import '../admin/laporan_scrim_screen.dart';
+import '../admin/kelola_room_info_screen.dart'; // NEW
 
 class KelolaScrimScreen extends StatelessWidget {
   final Map<String, dynamic> scrim;
@@ -22,36 +23,25 @@ class KelolaScrimScreen extends StatelessWidget {
     final int scrimId = scrim['id'] ?? 1;
 
     final menus = [
-      (
-        'Data Pendaftar',
-        Icons.groups_rounded,
-        const DataPendaftarScreen(),
-      ),
+      ('Data Pendaftar', Icons.groups_rounded, const DataPendaftarScreen()),
       (
         'Verifikasi Pembayaran',
         Icons.verified_user_rounded,
         const VerifikasiPembayaranScreen(),
       ),
+      ('Input Room ID', Icons.vpn_key_rounded, const RoomIdScreen()),
       (
-        'Input Room ID',
-        Icons.vpn_key_rounded,
-        const RoomIdScreen(),
+        'Kelola Room & Info Match', // NEW MENU
+        Icons.meeting_room_rounded,
+        const KelolaRoomInfoScreen(),
       ),
-      (
-        'Input Hasil',
-        Icons.emoji_events_rounded,
-        const InputHasilScreen(),
-      ),
+      ('Input Hasil', Icons.emoji_events_rounded, const InputHasilScreen()),
       (
         'Kirim Pengumuman',
         Icons.campaign_rounded,
         const KirimPengumumanScreen(),
       ),
-      (
-        'Laporan Scrim',
-        Icons.bar_chart_rounded,
-        const LaporanScrimScreen(),
-      ),
+      ('Laporan Scrim', Icons.bar_chart_rounded, const LaporanScrimScreen()),
     ];
 
     return Scaffold(
@@ -59,10 +49,7 @@ class KelolaScrimScreen extends StatelessWidget {
         title: const Text('KELOLA SCRIM'),
         actions: [
           Chip(
-            label: const Text(
-              'ADMIN',
-              style: TextStyle(fontSize: 9),
-            ),
+            label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
             backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
             labelStyle: const TextStyle(
               color: BooyahTheme.yellow,
@@ -83,10 +70,7 @@ class KelolaScrimScreen extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF5C0000),
-                    Color(0xFF1A0000),
-                  ],
+                  colors: [Color(0xFF5C0000), Color(0xFF1A0000)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -124,9 +108,7 @@ class KelolaScrimScreen extends StatelessWidget {
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-
                         const SizedBox(height: 4),
-
                         Text(
                           '${scrim['scheduled_at'] ?? '-'}',
                           style: const TextStyle(
@@ -203,9 +185,7 @@ class KelolaScrimScreen extends StatelessWidget {
                             size: 28,
                           ),
                         ),
-
                         const SizedBox(height: 12),
-
                         Text(
                           item.$1,
                           textAlign: TextAlign.center,
