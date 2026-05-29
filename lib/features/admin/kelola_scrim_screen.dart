@@ -11,7 +11,7 @@ import '../admin/room_id_screen.dart';
 import '../admin/input_hasil_screen.dart';
 import '../admin/kirim_pengumuman_screen.dart';
 import '../admin/laporan_scrim_screen.dart';
-import '../admin/kelola_room_info_screen.dart'; // NEW
+import '../admin/kelola_room_info_screen.dart';
 
 class KelolaScrimScreen extends StatelessWidget {
   final Map<String, dynamic> scrim;

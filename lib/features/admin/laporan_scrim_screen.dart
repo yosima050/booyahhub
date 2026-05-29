@@ -33,7 +33,21 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
       final days = [7, 30, 90, 0][_periodIdx]; // 0 = all time
       final report = await AdminService.getScrimReport(days: days);
       setState(() {
-        _scrimData = List<Map<String, dynamic>>.from(report['scrims'] ?? []);
+        _scrimData = (report['scrims'] as List? ?? []).map((s) {
+          final title = s['title'] as String? ?? '';
+          final sched = s['scheduled_at'] as String? ?? '';
+          final filled = (s['slot_filled'] as num? ?? 0).toInt();
+          final total = (s['slot_total'] as num? ?? 0).toInt();
+          final fee = (s['fee'] as num? ?? 0).toInt();
+          final pct = total > 0 ? (filled / total) : 0.0;
+          return {
+            'name': title,
+            'date': sched.length > 10 ? sched.substring(0, 10) : sched,
+            'slot': '$filled/$total',
+            'rev': fee * filled,
+            'pct': pct,
+          };
+        }).toList();
         _stats = report['stats'] as Map<String, dynamic>? ?? {};
       });
     } catch (e) {

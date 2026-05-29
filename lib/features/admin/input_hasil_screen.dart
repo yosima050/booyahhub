@@ -20,6 +20,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   bool _loading = true;
   String? _error;
   late int scrimId;
+  Map<String, dynamic>? _scrimData;
 
   @override
   void initState() {
@@ -33,7 +34,11 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   Future<void> _loadTeams() async {
     setState(() => _loading = true);
     try {
-      // Ambil tim yang sudah verified di scrim ini
+      // 1. Fetch scrim details
+      final scrim = await ScrimService.getById(scrimId.toString());
+      _scrimData = scrim;
+
+      // 2. Ambil tim yang sudah verified di scrim ini
       final data = await RegistrationService.getByScrim(scrimId);
       setState(() {
         _teams = data
@@ -144,17 +149,17 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           color: BooyahTheme.surface,
-          child: const Row(
+          child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.sports_esports,
                 size: 16,
                 color: BooyahTheme.textMuted,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
-                'BOOYAH CUP S7 · 11 Mar · 19:00 WIB · 6 Tim',
-                style: TextStyle(fontSize: 11, color: BooyahTheme.textMuted),
+                '${_scrimData?['title'] ?? 'BOOYAH CUP'} · ${_scrimData?['scheduled_at'] ?? ''} · ${_teams.length} Tim',
+                style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted),
               ),
             ],
           ),

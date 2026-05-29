@@ -17,6 +17,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
   final _biayaCtrl = TextEditingController(text: '25000');
   final _aturCtrl = TextEditingController();
   String _mode = 'Battle Royale';
+  String _server = 'Official Server';
   DateTime? _tanggal;
   TimeOfDay? _jamMulai;
   bool _loading = false;
@@ -133,6 +134,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
       await Supabase.instance.client.from('scrims').insert({
         'title': _namaCtrl.text.trim(),
         'mode': dbMode,
+        'server': _server,
         'description': _deskCtrl.text.trim(),
         'scheduled_at': scheduledDateTime.toIso8601String(),
         'registration_closes_at': registrationClosesAt.toIso8601String(),
@@ -248,6 +250,36 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                           )
                           .toList(),
                       onChanged: (v) => setState(() => _mode = v!),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _label('SESI / SERVER', required: true),
+                    DropdownButtonFormField<String>(
+                      initialValue: _server,
+                      dropdownColor: BooyahTheme.surface,
+                      style: const TextStyle(
+                        fontFamily: 'Rajdhani',
+                        fontSize: 13,
+                        color: BooyahTheme.textPri,
+                      ),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: ['Official Server', 'Advance Server']
+                          .map(
+                            (s) => DropdownMenuItem(value: s, child: Text(s)),
+                          )
+                          .toList(),
+                      onChanged: (v) => setState(() => _server = v!),
                     ),
                   ],
                 ),

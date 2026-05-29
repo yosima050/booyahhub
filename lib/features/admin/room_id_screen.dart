@@ -1,11 +1,9 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/room_id_screen.dart
-// UC-16: Mengelola Room ID
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
+import '../../services/supabase_service.dart';
 
 class RoomIdScreen extends StatefulWidget {
   const RoomIdScreen({super.key});
@@ -20,24 +18,73 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
   final _msgCtrl = TextEditingController(
     text: 'Harap masuk room tepat waktu. GL HF semua!',
   );
-  int _selectedScrim = 0;
+  int _selectedScrimIdx = 0;
   bool _loading = false;
+  bool _screenLoading = true;
+  List<Map<String, dynamic>> _scrims = [];
+  late int scrimId;
 
-  final _scrims = [
-    {
-      'name': 'BOOYAH CUP SEASON 7',
-      'sched': '11 Mar · 19:00 WIB',
-      'count': '11/20 terverifikasi',
-    },
-    {
-      'name': 'MIDNIGHT CLASH RANKED',
-      'sched': '11 Mar · 21:00 WIB',
-      'count': '16/16 terverifikasi',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrimId = ModalRoute.of(context)!.settings.arguments as int? ?? 1;
+      _loadScrims();
+    });
+  }
+
+  Future<void> _loadScrims() async {
+    setState(() => _screenLoading = true);
+    try {
+      final currentUser = AuthService.currentUser;
+      if (currentUser != null) {
+        // Resolve admin's BigInt ID from users table using their UUID
+        final userProfile = await Supabase.instance.client
+            .from('users')
+            .select('id')
+            .eq('uuid', currentUser.id)
+            .single();
+        final int adminBigId = userProfile['id'];
+
+        // Fetch scrims for this admin
+        final res = await Supabase.instance.client
+            .from('scrims')
+            .select()
+            .eq('admin_id', adminBigId)
+            .isFilter('deleted_at', null)
+            .order('scheduled_at', ascending: true);
+
+        setState(() {
+          _scrims = List<Map<String, dynamic>>.from(res);
+          
+          // Pre-select the scrim that matches the passed argument
+          _selectedScrimIdx = _scrims.indexWhere((s) => s['id'] == scrimId);
+          if (_selectedScrimIdx == -1) _selectedScrimIdx = 0;
+
+          if (_scrims.isNotEmpty) {
+            _roomCtrl.text = _scrims[_selectedScrimIdx]['room_id'] as String? ?? '';
+            _passCtrl.text = _scrims[_selectedScrimIdx]['room_password'] as String? ?? '';
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading active scrims: $e');
+    } finally {
+      setState(() => _screenLoading = false);
+    }
+  }
+
+  void _selectScrim(int index) {
+    setState(() {
+      _selectedScrimIdx = index;
+      final selectedScrim = _scrims[index];
+      _roomCtrl.text = selectedScrim['room_id'] as String? ?? '';
+      _passCtrl.text = selectedScrim['room_password'] as String? ?? '';
+    });
+  }
 
   void _send() async {
-    // UC-16: Validasi form & cek peserta
+    if (_scrims.isEmpty) return;
     if (_roomCtrl.text.isEmpty || _passCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -54,21 +101,40 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
       return;
     }
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Room ID terkirim ke semua peserta terverifikasi!'),
-            ],
-          ),
-          backgroundColor: BooyahTheme.green,
-        ),
+    try {
+      final targetScrimId = _scrims[_selectedScrimIdx]['id'] as int;
+      await ScrimService.sendRoomId(
+        scrimId: targetScrimId,
+        roomId: _roomCtrl.text,
+        password: _passCtrl.text,
+        extraMessage: _msgCtrl.text,
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Room ID terkirim ke semua peserta terverifikasi!'),
+              ],
+            ),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error sending room ID: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengirim Room ID: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
@@ -88,7 +154,11 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
         const SizedBox(width: 8),
       ],
     ),
-    body: SingleChildScrollView(
+    body: _screenLoading
+        ? const Center(child: CircularProgressIndicator(color: BooyahTheme.maroon))
+        : _scrims.isEmpty
+            ? const Center(child: Text('Belum ada sesi scrim aktif.', style: TextStyle(color: BooyahTheme.textMuted)))
+            : SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,17 +166,17 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
           const SectionHeader(title: 'PILIH SESI SCRIM'),
           ..._scrims.asMap().entries.map(
             (e) => GestureDetector(
-              onTap: () => setState(() => _selectedScrim = e.key),
+              onTap: () => _selectScrim(e.key),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _selectedScrim == e.key
+                  color: _selectedScrimIdx == e.key
                       ? BooyahTheme.maroon.withValues(alpha: 0.1)
                       : BooyahTheme.card,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: _selectedScrim == e.key
+                    color: _selectedScrimIdx == e.key
                         ? BooyahTheme.maroonB
                         : BooyahTheme.maroon.withValues(alpha: 0.2),
                   ),
@@ -124,14 +194,14 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            e.value['name']!,
+                            e.value['title'] ?? '',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           Text(
-                            '${e.value['sched']} · ${e.value['count']}',
+                            '${e.value['scheduled_at'] ?? ''} · ${e.value['slot_filled'] ?? 0}/${e.value['slot_total'] ?? 20} terverifikasi',
                             style: const TextStyle(
                               fontSize: 10,
                               color: BooyahTheme.textMuted,
@@ -140,7 +210,7 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
                         ],
                       ),
                     ),
-                    if (_selectedScrim == e.key)
+                    if (_selectedScrimIdx == e.key)
                       const Icon(
                         Icons.check_circle,
                         color: BooyahTheme.maroonB,
@@ -166,17 +236,17 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
                 color: BooyahTheme.green.withValues(alpha: 0.25),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle_outline,
                   color: BooyahTheme.green,
                   size: 16,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  '11 tim terverifikasi · siap menerima Room ID',
-                  style: TextStyle(
+                  '${_scrims[_selectedScrimIdx]['slot_filled'] ?? 0} tim terverifikasi · siap menerima Room ID',
+                  style: const TextStyle(
                     fontSize: 11,
                     color: BooyahTheme.green,
                     fontWeight: FontWeight.w600,

@@ -1,10 +1,7 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/kirim_pengumuman_screen.dart
-// UC-17: Mengirim Pengumuman
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
+import '../../services/supabase_service.dart';
 
 class KirimPengumumanScreen extends StatefulWidget {
   const KirimPengumumanScreen({super.key});
@@ -16,18 +13,17 @@ class KirimPengumumanScreen extends StatefulWidget {
 class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
   final _judulCtrl = TextEditingController();
   final _isiCtrl = TextEditingController();
-  String _selectedScrim = 'BOOYAH CUP SEASON 7 – 11 Mar (11 peserta)';
   String _kategori = 'Pengumuman Umum';
   int _targetIdx = 0;
   bool _loading = false;
+  bool _screenLoading = true;
+  late int scrimId;
+  Map<String, dynamic>? _scrimData;
 
-  final _scrims = [
-    'BOOYAH CUP SEASON 7 – 11 Mar (11 peserta)',
-    'MIDNIGHT CLASH RANKED – 11 Mar (16 peserta)',
-    'Semua Scrim Aktif',
-  ];
+  int _allCount = 0;
+  int _verifiedCount = 0;
+  int _pendingCount = 0;
 
-  // Menghapus emoji mentah di dalam data dropdown
   final _kategoriList = [
     'Pengumuman Umum',
     'Perubahan Jadwal',
@@ -35,13 +31,53 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
     'Hasil Pertandingan',
     'Info Hadiah',
   ];
-  final _targets = [
-    ('Semua Peserta', '27'),
-    ('Terverifikasi Saja', '11'),
-    ('Menunggu Bayar', '4'),
+
+  List<Map<String, dynamic>> get _targets => [
+    {
+      'label': 'Semua Peserta',
+      'count': '$_allCount',
+      'db_target': 'all',
+    },
+    {
+      'label': 'Terverifikasi Saja',
+      'count': '$_verifiedCount',
+      'db_target': 'verified',
+    },
+    {
+      'label': 'Menunggu Bayar',
+      'count': '$_pendingCount',
+      'db_target': 'pending',
+    },
   ];
 
-  // Map untuk menentukan Icon berdasarkan string kategori
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrimId = ModalRoute.of(context)!.settings.arguments as int? ?? 1;
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _screenLoading = true);
+    try {
+      final scrim = await ScrimService.getById(scrimId.toString());
+      _scrimData = scrim;
+
+      final regs = await RegistrationService.getByScrim(scrimId);
+      setState(() {
+        _allCount = regs.length;
+        _verifiedCount = regs.where((r) => r['status'] == 'verified').length;
+        _pendingCount = regs.where((r) => r['status'] == 'pending_payment' || r['status'] == 'waiting_verify').length;
+      });
+    } catch (e) {
+      debugPrint('Error loading scrim data: $e');
+    } finally {
+      setState(() => _screenLoading = false);
+    }
+  }
+
   IconData _getCategoryIcon(String category) {
     switch (category) {
       case 'Perubahan Jadwal':
@@ -58,7 +94,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
   }
 
   void _send() async {
-    // UC-17 Alur Alternatif: validasi field kosong
     if (_judulCtrl.text.isEmpty || _isiCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -75,25 +110,45 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
       return;
     }
     setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(
-                Icons.check_circle_outline,
-                color: Colors.white,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Text('Terkirim ke ${_targets[_targetIdx].$2} peserta!'),
-            ],
-          ),
-          backgroundColor: BooyahTheme.green,
-        ),
+    try {
+      final targetStr = _targets[_targetIdx]['db_target'] as String;
+      final sentCount = await NotificationService.sendAnnouncement(
+        title: _judulCtrl.text,
+        message: _isiCtrl.text,
+        scrimId: scrimId,
+        target: targetStr,
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text('Terkirim ke $sentCount peserta!'),
+              ],
+            ),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      debugPrint('Error sending announcement: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengirim pengumuman: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
@@ -113,7 +168,9 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
         const SizedBox(width: 8),
       ],
     ),
-    body: SingleChildScrollView(
+    body: _screenLoading
+        ? const Center(child: CircularProgressIndicator(color: BooyahTheme.maroon))
+        : SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +179,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
 
           // Scrim select
           const Text(
-            'PILIH SCRIM TARGET *',
+            'SCRIM TARGET *',
             style: TextStyle(
               fontSize: 10,
               color: BooyahTheme.textMuted,
@@ -130,24 +187,31 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
             ),
           ),
           const SizedBox(height: 5),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedScrim,
-            dropdownColor: BooyahTheme.surface,
-            style: const TextStyle(
-              fontFamily: 'Rajdhani',
-              fontSize: 12,
-              color: BooyahTheme.textPri,
-            ),
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: BooyahTheme.surface,
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(
+                color: BooyahTheme.maroon.withValues(alpha: 0.3),
               ),
             ),
-            items: _scrims
-                .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                .toList(),
-            onChanged: (v) => setState(() => _selectedScrim = v!),
+            child: Row(
+              children: [
+                const Icon(Icons.sports_esports, size: 16, color: BooyahTheme.yellow),
+                const SizedBox(width: 8),
+                Text(
+                  _scrimData?['title'] ?? '',
+                  style: const TextStyle(
+                    fontFamily: 'Rajdhani',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: BooyahTheme.textPri,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
 
@@ -175,7 +239,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
                     child: Column(
                       children: [
                         Text(
-                          e.value.$2,
+                          e.value['count']!,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -185,7 +249,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
                           ),
                         ),
                         Text(
-                          e.value.$1,
+                          e.value['label']!,
                           style: const TextStyle(
                             fontSize: 9,
                             color: BooyahTheme.textMuted,
