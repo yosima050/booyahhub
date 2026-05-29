@@ -4,6 +4,7 @@ import '../../core/auth_service.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart' as supabase_svc;
+import 'kelola_scrim_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -370,114 +371,124 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                             return Column(
                               children: filteredScrims
                                   .map(
-                                    (s) => Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: BooyahTheme.card,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: BooyahTheme.maroon.withValues(
-                                            alpha: 0.2,
+                                    (s) => GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => KelolaScrimScreen(scrim: s),
+                                          ),
+                                        ).then((_) => load()); // Refresh dashboard data when coming back
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: BooyahTheme.card,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(
+                                            color: BooyahTheme.maroon.withValues(
+                                              alpha: 0.2,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 40,
-                                            height: 40,
-                                            decoration: BoxDecoration(
-                                              color: _statusColor(
-                                                s['status'] as String? ??
-                                                    'open',
-                                              ).withValues(alpha: 0.15),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: const Center(
-                                              child: Icon(
-                                                Icons.sports_esports,
-                                                size: 18,
-                                                color: BooyahTheme.textMuted,
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                color: _statusColor(
+                                                  s['status'] as String? ??
+                                                      'open',
+                                                ).withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.sports_esports,
+                                                  size: 18,
+                                                  color: BooyahTheme.textMuted,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Column(
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    s['title'] as String? ?? '',
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    '${s['scheduled_at'] ?? ''}',
+                                                    style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color:
+                                                          BooyahTheme.textMuted,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Column(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.end,
                                               children: [
-                                                Text(
-                                                  s['title'] as String? ?? '',
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: _statusColor(
+                                                      s['status'] as String? ??
+                                                          'open',
+                                                    ).withValues(alpha: 0.15),
+                                                    borderRadius:
+                                                        BorderRadius.circular(4),
+                                                    border: Border.all(
+                                                      color: _statusColor(
+                                                        s['status'] as String? ??
+                                                            'open',
+                                                      ).withValues(alpha: 0.4),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    _statusLabel(
+                                                      s['status'] as String? ??
+                                                          'open',
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 9,
+                                                      color: _statusColor(
+                                                        s['status'] as String? ??
+                                                          'open',
+                                                      ),
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
                                                   ),
                                                 ),
+                                                const SizedBox(height: 4),
                                                 Text(
-                                                  '${s['scheduled_at'] ?? ''}',
+                                                  '${s['slot_filled'] ?? 0}/${s['slot_total'] ?? 0}',
                                                   style: const TextStyle(
                                                     fontSize: 10,
-                                                    color:
-                                                        BooyahTheme.textMuted,
+                                                    color: BooyahTheme.textMuted,
+                                                    fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: _statusColor(
-                                                    s['status'] as String? ??
-                                                        'open',
-                                                  ).withValues(alpha: 0.15),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                  border: Border.all(
-                                                    color: _statusColor(
-                                                      s['status'] as String? ??
-                                                          'open',
-                                                    ).withValues(alpha: 0.4),
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  _statusLabel(
-                                                    s['status'] as String? ??
-                                                        'open',
-                                                  ),
-                                                  style: TextStyle(
-                                                    fontSize: 9,
-                                                    color: _statusColor(
-                                                      s['status'] as String? ??
-                                                          'open',
-                                                    ),
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                '${s['slot_filled'] ?? 0}/${s['slot_total'] ?? 0}',
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  color: BooyahTheme.textMuted,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   )

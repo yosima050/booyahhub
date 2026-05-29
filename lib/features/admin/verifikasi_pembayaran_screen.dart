@@ -1,10 +1,6 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/verifikasi_pembayaran_screen.dart
-// ──────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
-
 import '../../core/theme.dart';
+import '../../services/supabase_service.dart';
 
 class VerifikasiPembayaranScreen extends StatefulWidget {
   const VerifikasiPembayaranScreen({super.key});
@@ -16,69 +12,123 @@ class VerifikasiPembayaranScreen extends StatefulWidget {
 
 class _VerifikasiPembayaranScreenState
     extends State<VerifikasiPembayaranScreen> {
-  bool _loading = false;
+  bool _loading = true;
+  late int scrimId;
+  List<Map<String, dynamic>> _data = [];
 
-  List<Map<String, dynamic>> _data = [
-    {
-      'team': 'EVOS ROAR',
-      'captain': 'Raraa',
-      'method': 'DANA',
-      'amount': 'Rp25.000',
-      'status': 'pending',
-    },
-    {
-      'team': 'RRQ STARS',
-      'captain': 'Vinzz',
-      'method': 'QRIS',
-      'amount': 'Rp25.000',
-      'status': 'pending',
-    },
-    {
-      'team': 'ONYX PRIME',
-      'captain': 'Nayla',
-      'method': 'GOPAY',
-      'amount': 'Rp25.000',
-      'status': 'verified',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrimId = ModalRoute.of(context)!.settings.arguments as int? ?? 1;
+      _load();
+    });
+  }
+
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final regs = await RegistrationService.getByScrim(scrimId);
+      setState(() {
+        _data = regs.map((r) {
+          final user = r['users'] as Map<String, dynamic>? ?? {};
+          return {
+            'id': r['id'],
+            'team': r['team_name'] ?? '',
+            'captain': user['name'] ?? r['captain_ff_id'] ?? '',
+            'method': r['payment_method'] ?? r['payment_type'] ?? 'TRANSFER',
+            'amount': _fmtRupiah(r['payment_amount'] as int? ?? 0),
+            'status': r['status'] == 'verified'
+                ? 'verified'
+                : (r['status'] == 'rejected' || r['status'] == 'failed' || r['status'] == 'expired'
+                    ? 'rejected'
+                    : 'pending'),
+          };
+        }).toList();
+      });
+    } catch (e) {
+      debugPrint('Error loading payments: $e');
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  String _fmtRupiah(int amount) {
+    if (amount == 0) return 'Rp0';
+    final formatter = amount.toString().split('').reversed.toList();
+    String result = '';
+    for (int i = 0; i < formatter.length; i++) {
+      if (i > 0 && i % 3 == 0) result += '.';
+      result += formatter[i];
+    }
+    return 'Rp${result.split('').reversed.join('')}';
+  }
 
   void _approve(int index) async {
     setState(() => _loading = true);
-
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    setState(() {
-      _data[index]['status'] = 'verified';
-      _loading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pembayaran berhasil diverifikasi'),
-          backgroundColor: BooyahTheme.green,
-        ),
+    try {
+      final regId = _data[index]['id'] as int;
+      await RegistrationService.updatePaymentStatus(
+        registrationId: regId,
+        newStatus: 'verified',
       );
+      setState(() {
+        _data[index]['status'] = 'verified';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pembayaran berhasil diverifikasi'),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error approving payment: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal verifikasi pembayaran: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
   void _reject(int index) async {
     setState(() => _loading = true);
-
-    await Future.delayed(const Duration(milliseconds: 700));
-
-    setState(() {
-      _data[index]['status'] = 'rejected';
-      _loading = false;
-    });
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pembayaran ditolak'),
-          backgroundColor: BooyahTheme.red,
-        ),
+    try {
+      final regId = _data[index]['id'] as int;
+      await RegistrationService.updatePaymentStatus(
+        registrationId: regId,
+        newStatus: 'rejected',
       );
+      setState(() {
+        _data[index]['status'] = 'rejected';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pembayaran ditolak'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error rejecting payment: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menolak pembayaran: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _loading = false);
     }
   }
 

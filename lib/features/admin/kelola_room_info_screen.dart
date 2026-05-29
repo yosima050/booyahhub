@@ -1,11 +1,8 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/kelola_room_info_screen.dart
-// UC-16 & UC-08: Kelola Room ID & Info Match (Gabungan)
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
+import '../../services/supabase_service.dart';
 
 class KelolaRoomInfoScreen extends StatefulWidget {
   const KelolaRoomInfoScreen({super.key});
@@ -32,10 +29,47 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
   String _matchStatus = 'Belum Dimulai';
   bool _matchLoading = false;
 
+  // Database State
+  late int scrimId;
+  Map<String, dynamic>? _scrimData;
+  bool _screenLoading = true;
+  int _verifiedTeamsCount = 0;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrimId = ModalRoute.of(context)!.settings.arguments as int? ?? 1;
+      _load();
+    });
+  }
+
+  Future<void> _load() async {
+    setState(() => _screenLoading = true);
+    try {
+      final scrim = await ScrimService.getById(scrimId.toString());
+      _scrimData = scrim;
+
+      _roomCtrl.text = scrim['room_id'] as String? ?? '';
+      _passCtrl.text = scrim['room_password'] as String? ?? '';
+
+      final dbStatus = scrim['status'] as String? ?? 'open';
+      if (dbStatus == 'ongoing') {
+        _matchStatus = 'Live';
+      } else if (dbStatus == 'finished') {
+        _matchStatus = 'Selesai';
+      } else {
+        _matchStatus = 'Belum Dimulai';
+      }
+
+      final regs = await RegistrationService.getByScrim(scrimId);
+      _verifiedTeamsCount = regs.where((r) => r['status'] == 'verified').length;
+    } catch (e) {
+      debugPrint('Error loading scrim: $e');
+    } finally {
+      setState(() => _screenLoading = false);
+    }
   }
 
   @override
@@ -66,21 +100,39 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
       return;
     }
     setState(() => _roomLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _roomLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Room ID terkirim ke semua peserta terverifikasi!'),
-            ],
-          ),
-          backgroundColor: BooyahTheme.green,
-        ),
+    try {
+      await ScrimService.sendRoomId(
+        scrimId: scrimId,
+        roomId: _roomCtrl.text,
+        password: _passCtrl.text,
+        extraMessage: _msgCtrl.text,
       );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Room ID terkirim ke semua peserta terverifikasi!'),
+              ],
+            ),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error sending room ID: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengirim Room ID: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _roomLoading = false);
     }
   }
 
@@ -101,21 +153,48 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
       return;
     }
     setState(() => _matchLoading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _matchLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
-              SizedBox(width: 8),
-              Text('Info pertandingan berhasil diupdate!'),
-            ],
-          ),
-          backgroundColor: BooyahTheme.green,
-        ),
+    try {
+      String dbStatus = 'open';
+      if (_matchStatus == 'Live') {
+        dbStatus = 'ongoing';
+      } else if (_matchStatus == 'Selesai') {
+        dbStatus = 'finished';
+      }
+      await ScrimService.update(scrimId.toString(), {'status': dbStatus});
+
+      await NotificationService.sendAnnouncement(
+        title: '📢 INFO MATCH - ${_scrimData?['title'] ?? 'SCRIM'}',
+        message: 'MAP: ${_mapCtrl.text}\n\nStatus: $_matchStatus\n\nDetail:\n${_matchInfoCtrl.text}',
+        scrimId: scrimId,
+        target: 'all',
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Text('Info pertandingan berhasil diupdate!'),
+              ],
+            ),
+            backgroundColor: BooyahTheme.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error updating match info: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengupdate info: $e'),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() => _matchLoading = false);
     }
   }
 
@@ -150,7 +229,11 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
         const SizedBox(width: 8),
       ],
     ),
-    body: TabBarView(
+    body: _screenLoading
+        ? const Center(
+            child: CircularProgressIndicator(color: BooyahTheme.maroon),
+          )
+        : TabBarView(
       controller: _tabController,
       children: [
         // TAB 1: ROOM ID
@@ -190,16 +273,16 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'BOOYAH CUP SEASON 7',
-                            style: TextStyle(
+                          Text(
+                            _scrimData?['title'] ?? 'BOOYAH SCRIM',
+                            style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const Text(
-                            '11 Mar 2026 · 19:00 WIB',
-                            style: TextStyle(
+                          Text(
+                            '${_scrimData?['scheduled_at'] ?? ''}',
+                            style: const TextStyle(
                               fontSize: 10,
                               color: BooyahTheme.textMuted,
                             ),
@@ -214,9 +297,9 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
                               color: BooyahTheme.green.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
-                              '11/20 TIM TERVERIFIKASI',
-                              style: TextStyle(
+                            child: Text(
+                              '$_verifiedTeamsCount/${_scrimData?['slot_total'] ?? 20} TIM TERVERIFIKASI',
+                              style: const TextStyle(
                                 fontSize: 8,
                                 color: BooyahTheme.green,
                                 fontWeight: FontWeight.w700,
