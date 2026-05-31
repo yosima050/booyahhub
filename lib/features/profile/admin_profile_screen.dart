@@ -8,6 +8,7 @@ import '../../shared/models/models.dart';
 import '../../services/supabase_service.dart' show UserService;
 import 'edit_profile_screen.dart';
 import 'bantuan_faq_screen.dart';
+import '../admin/admin_subscription_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -217,30 +218,79 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: BooyahTheme.yellow.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(children: [
-                        const Text('⭐', style: TextStyle(fontSize: 28)),
-                        const SizedBox(width: 12),
-                        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('Premium Aktif', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                          Text('28 hari tersisa', style: TextStyle(fontSize: 10, color: BooyahTheme.yellow)),
-                        ])),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: BooyahTheme.yellow.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
-                          ),
-                          child: const Text('PERBARUI', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.8)),
-                        ),
-                      ]),
-                    ),
+  padding: const EdgeInsets.all(14),
+  decoration: BoxDecoration(
+    color: BooyahTheme.yellow.withValues(alpha: 0.06),
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(
+      color: BooyahTheme.yellow.withValues(alpha: 0.3),
+    ),
+  ),
+  child: Row(
+    children: [
+      const Text(
+        '⭐',
+        style: TextStyle(fontSize: 28),
+      ),
+
+      const SizedBox(width: 12),
+
+      const Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Premium Aktif',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            Text(
+              '28 hari tersisa',
+              style: TextStyle(
+                fontSize: 10,
+                color: BooyahTheme.yellow,
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      GestureDetector(
+        onTap: () {
+          Navigator.push(
+            ctx,
+            MaterialPageRoute(
+              builder: (_) => const AdminSubscriptionScreen(),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: BooyahTheme.yellow.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: BooyahTheme.yellow.withValues(alpha: 0.4),
+            ),
+          ),
+          child: const Text(
+            'PERBARUI',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.8,
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+),
                     const SizedBox(height: 14),
 
                     _menuGroup('AKUN', [
