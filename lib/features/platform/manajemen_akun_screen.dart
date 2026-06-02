@@ -23,10 +23,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Form controllers untuk pendaftaran akun platform
+  // Form controllers untuk pendaftaran akun platform & pencarian
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
+  late TextEditingController _searchController;
   bool _isRegistering = false;
 
   @override
@@ -35,6 +36,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _passwordController = TextEditingController();
+    _searchController = TextEditingController();
     _loadUsers();
   }
 
@@ -43,6 +45,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -54,7 +57,8 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
           _error = null;
         });
       }
-      final users = await PlatformService.getUsers();
+      final search = _searchController.text.trim();
+      final users = await PlatformService.getUsers(search: search.isNotEmpty ? search : null);
       if (mounted) {
         setState(() {
           _users = users;
@@ -97,33 +101,128 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
     final currentStatus = u['is_suspended'] as bool? ?? false;
     final newStatus = !currentStatus;
+    final reasonController = TextEditingController();
+
+    // Simpan messenger sebelum async gap
+    final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: BooyahTheme.card,
-        title: Text(newStatus ? 'Suspend Akun' : 'Aktifkan Akun',
-            style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 14, fontWeight: FontWeight.w700)),
-        content: Text(
-            newStatus ? 'Yakin ingin suspend ${u['name']}?' : 'Yakin ingin aktifkan ${u['name']}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('BATAL'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) => AlertDialog(
+          backgroundColor: BooyahTheme.card,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          title: Text(newStatus ? '🚫 SUSPEND AKUN' : '✅ AKTIFKAN AKUN',
+              style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.yellow)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                newStatus 
+                    ? 'Apakah Anda yakin ingin menangguhkan akun "${u['name']}"?'
+                    : 'Apakah Anda yakin ingin mengaktifkan kembali akun "${u['name']}"?',
+                style: const TextStyle(fontSize: 12, color: BooyahTheme.textPri),
+              ),
+              if (newStatus) ...[
+                const SizedBox(height: 16),
+                const Text('Alasan Penangguhan:', style: TextStyle(fontSize: 11, color: BooyahTheme.textMuted, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: reasonController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'Tulis alasan di sini...',
+                    hintStyle: const TextStyle(color: BooyahTheme.textMuted, fontSize: 11),
+                    filled: true,
+                    fillColor: BooyahTheme.surface,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: BooyahTheme.maroon, width: 0.5)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: BooyahTheme.maroon.withValues(alpha: 0.3), width: 0.5)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: BooyahTheme.yellow, width: 1)),
+                    contentPadding: const EdgeInsets.all(10),
+                  ),
+                  style: const TextStyle(fontSize: 11, color: BooyahTheme.textPri),
+                ),
+              ]
+            ],
           ),
-          TextButton(
-            onPressed: () async {
-              try {
-                await PlatformService.toggleSuspend(u['id'], newStatus);
-                await _loadUsers();
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted, fontSize: 12)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final reason = reasonController.text.trim();
+                if (newStatus && reason.isEmpty) {
+                  ScaffoldMessenger.of(dialogCtx).showSnackBar(
+                    const SnackBar(content: Text('❌ Harap isi alasan suspend'), backgroundColor: BooyahTheme.red),
+                  );
+                  return;
+                }
+                try {
+                  await PlatformService.toggleSuspend(u['id'], newStatus, reason: newStatus ? reason : null);
+                  await _loadUsers();
+                  if (!dialogCtx.mounted) return;
+                  Navigator.pop(dialogCtx);
+                  messenger.showSnackBar(
                     SnackBar(
                       content: Text(newStatus
                           ? '🚫 Akun ${u['name']} disuspend.'
                           : '✅ Akun ${u['name']} diaktifkan.'),
                       backgroundColor: newStatus ? BooyahTheme.red : BooyahTheme.green,
+                    ),
+                  );
+                } catch (e) {
+                  if (!dialogCtx.mounted) return;
+                  Navigator.pop(dialogCtx);
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('❌ Error: $e'), backgroundColor: BooyahTheme.red),
+                  );
+                }
+              },
+              child: Text(newStatus ? 'SUSPEND' : 'AKTIFKAN', style: const TextStyle(color: BooyahTheme.red, fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _deleteUser(Map<String, dynamic> u) {
+    if (u['role'] == 'platform') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('⛔ Akses Ditolak: Tidak bisa menghapus akun Platform!'),
+          backgroundColor: BooyahTheme.red));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: BooyahTheme.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: const Text('🗑️ HAPUS PENGGUNA',
+            style: TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.red)),
+        content: Text(
+            'Apakah Anda yakin ingin menghapus akun "${u['name']}"? Tindakan ini akan menghapus akun secara lunak (soft delete) dan tidak akan ditampilkan lagi.',
+            style: const TextStyle(fontSize: 12, color: BooyahTheme.textPri)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted, fontSize: 12)),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await PlatformService.deleteUser(u['id']);
+                await _loadUsers();
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('🗑️ Akun ${u['name']} berhasil dihapus.'),
+                      backgroundColor: BooyahTheme.red,
                     ),
                   );
                 }
@@ -136,7 +235,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                 }
               }
             },
-            child: Text(newStatus ? 'SUSPEND' : 'AKTIFKAN', style: const TextStyle(color: BooyahTheme.red)),
+            child: const Text('HAPUS', style: TextStyle(color: BooyahTheme.red, fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ],
       ),
@@ -409,18 +508,30 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: BooyahTheme.surface,
-                            borderRadius: BorderRadius.circular(7),
-                            border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.3)),
+                        child: TextField(
+                          controller: _searchController,
+                          onSubmitted: (_) => _loadUsers(),
+                          decoration: InputDecoration(
+                            hintText: 'Cari nama atau email...',
+                            hintStyle: const TextStyle(color: BooyahTheme.textMuted, fontSize: 12),
+                            filled: true,
+                            fillColor: BooyahTheme.surface,
+                            prefixIcon: const Icon(Icons.search, color: BooyahTheme.textMuted, size: 18),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, color: BooyahTheme.textMuted, size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _loadUsers();
+                                    },
+                                  )
+                                : null,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: BooyahTheme.maroon, width: 0.5)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: BooyahTheme.maroon.withValues(alpha: 0.3), width: 0.5)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: BooyahTheme.yellow, width: 1)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
-                          child: const Row(children: [
-                            Icon(Icons.search, color: BooyahTheme.textMuted, size: 16),
-                            SizedBox(width: 8),
-                            Text('Cari nama, email, atau ID...', style: TextStyle(fontSize: 12, color: BooyahTheme.textMuted)),
-                          ]),
+                          style: const TextStyle(fontSize: 12, color: BooyahTheme.textPri),
                         ),
                       ),
                       SizedBox(
@@ -484,6 +595,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                                           decoration: isSuspended ? TextDecoration.lineThrough : null,
                                           color: isSuspended ? BooyahTheme.textMuted : BooyahTheme.textPri)),
                                   Text(u['email'] as String? ?? '', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                                  if (isSuspended && u['suspension_reason'] != null) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Alasan: ${u['suspension_reason']}',
+                                      style: const TextStyle(fontSize: 9, color: BooyahTheme.red, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
                                 ])),
                                 const SizedBox(width: 6),
                                 StatusBadge(
@@ -498,7 +616,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                                   else
                                     _smallBtn(Icons.check_circle, BooyahTheme.green, () => _toggleSuspend(u)),
                                   const SizedBox(width: 4),
-                                  if (role != 'platform') _smallBtn(Icons.swap_horiz, BooyahTheme.yellow, () => _changeRole(u)),
+                                  if (role != 'platform') ...[
+                                    _smallBtn(Icons.swap_horiz, BooyahTheme.yellow, () => _changeRole(u)),
+                                    const SizedBox(width: 4),
+                                    _smallBtn(Icons.delete_outline, BooyahTheme.red, () => _deleteUser(u)),
+                                  ]
                                 ]),
                               ]),
                             );

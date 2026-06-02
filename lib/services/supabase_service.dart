@@ -607,7 +607,7 @@ class ClaimService {
   static Future<List<Map<String, dynamic>>> getPendingClaims() async {
     final res = await _db
         .from('prize_claims')
-        .select('*, users(name), scrims(title)')
+        .select('*, users!prize_claims_user_id_fkey(name), scrims(title)')
         .eq('status', 'processing')
         .order('claimed_at', ascending: true);
     return List<Map<String, dynamic>>.from(res);
@@ -745,15 +745,17 @@ class PlatformService {
     String? role,
     String? search,
     int page = 1,
-    int limit = 20,
+    int limit = 50, // default up to 50 users
   }) async {
     var query = _db
         .from('users')
-        .select('id, name, email, role, is_suspended, phone, ff_id, created_at')
+        .select('id, name, email, role, is_suspended, suspension_reason, phone, ff_id, created_at')
         .isFilter('deleted_at', null);
         
     if (role != null) query = query.eq('role', role);
-    if (search != null) query = query.ilike('name', '%$search%');
+    if (search != null && search.isNotEmpty) {
+      query = query.or('name.ilike.%$search%,email.ilike.%$search%');
+    }
     
     // Terapkan .order() dan .range() di paling akhir
     final res = await query
@@ -764,7 +766,7 @@ class PlatformService {
   }
 
   // UC-03: Suspend / aktifkan akun
-  static Future<void> toggleSuspend(String userId, bool suspend,
+  static Future<void> toggleSuspend(dynamic userId, bool suspend,
       {String? reason}) async {
     final target =
         await _db.from('users').select('role').eq('id', userId).single();
@@ -772,24 +774,29 @@ class PlatformService {
 
     await _db.from('users').update({
       'is_suspended': suspend,
-      if (suspend) 'suspension_reason': reason,
-      if (suspend) 'suspended_at': DateTime.now().toIso8601String(),
-      if (suspend) 'suspended_by': AuthService.currentUser!.id,
-      if (!suspend) 'suspended_at': null,
-      if (!suspend) 'suspended_by': null,
+      'suspension_reason': suspend ? reason : null,
+      'suspended_at': suspend ? DateTime.now().toIso8601String() : null,
+      'suspended_by': suspend ? AuthService.currentUser!.id : null,
     }).eq('id', userId);
   }
 
   // UC-03: Ubah role
-  static Future<void> changeRole(String userId, String newRole) async {
+  static Future<void> changeRole(dynamic userId, String newRole) async {
     await _db.from('users').update({'role': newRole}).eq('id', userId);
+  }
+
+  // UC-03: Hapus user (Soft Delete)
+  static Future<void> deleteUser(dynamic userId) async {
+    await _db.from('users').update({
+      'deleted_at': DateTime.now().toIso8601String(),
+    }).eq('id', userId);
   }
 
   // UC-19: Pending premium request
   static Future<List<Map<String, dynamic>>> getPremiumRequests() async {
     final res = await _db
         .from('premium_requests')
-        .select('*, users(name, email)')
+        .select('*, users!premium_requests_admin_user_id_fkey(name, email)')
         .eq('status', 'pending')
         .order('created_at', ascending: true);
     return List<Map<String, dynamic>>.from(res);
