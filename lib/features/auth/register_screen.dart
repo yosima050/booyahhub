@@ -26,15 +26,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _authSub = AuthService.authStream.listen((state) {
+    _authSub = AuthService.authStream.listen((state) async {
       final session = state.session;
       if (session != null && mounted) {
+        // Sync profile ke public.users
+        await AuthService.syncOrCreateUserProfile();
+
         final rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(
           (e) => e.name == rawRole,
           orElse: () => UserRole.peserta,
         );
-        Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+        }
       }
     });
   }

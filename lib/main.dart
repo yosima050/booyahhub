@@ -7,6 +7,8 @@ import 'shared/models/models.dart';
 import 'package:booyahhub/features/notification/notification_screen.dart';
 import 'package:booyahhub/features/search/search_screen.dart';
 
+import 'services/supabase_service.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -18,6 +20,12 @@ Future<void> main() async {
       logLevel: RealtimeLogLevel.info,
     ),
   );
+
+  // Self-Healing Trigger: Jika user sudah dalam keadaan login di perangkat,
+  // jalankan sinkronisasi untuk mereparasi profil public.users jika hilang.
+  if (Supabase.instance.client.auth.currentUser != null) {
+    AuthService.syncOrCreateUserProfile();
+  }
 
   runApp(const BooyahHubApp());
 }

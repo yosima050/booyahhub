@@ -29,16 +29,21 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     // authStream hanya digunakan untuk Google OAuth (redirect flow)
     // Login email ditangani langsung di _login()
-    _authSub = AuthService.authStream.listen((state) {
+    _authSub = AuthService.authStream.listen((state) async {
       final session = state.session;
       if (session != null && mounted && !_navigated && _googleLoading) {
         _navigated = true;
+        // Sync profile ke public.users
+        await AuthService.syncOrCreateUserProfile();
+
         final rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(
           (e) => e.name == rawRole,
           orElse: () => UserRole.peserta,
         );
-        Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+        }
       }
     });
   }
@@ -101,6 +106,11 @@ class _LoginScreenState extends State<LoginScreen> {
         // Batalkan authStream agar tidak ikut menavigasi lagi
         await _authSub?.cancel();
         _authSub = null;
+
+        // Sync profile ke public.users (menangani pemulihan jika profil admin hilang akibat bug UUID)
+        await AuthService.syncOrCreateUserProfile();
+
+        if (!mounted) return;
 
         final String rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(

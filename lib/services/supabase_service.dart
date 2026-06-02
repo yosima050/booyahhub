@@ -51,8 +51,15 @@ class AuthService {
       // Buat admin_profile jika role admin (skip untuk peserta)
       if (role == 'admin') {
         try {
+          // Resolve bigint ID from users table
+          final userProfile = await _db
+              .from('users')
+              .select('id')
+              .eq('uuid', res.user!.id)
+              .single();
+
           await _db.from('admin_profiles').insert({
-            'user_id': res.user!.id,  // UUID reference ke users.uuid
+            'user_id': userProfile['id'],  // Gunakan bigint id yang valid
             'display_name': name,
           });
         } catch (e) {
@@ -131,6 +138,73 @@ class AuthService {
   // Ambil role dari metadata
   static String get currentRole =>
       _auth.currentUser?.userMetadata?['role'] as String? ?? 'peserta';
+
+  // Sinkronisasi atau buat profil pengguna (sangat berguna untuk Google OAuth)
+  static Future<void> syncOrCreateUserProfile() async {
+    final user = currentUser;
+    if (user == null) return;
+
+    try {
+      // 1. Cek apakah user sudah terdaftar di tabel public.users
+      final existingUser = await _db
+          .from('users')
+          .select('id, role')
+          .eq('uuid', user.id)
+          .maybeSingle();
+
+      if (existingUser == null) {
+        // 2. Jika belum ada (misal user Google baru), buat record baru
+        final email = user.email ?? '';
+        final name = user.userMetadata?['name'] ?? 
+                     user.userMetadata?['full_name'] ?? 
+                     email.split('@')[0];
+        
+        final String role = user.userMetadata?['role'] as String? ?? 'peserta';
+
+        // Insert ke users table
+        final newUser = await _db.from('users').insert({
+          'uuid': user.id,
+          'name': name,
+          'email': email,
+          'username': '${email.split('@')[0]}_${DateTime.now().millisecondsSinceEpoch % 10000}',
+          'role': role,
+        }).select('id').single();
+
+        final int newUserId = newUser['id'];
+
+        // 3. Jika role-nya admin, pastikan buat admin_profiles dengan id bigint yang benar!
+        if (role == 'admin') {
+          await _db.from('admin_profiles').insert({
+            'user_id': newUserId,
+            'display_name': name,
+          });
+        }
+      } else {
+        // Jika user sudah ada tetapi admin_profiles belum ada (karena bug UUID di kode lama)
+        final String role = existingUser['role'] as String;
+        if (role == 'admin') {
+          final int userId = existingUser['id'];
+          final existingProfile = await _db
+              .from('admin_profiles')
+              .select('id')
+              .eq('user_id', userId)
+              .maybeSingle();
+              
+          if (existingProfile == null) {
+            final name = user.userMetadata?['name'] ?? 
+                         user.userMetadata?['full_name'] ?? 
+                         user.email?.split('@')[0] ?? 'Admin';
+            await _db.from('admin_profiles').insert({
+              'user_id': userId,
+              'display_name': name,
+            });
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error syncing user profile: $e');
+    }
+  }
 
   // Stream perubahan auth state
   static Stream<AuthState> get authStream => _auth.onAuthStateChange;
