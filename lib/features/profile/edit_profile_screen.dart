@@ -50,26 +50,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       // Mengambil data profile dari backend/service kamu
       final userData = await UserService.getUserProfile(user.id);
 
-      setState(() {
-        _userBigId = int.tryParse(userData['id']?.toString() ?? '');
-        _userRole = userData['role']?.toString().toLowerCase() ?? 'peserta';
-        _nameController.text = userData['name']?.toString() ?? '';
-        _usernameController.text = userData['username']?.toString() ?? '';
-        _phoneController.text = userData['phone']?.toString() ?? '';
-        _ffIdController.text = userData['ff_id']?.toString() ?? '';
-        _teamNameController.text = userData['team_name']?.toString() ?? '';
-      });
+      if (mounted) {
+        setState(() {
+          _userBigId = int.tryParse(userData['id']?.toString() ?? '');
+          _userRole = userData['role']?.toString().toLowerCase() ?? 'peserta';
+          _nameController.text = userData['name']?.toString() ?? '';
+          _usernameController.text = userData['username']?.toString() ?? '';
+          _phoneController.text = userData['phone']?.toString() ?? '';
+          _ffIdController.text = userData['ff_id']?.toString() ?? '';
+          _teamNameController.text = userData['team_name']?.toString() ?? '';
+        });
+      }
     } catch (e) {
       debugPrint('Error loading profile: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSaving = true);
+    if (mounted) {
+      setState(() => _isSaving = true);
+    }
     try {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) return;
@@ -127,7 +133,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 

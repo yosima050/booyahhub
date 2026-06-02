@@ -22,16 +22,22 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
 
   Future<void> _loadRegistrations() async {
     try {
-      setState(() => _loading = true);
+      if (mounted) {
+        setState(() => _loading = true);
+      }
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final data = await RegistrationService.getMyRiwayat();
-        setState(() => _registrations = data);
+        if (mounted) {
+          setState(() => _registrations = data);
+        }
       }
     } catch (e) {
       debugPrint('Error loading registrations: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

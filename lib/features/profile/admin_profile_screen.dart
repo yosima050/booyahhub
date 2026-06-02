@@ -64,14 +64,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final userData = await UserService.getUserProfile(user.id);
-        setState(() {
-          _userData = userData;
-        });
+        if (mounted) {
+          setState(() {
+            _userData = userData;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error loading admin profile: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -139,7 +143,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ).showSnackBar(SnackBar(content: Text('Gagal upload foto: $e')));
       }
     } finally {
-      setState(() => _uploadingPhoto = false);
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
+      }
     }
   }
 

@@ -24,14 +24,20 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     try {
       final data = await RegistrationService.getMyRiwayat();
-      setState(() => _rawData = data);
+      if (mounted) {
+        setState(() => _rawData = data);
+      }
     } catch (e) {
       debugPrint('Error riwayat: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

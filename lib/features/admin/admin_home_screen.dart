@@ -26,7 +26,9 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Future<void> load() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     try {
       // Sinkronisasi data profile admin jika belum terisi di AuthService
       final currentAuthUser = supabase_svc.AuthService.currentUser;
@@ -51,14 +53,18 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
       }
 
       final dash = await supabase_svc.AdminService.getDashboard();
-      setState(() {
-        _stats = dash['stats'] as Map<String, dynamic>? ?? {};
-        _myScrim = List<Map<String, dynamic>>.from(dash['recent_scrims'] ?? []);
-      });
+      if (mounted) {
+        setState(() {
+          _stats = dash['stats'] as Map<String, dynamic>? ?? {};
+          _myScrim = List<Map<String, dynamic>>.from(dash['recent_scrims'] ?? []);
+        });
+      }
     } catch (e) {
       debugPrint('Error admin dashboard: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

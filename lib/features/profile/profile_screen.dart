@@ -85,23 +85,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final userData = await UserService.getUserProfile(user.id);
-        setState(() {
-          _userData = userData;
-        });
+        if (mounted) {
+          setState(() {
+            _userData = userData;
+          });
+        }
 
         // Gunakan bigint ID (dikirim sebagai string) untuk menghindari error syntax bigint
         final userBigId = userData['id']?.toString();
         if (userBigId != null) {
           final stats = await UserService.getUserStats(userBigId);
-          setState(() {
-            _stats = stats;
-          });
+          if (mounted) {
+            setState(() {
+              _stats = stats;
+            });
+          }
         }
       }
     } catch (e) {
       debugPrint('Error loading profile: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -143,9 +149,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .update({'avatar_url': publicUrl})
           .eq('uuid', user.id);
 
-      setState(() {
-        _userData = {...?_userData, 'avatar_url': publicUrl};
-      });
+      if (mounted) {
+        setState(() {
+          _userData = {...?_userData, 'avatar_url': publicUrl};
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +168,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ).showSnackBar(SnackBar(content: Text('Gagal upload foto: $e')));
       }
     } finally {
-      setState(() => _uploadingPhoto = false);
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
+      }
     }
   }
 

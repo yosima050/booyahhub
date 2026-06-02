@@ -24,7 +24,9 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
 
   Future<void> _loadData() async {
     try {
-      setState(() => _loading = true);
+      if (mounted) {
+        setState(() => _loading = true);
+      }
       final users = await PlatformService.getUsers(limit: 100);
       final scrims = await ScrimService.getAll(limit: 100);
       final claims = await ClaimService.getPendingClaims();
@@ -33,17 +35,21 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
       final txData = await PlatformService.getFinance();
       final summary = txData['summary'] as Map<String, dynamic>;
       
-      setState(() {
-        _userCount = (users as List).length;
-        _scrimCount = (scrims as List).length;
-        _claimPending = (claims as List).length;
-        _adminPending = (premium as List).length;
-        _transactionTotal = _fmtRupiah(summary['total_revenue'] as int? ?? 0);
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _userCount = (users as List).length;
+          _scrimCount = (scrims as List).length;
+          _claimPending = (claims as List).length;
+          _adminPending = (premium as List).length;
+          _transactionTotal = _fmtRupiah(summary['total_revenue'] as int? ?? 0);
+          _loading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading platform data: $e');
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

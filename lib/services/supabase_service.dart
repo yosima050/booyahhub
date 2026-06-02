@@ -958,22 +958,50 @@ class UserService {
   }
 
   static Future<Map<String, dynamic>> getUserStats(String userId) async {
-    final registrations = await _db
-        .from('registrations')
-        .select('id')
-        .eq('user_id', userId);
-    
-    final kills = await _db
-        .from('v_user_stats')
-        .select('total_kills, total_rewards')
-        .eq('user_id', userId)
-        .maybeSingle();
+    try {
+      // Hitung total scrim dari registrations
+      final registrations = await _db
+          .from('registrations')
+          .select('id')
+          .eq('user_id', userId);
 
-    return {
-      'total_scrims': (registrations as List).length,
-      'total_kills': kills?['total_kills'] ?? 0,
-      'total_rewards': kills?['total_rewards'] ?? 0,
-    };
+      final List regList = registrations as List;
+      final regIds = regList.map((r) => r['id']).toList();
+
+      int totalKills = 0;
+      int totalRewards = 0;
+
+      if (regIds.isNotEmpty) {
+        // Ambil stats dari v_user_riwayat (view yang tersedia)
+        final riwayat = await _db
+            .from('v_user_riwayat')
+            .select('total_point')
+            .eq('user_id', userId);
+
+        for (final r in (riwayat as List)) {
+          totalRewards += (r['total_point'] as int? ?? 0);
+        }
+
+        // Ambil total kills dari match_results berdasarkan registration_id
+        final results = await _db
+            .from('match_results')
+            .select('kills')
+            .inFilter('registration_id', regIds);
+
+        for (final res in (results as List)) {
+          totalKills += (res['kills'] as int? ?? 0);
+        }
+      }
+
+      return {
+        'total_scrims': regList.length,
+        'total_kills': totalKills,
+        'total_rewards': totalRewards,
+      };
+    } catch (e) {
+      debugPrint('Error getUserStats: $e');
+      return {'total_scrims': 0, 'total_kills': 0, 'total_rewards': 0};
+    }
   }
 }
 

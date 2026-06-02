@@ -28,14 +28,20 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     try {
       final data = await ClaimService.getMyClaims();
-      setState(() => _rawClaims = data);
+      if (mounted) {
+        setState(() => _rawClaims = data);
+      }
     } catch (e) {
       debugPrint('Error claims: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -68,7 +74,9 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
         backgroundColor: Color(0xFFFF1744)));
       return;
     }
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     try {
       // Find first available claim
       final available = _rawClaims.where((c) => c['status'] == 'available').firstOrNull;
@@ -88,14 +96,20 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
       );
       await _load(); // refresh data
       _bankCtrl.clear();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('✅ Klaim diajukan!'),
-        backgroundColor: Color(0xFF00C853)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('✅ Klaim diajukan!'),
+          backgroundColor: Color(0xFF00C853)));
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('❌ $e'), backgroundColor: const Color(0xFFFF1744)));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('❌ $e'), backgroundColor: const Color(0xFFFF1744)));
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

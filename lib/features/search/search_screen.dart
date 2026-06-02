@@ -40,20 +40,28 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // Mengambil data awal dari Supabase
   Future<void> _fetchInitialScrims() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final data = await ScrimService.getAll(status: 'open');
       _allRawScrims = data;
       _applyFilter(''); // Inisialisasi daftar kosong atau tampilkan semua di awal
     } on PostgrestException catch (e) {
-      setState(() => _error = e.message);
+      if (mounted) {
+        setState(() => _error = e.message);
+      }
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) {
+        setState(() => _error = e.toString());
+      }
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
