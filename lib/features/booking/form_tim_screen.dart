@@ -17,25 +17,6 @@ class _FormTimScreenState extends State<FormTimScreen> {
   final List<TextEditingController> _memberCtrls = [TextEditingController()];
 
   void _addMember() {
-    if (_memberCtrls.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.black),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Maksimal 3 anggota tambahan (total 4 dengan captain).',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: BooyahTheme.yellow,
-        ),
-      );
-      return;
-    }
     setState(() => _memberCtrls.add(TextEditingController()));
   }
 
