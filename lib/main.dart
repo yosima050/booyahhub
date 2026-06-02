@@ -30,7 +30,7 @@ class BooyahHubApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Cek session aktif
-    String initialRoute = AppRoutes.login;
+    String initialRoute = AppRoutes.welcome;
 
     final user = supabase.auth.currentUser;
     if (user != null) {

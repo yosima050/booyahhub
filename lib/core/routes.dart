@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../features/auth/welcome_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
 import '../features/home/main_shell.dart';
@@ -31,6 +32,7 @@ import '../shared/models/models.dart';
 
 class AppRoutes {
   // Auth
+  static const welcome  = '/welcome';
   static const login    = '/login';
   static const register = '/register';
   // Shells (entry point per role)
@@ -66,6 +68,7 @@ class AppRoutes {
 
   static Map<String, WidgetBuilder> get routes => {
     // Auth
+    welcome:           (_) => const WelcomeScreen(),
     login:             (_) => const LoginScreen(),
     register:          (_) => const RegisterScreen(),
     // Shells

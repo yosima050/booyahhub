@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../services/supabase_service.dart';
+import '../../shared/models/models.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +19,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passCtrl  = TextEditingController();
   final _confCtrl  = TextEditingController();
   bool _loading    = false;
+  bool _googleLoading = false;
   String? _error;
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = AuthService.authStream.listen((state) {
+      final session = state.session;
+      if (session != null && mounted) {
+        final rawRole = AuthService.currentRole;
+        final UserRole role = UserRole.values.firstWhere(
+          (e) => e.name == rawRole,
+          orElse: () => UserRole.peserta,
+        );
+        Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  void _registerWithGoogle() async {
+    setState(() {
+      _googleLoading = true;
+      _error = null;
+    });
+
+    try {
+      // Pemicu login Google nyata (OAuth) via Supabase
+      await AuthService.signInWithGoogle(isTestingMock: false);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceAll('Exception:', '').trim();
+          _googleLoading = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _googleLoading = false;
+        });
+      }
+    }
+  }
 
 void _register() async {
   // 1. Ambil nilai bersih (tanpa spasi gaib di ujung) sejak awal
@@ -183,6 +235,74 @@ void _register() async {
                     ? const SizedBox(height: 20, width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Text('DAFTAR SEKARANG'),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ================= GOOGLE BUTTON =================
+
+              Row(
+                children: [
+                  const Expanded(child: Divider(color: Colors.white12)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'ATAU DAFTAR DENGAN',
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: BooyahTheme.textMuted.withValues(alpha: 0.8),
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider(color: Colors.white12)),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    backgroundColor: Colors.white.withValues(alpha: 0.03),
+                  ),
+                  onPressed: _googleLoading ? null : _registerWithGoogle,
+                  child: _googleLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.network(
+                              'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
+                              height: 18,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.login_rounded, size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'DAFTAR DENGAN GOOGLE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
               ),
 
               const SizedBox(height: 16),

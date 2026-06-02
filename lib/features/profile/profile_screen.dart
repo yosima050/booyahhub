@@ -261,11 +261,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         ElevatedButton(
-          onPressed: () => Navigator.pushNamedAndRemoveUntil(
-            ctx,
-            AppRoutes.login,
-            (r) => false,
-          ),
+          onPressed: () async {
+            AuthService().logout();
+            await Supabase.instance.client.auth.signOut();
+            if (ctx.mounted) {
+              Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.welcome, (r) => false);
+            }
+          },
           style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
           child: const Text('KELUAR'),
         ),

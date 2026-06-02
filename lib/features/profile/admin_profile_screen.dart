@@ -153,9 +153,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         TextButton(onPressed: () => Navigator.pop(ctx),
           child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted))),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             AuthService().logout();
-            Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.login, (r) => false);
+            await Supabase.instance.client.auth.signOut();
+            if (ctx.mounted) {
+              Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.welcome, (r) => false);
+            }
           },
           style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
           child: const Text('KELUAR'),

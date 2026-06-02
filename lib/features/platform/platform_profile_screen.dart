@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../core/auth_service.dart';
@@ -16,9 +17,12 @@ class PlatformProfileScreen extends StatelessWidget {
         TextButton(onPressed: () => Navigator.pop(ctx),
           child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted))),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             AuthService().logout();
-            Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.login, (r) => false);
+            await Supabase.instance.client.auth.signOut();
+            if (ctx.mounted) {
+              Navigator.pushNamedAndRemoveUntil(ctx, AppRoutes.welcome, (r) => false);
+            }
           },
           style: ElevatedButton.styleFrom(backgroundColor: BooyahTheme.red),
           child: const Text('KELUAR'),

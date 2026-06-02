@@ -75,6 +75,51 @@ class AuthService {
     );
   }
 
+  // Google Sign-In & Register
+  static Future<AuthResponse?> signInWithGoogle({bool isTestingMock = false}) async {
+    if (isTestingMock) {
+      // Developer / Sandbox Testing Mock Flow:
+      // Mendaftarkan / masuk secara transparan dengan email simulasi.
+      // Membantu proses testing alur UI dan fungsionalitas database secara lancar tanpa hambatan API Key.
+      const String mockEmail = 'gamers@google.com';
+      const String mockPassword = 'GoogleMockPassword123!';
+      const String mockName = 'Google Gamer';
+      
+      try {
+        final res = await _auth.signInWithPassword(
+          email: mockEmail,
+          password: mockPassword,
+        );
+        return res;
+      } catch (e) {
+        // Jika belum terdaftar, sign-up secara otomatis
+        try {
+          await register(
+            name: mockName,
+            email: mockEmail,
+            password: mockPassword,
+            role: 'peserta',
+          );
+        } catch (_) {
+          // Abaikan jika sudah ada di DB tapi auth state berbeda
+        }
+        
+        final res = await _auth.signInWithPassword(
+          email: mockEmail,
+          password: mockPassword,
+        );
+        return res;
+      }
+    } else {
+      // Production OAuth Flow via Supabase
+      await _auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb ? null : 'com.example.booyahhub://login-callback',
+      );
+      return null;
+    }
+  }
+
   // UC-10: Logout
   static Future<void> logout() async {
     await _auth.signOut();
