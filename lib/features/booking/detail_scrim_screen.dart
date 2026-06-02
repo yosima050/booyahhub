@@ -125,23 +125,40 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                   children: [
                                     const Icon(
                                       Icons.sports_esports,
-                                      size: 35,
+                                      size: 30,
                                       color: Colors.white,
                                     ),
-                                    const SizedBox(height: 3),
+                                    const SizedBox(height: 5),
                                     Text(
                                       _scrim!.title,
                                       style: const TextStyle(
                                         fontFamily: 'Orbitron',
-                                        fontSize: 16,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 1.5,
                                       ),
                                     ),
-                                    Text(
-                                      '${_scrim!.adminName} • ${_scrim!.date} · ${_scrim!.time}',
-                                      style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted),
-                                    ),
+                                    const SizedBox(height: 5),
+                                    Row(
+                                      children: [
+                                        // Bagian Admin
+                                        Icon(Icons.person, size: 14, color: Colors.white70),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _scrim!.adminName,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        
+                                        // Bagian Waktu/Jam
+                                        Icon(Icons.access_time, size: 14, color: Colors.white70),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${_scrim!.date} · ${_scrim!.time}',
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                                        ),
+                                      ],
+                                    )
                                   ],
                                 ),
                               ),
