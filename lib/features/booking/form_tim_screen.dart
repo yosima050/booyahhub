@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; 
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../shared/widgets/booyah_widgets.dart';
@@ -16,33 +17,51 @@ class _FormTimScreenState extends State<FormTimScreen> {
   final _hpCtrl      = TextEditingController();
   final List<TextEditingController> _memberCtrls = [TextEditingController()];
 
+  String? _hpError;
+  String? _captainError;
+  final List<String?> _memberErrors = [null];
+
   void _addMember() {
-    setState(() => _memberCtrls.add(TextEditingController()));
+    setState(() {
+      _memberCtrls.add(TextEditingController());
+      _memberErrors.add(null); 
+    });
   }
 
-  void _removeMember(int idx) => setState(() => _memberCtrls.removeAt(idx));
+  void _removeMember(int idx) {
+    setState(() {
+      _memberCtrls.removeAt(idx);
+      _memberErrors.removeAt(idx); 
+    });
+  }
 
   void _next() {
     if (_namaCtrl.text.isEmpty || _captainCtrl.text.isEmpty || _hpCtrl.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Nama tim, ID Captain, dan HP wajib diisi!',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: BooyahTheme.red,
-        ),
-      );
+      _showSnackBar('Nama tim, ID Captain, dan HP wajib diisi!', BooyahTheme.red);
       return;
     }
+
+    if (_hpError != null || _captainError != null || _memberErrors.any((e) => e != null)) {
+      _showSnackBar('Harap perbaiki data yang salah sebelum melanjutkan!', BooyahTheme.red);
+      return;
+    }
+
     Navigator.pushNamed(context, AppRoutes.pembayaran);
+  }
+
+  void _showSnackBar(String message, Color bgColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: bgColor,
+      ),
+    );
   }
 
   @override
@@ -96,7 +115,7 @@ class _FormTimScreenState extends State<FormTimScreen> {
           ),
           const SizedBox(height: 16),
           
-          // --- 2. INPUT ID CAPTAIN ---
+          // --- 2. INPUT ID CAPTAIN (VALIDASI 8-12 DIGIT ANGKA) ---
           const Text(
             'PLAYER ID CAPTAIN', 
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: BooyahTheme.textMuted, letterSpacing: 1),
@@ -104,15 +123,31 @@ class _FormTimScreenState extends State<FormTimScreen> {
           const SizedBox(height: 6),
           TextField(
             controller: _captainCtrl, 
+            keyboardType: TextInputType.number,
+            maxLength: 12, // Membatasi input di keyboard maksimal 12 digit
             style: const TextStyle(color: BooyahTheme.textPri),
-            decoration: const InputDecoration(
-              hintText: 'cth: 123456789 (ID Game)',
-              prefixIcon: Icon(Icons.star, color: BooyahTheme.maroonB, size: 18),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Hanya menerima angka
+            onChanged: (val) {
+              setState(() {
+                if (val.isEmpty) {
+                  _captainError = null;
+                } else if (val.length < 8 || val.length > 12) {
+                  _captainError = 'Player ID harus berupa 8 hingga 12 digit';
+                } else {
+                  _captainError = null;
+                }
+              });
+            },
+            decoration: InputDecoration(
+              hintText: 'cth: 12345678',
+              counterText: '', // Menyembunyikan counter bawaan Flutter agar lebih rapi
+              errorText: _captainError,
+              prefixIcon: const Icon(Icons.star, color: BooyahTheme.maroonB, size: 18),
             ),
           ),
           const SizedBox(height: 16),
           
-          // --- 3. INPUT NO HP ---
+          // --- 3. INPUT NO HP (VALIDASI 10-13 DIGIT ANGKA) ---
           const Text(
             'NOMOR HP / WHATSAPP', 
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: BooyahTheme.textMuted, letterSpacing: 1),
@@ -121,10 +156,25 @@ class _FormTimScreenState extends State<FormTimScreen> {
           TextField(
             controller: _hpCtrl, 
             keyboardType: TextInputType.phone,
+            maxLength: 13, // Membatasi input maksimal 13 digit
             style: const TextStyle(color: BooyahTheme.textPri),
-            decoration: const InputDecoration(
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly], // Hanya menerima angka
+            onChanged: (val) {
+              setState(() {
+                if (val.isEmpty) {
+                  _hpError = null;
+                } else if (val.length < 10 || val.length > 13) {
+                  _hpError = 'Nomor HP harus berukuran 10 hingga 13 digit';
+                } else {
+                  _hpError = null;
+                }
+              });
+            },
+            decoration: InputDecoration(
               hintText: 'Untuk kirim Room ID & Password',
-              prefixIcon: Icon(Icons.phone, color: BooyahTheme.maroonB, size: 18),
+              counterText: '',
+              errorText: _hpError,
+              prefixIcon: const Icon(Icons.phone, color: BooyahTheme.maroonB, size: 18),
             ),
           ),
           const SizedBox(height: 24),
@@ -133,25 +183,43 @@ class _FormTimScreenState extends State<FormTimScreen> {
           const SectionHeader(title: 'ANGGOTA TIM'),
           const SizedBox(height: 16),
           
-          // --- LIST INPUT ANGGOTA DINAMIS ---
-          ...List.generate(_memberCtrls.length, (i) => Padding(
+          // --- LIST INPUT ANGGOTA DINAMIS (VALIDASI 8-12 DIGIT ANGKA) ---
+          ...List.generate(_memberCtrls.length, (index) => Padding(
+            key: ValueKey(index),
             padding: const EdgeInsets.only(bottom: 14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'PLAYER ID ANGGOTA ${i + 1}', 
+                  'PLAYER ID ANGGOTA ${index + 1}', 
                   style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: BooyahTheme.textMuted, letterSpacing: 1),
                 ),
                 const SizedBox(height: 6),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start, // Agar boks icon hapus sejajar saat teks error muncul
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: _memberCtrls[i],
+                        controller: _memberCtrls[index],
+                        keyboardType: TextInputType.number,
+                        maxLength: 12,
                         style: const TextStyle(color: BooyahTheme.textPri),
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        onChanged: (val) {
+                          setState(() {
+                            if (val.isEmpty) {
+                              _memberErrors[index] = null;
+                            } else if (val.length < 8 || val.length > 12) {
+                              _memberErrors[index] = 'ID Anggota harus berukuran 8-12 digit';
+                            } else {
+                              _memberErrors[index] = null;
+                            }
+                          });
+                        },
                         decoration: InputDecoration(
-                          hintText: 'Masukkan ID Free Fire anggota ${i + 1}',
+                          hintText: 'Masukkan ID Game anggota ${index + 1}',
+                          counterText: '',
+                          errorText: _memberErrors[index],
                           prefixIcon: const Icon(Icons.person, color: BooyahTheme.maroonB, size: 18),
                         ),
                       ),
@@ -159,7 +227,7 @@ class _FormTimScreenState extends State<FormTimScreen> {
                     if (_memberCtrls.length > 1) ...[
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () => _removeMember(i),
+                        onTap: () => _removeMember(index),
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
                           decoration: BoxDecoration(
@@ -178,7 +246,7 @@ class _FormTimScreenState extends State<FormTimScreen> {
           )),
           const SizedBox(height: 6),
           
-          // --- TOMBOL TAMBAH ANGGOTA ---
+          // --- TOMBOL TAMBAH ANGGOTA (Otomatis Hilang jika sudah mencapai 3 Anggota Tambahan) ---
           if (_memberCtrls.length < 3) ...[
             GestureDetector(
               onTap: _addMember,
