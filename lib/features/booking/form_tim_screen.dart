@@ -17,25 +17,6 @@ class _FormTimScreenState extends State<FormTimScreen> {
   final List<TextEditingController> _memberCtrls = [TextEditingController()];
 
   void _addMember() {
-    if (_memberCtrls.length >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.black),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Maksimal 3 anggota tambahan (total 4 dengan captain).',
-                ),
-              ),
-            ],
-          ),
-          backgroundColor: BooyahTheme.yellow,
-        ),
-      );
-      return;
-    }
     setState(() => _memberCtrls.add(TextEditingController()));
   }
 
@@ -198,29 +179,31 @@ class _FormTimScreenState extends State<FormTimScreen> {
           const SizedBox(height: 6),
           
           // --- TOMBOL TAMBAH ANGGOTA ---
-          GestureDetector(
-            onTap: _addMember,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-                borderRadius: BorderRadius.circular(8),
-                color: BooyahTheme.maroon.withValues(alpha: 0.05),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center, 
-                children: [
-                  Icon(Icons.add, color: BooyahTheme.maroonB, size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    'TAMBAH ANGGOTA', 
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: BooyahTheme.maroonB),
-                  ),
-                ],
+          if (_memberCtrls.length < 3) ...[
+            GestureDetector(
+              onTap: _addMember,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.4)),
+                  borderRadius: BorderRadius.circular(8),
+                  color: BooyahTheme.maroon.withValues(alpha: 0.05),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center, 
+                  children: [
+                    Icon(Icons.add, color: BooyahTheme.maroonB, size: 18),
+                    SizedBox(width: 6),
+                    Text(
+                      'TAMBAH ANGGOTA', 
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: BooyahTheme.maroonB),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
+          ],
           const SizedBox(height: 32),
           
           // --- TOMBOL SUBMIT ---
