@@ -1,9 +1,4 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/kelola_scrim_screen.dart
-// ──────────────────────────────────────────────────────────
-
 import 'package:flutter/material.dart';
-
 import '../../core/theme.dart';
 import '../admin/data_pendaftar_screen.dart';
 import '../admin/verifikasi_pembayaran_screen.dart';
