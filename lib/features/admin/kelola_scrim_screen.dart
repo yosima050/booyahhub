@@ -31,11 +31,15 @@ class KelolaScrimScreen extends StatelessWidget {
       ),
       ('Input Room ID', Icons.vpn_key_rounded, const RoomIdScreen()),
       (
-        'Kelola Room & Info Match', // NEW MENU
+        'Input Hasil Pertandingan', // MENU 1: Input Hasil
+        Icons.emoji_events_rounded,
+        const InputHasilScreen(),
+      ),
+      (
+        'Kelola Room & Info Match', // MENU 2: Kelola Room & Info Match
         Icons.meeting_room_rounded,
         const KelolaRoomInfoScreen(),
       ),
-      ('Input Hasil', Icons.emoji_events_rounded, const InputHasilScreen()),
       (
         'Kirim Pengumuman',
         Icons.campaign_rounded,
