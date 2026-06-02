@@ -58,7 +58,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
           adminName: (data['admin_profiles']?['display_name'] ?? 'Unknown') as String,
           date: _fmtDate(data['scheduled_at'] as String),
           time: _fmtTime(data['scheduled_at'] as String),
-          mode: (data['mode'] as String).replaceAll('_', ' '),
+          mode: _formatMode(data['mode'] as String),
           slotFilled: data['slot_filled'] as int,
           slotTotal: data['slot_total'] as int,
           fee: data['fee'] as int,
@@ -74,6 +74,13 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
       setState(() => _loading = false);
     }
   }
+
+  String _formatMode(String text) {
+  return text.split('_').map((word) {
+    if (word.isEmpty) return '';
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
+}
 
   String _fmtDate(String iso) {
     final d = DateTime.parse(iso).toLocal();
