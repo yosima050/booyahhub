@@ -25,17 +25,23 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (mounted) {
+      setState(() => _loading = true);
+    }
     try {
       final data = await PlatformService.getFinance();
-      setState(() {
-        _summary   = data['summary'] as Map<String,dynamic>? ?? {};
-        _transaksi = List<Map<String,dynamic>>.from(data['transactions'] ?? []);
-      });
+      if (mounted) {
+        setState(() {
+          _summary   = data['summary'] as Map<String,dynamic>? ?? {};
+          _transaksi = List<Map<String,dynamic>>.from(data['transactions'] ?? []);
+        });
+      }
     } catch (e) {
       debugPrint('Error finance: $e');
     } finally {
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 

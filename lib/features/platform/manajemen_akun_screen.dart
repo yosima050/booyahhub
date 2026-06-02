@@ -48,20 +48,26 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
   Future<void> _loadUsers() async {
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+          _error = null;
+        });
+      }
       final users = await PlatformService.getUsers();
-      setState(() {
-        _users = users;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _users = users;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
       debugPrint('Error loading users: $e');
     }
   }

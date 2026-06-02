@@ -27,28 +27,36 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
 
   Future<void> _loadData() async {
     try {
-      setState(() => _loading = true);
+      if (mounted) {
+        setState(() => _loading = true);
+      }
       final pending = await PlatformService.getPremiumRequests();
       // You would need to create a method to fetch active premium admins
       // For now using empty list as placeholder
-      setState(() {
-        _pending = pending;
-        _active = [];
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _pending = pending;
+          _active = [];
+          _loading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading premium data: $e');
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
   void _approve(Map<String, dynamic> req) async {
     try {
       await PlatformService.processPremium(req['id'] as int, true);
-      setState(() => _pending.removeWhere((p) => p['id'] == req['id']));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ ${req['admin_name']} berhasil di-upgrade ke Premium!'),
-          backgroundColor: BooyahTheme.green));
+      if (mounted) {
+        setState(() => _pending.removeWhere((p) => p['id'] == req['id']));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ ${req['admin_name']} berhasil di-upgrade ke Premium!'),
+            backgroundColor: BooyahTheme.green));
+      }
     } catch (e) {
       debugPrint('Error approving premium: $e');
     }
@@ -57,10 +65,12 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
   void _reject(Map<String, dynamic> req) async {
     try {
       await PlatformService.processPremium(req['id'] as int, false);
-      setState(() => _pending.removeWhere((p) => p['id'] == req['id']));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: const Text('❌ Permintaan premium ditolak.'),
-          backgroundColor: BooyahTheme.red));
+      if (mounted) {
+        setState(() => _pending.removeWhere((p) => p['id'] == req['id']));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('❌ Permintaan premium ditolak.'),
+            backgroundColor: BooyahTheme.red));
+      }
     } catch (e) {
       debugPrint('Error rejecting premium: $e');
     }

@@ -27,15 +27,21 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
 
   Future<void> _loadClaims() async {
     try {
-      setState(() => _loading = true);
+      if (mounted) {
+        setState(() => _loading = true);
+      }
       final data = await ClaimService.getPendingClaims();
-      setState(() {
-        _claims = data;
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _claims = data;
+          _loading = false;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading claims: $e');
-      setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -46,10 +52,12 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
         claimId: claim['id'] as int,
         approve: true,
       );
-      setState(() => _processed.add(i));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Transfer ke ${claim['user_name']} dikonfirmasi! Notifikasi terkirim.'),
-          backgroundColor: BooyahTheme.green));
+      if (mounted) {
+        setState(() => _processed.add(i));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ Transfer ke ${claim['user_name']} dikonfirmasi! Notifikasi terkirim.'),
+            backgroundColor: BooyahTheme.green));
+      }
     } catch (e) {
       debugPrint('Error marking claim done: $e');
     }
@@ -60,7 +68,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
     showDialog(context: context, builder: (_) => AlertDialog(
       backgroundColor: BooyahTheme.card,
       title: const Text('Tolak Klaim?', style: TextStyle(fontFamily:'Rajdhani',fontSize:14,fontWeight:FontWeight.w700)),
-      content: Text('Saldo Rp${_fmt(claim['amount'] as int? ?? 0)} akan dikembalikan ke akun ${claim['user_name']}.'),
+      content: Text('Saldo Rp${_fmt(claim['amount'] as int? ?? 0)} will be returned to the account of ${claim['user_name']}.'),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context),
           child: const Text('BATAL', style: TextStyle(color: BooyahTheme.textMuted))),
@@ -72,10 +80,12 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
               approve: false,
               reason: 'Platform rejected',
             );
-            setState(() => _processed.add(i));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('🔄 Klaim ditolak. Saldo dikembalikan.'),
-                backgroundColor: BooyahTheme.yellow));
+            if (mounted) {
+              setState(() => _processed.add(i));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('🔄 Klaim ditolak. Saldo dikembalikan.'),
+                  backgroundColor: BooyahTheme.yellow));
+            }
           } catch (e) {
             debugPrint('Error rejecting claim: $e');
           }

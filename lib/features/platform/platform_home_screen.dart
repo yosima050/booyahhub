@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
+import '../../core/auth_service.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
-import '../../services/supabase_service.dart';
+import '../../services/supabase_service.dart' hide AuthService;
 
 class PlatformHomeScreen extends StatefulWidget {
   const PlatformHomeScreen({super.key});
@@ -27,6 +29,24 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
       if (mounted) {
         setState(() => _loading = true);
       }
+
+      // Sinkronisasi data profile platform jika belum terisi di AuthService
+      final currentAuthUser = Supabase.instance.client.auth.currentUser;
+      if (currentAuthUser != null && AuthService().userId == 0) {
+        final profile = await UserService.getUserProfile(currentAuthUser.id);
+        final roleStr = profile['role'] as String? ?? 'platform';
+        UserRole finalRole = UserRole.platform;
+        if (roleStr == 'peserta') finalRole = UserRole.peserta;
+        if (roleStr == 'admin') finalRole = UserRole.admin;
+
+        AuthService().login(
+          role: finalRole,
+          name: profile['name'] as String? ?? profile['email'] as String? ?? 'Platform Admin',
+          email: profile['email'] as String? ?? currentAuthUser.email ?? '',
+          userId: profile['id'] as int? ?? 0,
+        );
+      }
+
       final users = await PlatformService.getUsers(limit: 100);
       final scrims = await ScrimService.getAll(limit: 100);
       final claims = await ClaimService.getPendingClaims();

@@ -675,7 +675,7 @@ class PlatformService {
   }) async {
     var query = _db
         .from('users')
-        .select('id, name, email, role::text, is_suspended, phone, ff_id, created_at')
+        .select('id, name, email, role, is_suspended, phone, ff_id, created_at')
         .isFilter('deleted_at', null);
         
     if (role != null) query = query.eq('role', role);
