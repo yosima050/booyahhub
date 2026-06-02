@@ -106,7 +106,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                     child: CustomScrollView(
                       slivers: [
                         SliverAppBar(
-                          expandedHeight: 180,
+                          expandedHeight: 150,
                           pinned: true,
                           backgroundColor: BooyahTheme.maroonD,
                           flexibleSpace: FlexibleSpaceBar(
@@ -119,26 +119,20 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 50),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 45),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(
-                                      Icons.sports_esports,
-                                      size: 30,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 5),
                                     Text(
                                       _scrim!.title,
                                       style: const TextStyle(
                                         fontFamily: 'Orbitron',
-                                        fontSize: 18,
+                                        fontSize: 30,
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 1.5,
                                       ),
                                     ),
-                                    const SizedBox(height: 5),
+                                    const SizedBox(height: 3),
                                     Row(
                                       children: [
                                         // Bagian Admin
@@ -214,8 +208,8 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Text('PERKEMBANGAN SLOT', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                                        Text('${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                                        const Text('PERKEMBANGAN SLOT', style: TextStyle(fontSize: 11, color: BooyahTheme.textMuted)),
+                                        Text('${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                                       ],
                                     ),
                                     const SizedBox(height: 6),
@@ -232,7 +226,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                       children: [
                                         Text(
                                           '${(_scrim!.slotFilled / _scrim!.slotTotal * 100).toStringAsFixed(0)}% TERISI',
-                                          style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
+                                          style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted),
                                         ),
                                       ],
                                     ),
@@ -245,7 +239,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                 'DESKRIPSI',
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 14),
-                                  child: Text(_scrim!.description, style: const TextStyle(fontSize: 12, color: BooyahTheme.textSec, height: 1.6)),
+                                  child: Text(_scrim!.description, style: const TextStyle(fontSize: 14, color: BooyahTheme.textSec, height: 1.6)),
                                 ),
                               ),
 
@@ -338,8 +332,8 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
           icon,
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: const TextStyle(fontSize: 8, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
-            Text(val, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: valColor ?? BooyahTheme.textPri)),
+            Text(label, style: const TextStyle(fontSize: 13, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
+            Text(val, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: valColor ?? BooyahTheme.textPri)),
           ]),
         ]),
       );
@@ -360,7 +354,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('▸ ', style: TextStyle(color: BooyahTheme.maroonB)),
-      Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: BooyahTheme.textSec, height: 1.4))),
+      Expanded(child: Text(text, style: const TextStyle(fontSize: 14, color: BooyahTheme.textSec, height: 1.4))),
     ]),
   );
 
@@ -374,8 +368,8 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
       child: Column(children: [
         medal,
         const SizedBox(height: 4),
-        Text(place, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
-        Text(amt, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+        Text(place, style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
+        Text(amt, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
       ]),
     ),
   );
