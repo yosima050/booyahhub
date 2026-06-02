@@ -20,15 +20,19 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscure = true;
   bool _loading = false;
   bool _googleLoading = false;
+  bool _navigated = false; // Guard against double navigation
   String? _error;
   StreamSubscription<AuthState>? _authSub;
 
   @override
   void initState() {
     super.initState();
+    // authStream hanya digunakan untuk Google OAuth (redirect flow)
+    // Login email ditangani langsung di _login()
     _authSub = AuthService.authStream.listen((state) {
       final session = state.session;
-      if (session != null && mounted) {
+      if (session != null && mounted && !_navigated && _googleLoading) {
+        _navigated = true;
         final rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(
           (e) => e.name == rawRole,
@@ -92,9 +96,13 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      if (mounted) {
-        final String rawRole = AuthService.currentRole;
+      if (mounted && !_navigated) {
+        _navigated = true;
+        // Batalkan authStream agar tidak ikut menavigasi lagi
+        await _authSub?.cancel();
+        _authSub = null;
 
+        final String rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(
           (e) => e.name == rawRole,
           orElse: () => UserRole.peserta,
@@ -107,9 +115,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
 
-        // 3. Sekarang parameter 'role' sudah bertipe UserRole dan dijamin aman!
         Navigator.pushReplacementNamed(
-          context, 
+          context,
           AppRoutes.homeForRole(role),
         );
       }
