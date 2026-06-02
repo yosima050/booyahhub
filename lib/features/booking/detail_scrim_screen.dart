@@ -9,10 +9,10 @@ class DetailScrimScreen extends StatefulWidget {
   const DetailScrimScreen({super.key});
 
   @override
-  State<DetailScrimScreen> createState() => _DetailScrimScreenState();
+  State<DetailScrimScreen> createState() => DetailScrimScreenState();
 }
 
-class _DetailScrimScreenState extends State<DetailScrimScreen> {
+class DetailScrimScreenState extends State<DetailScrimScreen> {
   ScrimModel? _scrim;
   bool _loading = true;
   String? _error;
@@ -58,7 +58,7 @@ class _DetailScrimScreenState extends State<DetailScrimScreen> {
           adminName: (data['admin_profiles']?['display_name'] ?? 'Unknown') as String,
           date: _fmtDate(data['scheduled_at'] as String),
           time: _fmtTime(data['scheduled_at'] as String),
-          mode: data['mode'] as String,
+          mode: (data['mode'] as String).replaceAll('_', ' '),
           slotFilled: data['slot_filled'] as int,
           slotTotal: data['slot_total'] as int,
           fee: data['fee'] as int,
