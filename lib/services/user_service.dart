@@ -162,7 +162,7 @@ class UserService {
 
       return AdminProfileModel.fromJson(response);
     } catch (e) {
-      print('Error creating admin profile: $e');
+      debugPrint('Error creating admin profile: $e');
       return null;
     }
   }

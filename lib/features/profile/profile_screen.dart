@@ -533,8 +533,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return 'Rp${result.split('').reversed.join('')}';
   }
 
-  Widget _stat(String val, String label) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 22),
+  Widget _stat(String val, String label) => Expanded(
         child: Column(
           children: [
             Text(
@@ -544,8 +543,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontWeight: FontWeight.w800,
                 color: BooyahTheme.maroonB,
               ),
+              textAlign: TextAlign.center,
             ),
-
             Text(
               label,
               textAlign: TextAlign.center,

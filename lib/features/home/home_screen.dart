@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FocusNode _searchFocus = FocusNode();
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  final String _searchQuery = '';
   String _activeFilter = 'SEMUA';
   final List<String> _filters = ['SEMUA', 'BATTLE ROYALE', 'CLASH SQUAD'];
 
@@ -600,27 +600,6 @@ class _LiveDotState extends State<_LiveDot>
   }
 }
 
-class _FilterChipSmall extends StatelessWidget {
-  final String label;
-  const _FilterChipSmall({required this.label});
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-    decoration: BoxDecoration(
-      color: BooyahTheme.maroon.withValues(alpha: 0.25),
-      borderRadius: BorderRadius.circular(4),
-    ),
-    child: Text(
-      label,
-      style: const TextStyle(
-        fontSize: 10,
-        color: BooyahTheme.maroonB,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1,
-      ),
-    ),
-  );
-}
 
 class _StatBox extends StatelessWidget {
   final IconData icon;

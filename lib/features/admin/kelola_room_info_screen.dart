@@ -614,7 +614,7 @@ class _KelolaRoomInfoScreenState extends State<KelolaRoomInfoScreen>
               ),
               const SizedBox(height: 5),
               DropdownButtonFormField<String>(
-                value: _mapCtrl.text,
+                initialValue: _mapCtrl.text,
                 dropdownColor: BooyahTheme.surface,
                 style: const TextStyle(
                   color: BooyahTheme.textPri,

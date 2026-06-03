@@ -224,43 +224,50 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
-                    child: GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1.9,
-                      children: [
-                        _kpiCard(
-                          Icons.people,
-                          'TIM TERDAFTAR',
-                          '${_stats['total_teams'] ?? 0}',
-                          '+${_stats['new_teams_today'] ?? 0}',
-                          BooyahTheme.maroonB,
-                        ),
-                        _kpiCard(
-                          Icons.attach_money,
-                          'PEMASUKAN',
-                          _fmtRupiah(_stats['total_income'] as int? ?? 0),
-                          '↑ ${_stats['income_growth'] ?? '0%'}',
-                          BooyahTheme.gold,
-                        ),
-                        _kpiCard(
-                          Icons.pending_actions,
-                          'PENDING VERIF',
-                          '${_stats['pending_verifications'] ?? 0}',
-                          'SEGERA',
-                          BooyahTheme.yellow,
-                        ),
-                        _kpiCard(
-                          Icons.emoji_events,
-                          'SCRIM AKTIF',
-                          '${_stats['active_scrims'] ?? 0}',
-                          'LIVE',
-                          BooyahTheme.green,
-                        ),
-                      ],
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        final cardWidth = (width - 8) / 2;
+                        final ratio = (cardWidth / 88).clamp(1.2, 2.2);
+                        return GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: ratio,
+                          children: [
+                            _kpiCard(
+                              Icons.people,
+                              'TIM TERDAFTAR',
+                              '${_stats['total_teams'] ?? 0}',
+                              '+${_stats['new_teams_today'] ?? 0}',
+                              BooyahTheme.maroonB,
+                            ),
+                            _kpiCard(
+                              Icons.attach_money,
+                              'PEMASUKAN',
+                              _fmtRupiah(_stats['total_income'] as int? ?? 0),
+                              '↑ ${_stats['income_growth'] ?? '0%'}',
+                              BooyahTheme.gold,
+                            ),
+                            _kpiCard(
+                              Icons.pending_actions,
+                              'PENDING VERIF',
+                              '${_stats['pending_verifications'] ?? 0}',
+                              'SEGERA',
+                              BooyahTheme.yellow,
+                            ),
+                            _kpiCard(
+                              Icons.emoji_events,
+                              'SCRIM AKTIF',
+                              '${_stats['active_scrims'] ?? 0}',
+                              'LIVE',
+                              BooyahTheme.green,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -350,14 +357,18 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                             final filteredScrims = _myScrim.where((s) {
                               final status = s['status'] as String? ?? 'open';
                               if (_activeFilter == 'SEMUA') return true;
-                              if (_activeFilter == 'DRAFT')
+                              if (_activeFilter == 'DRAFT') {
                                 return status == 'draft';
-                              if (_activeFilter == 'BUKA')
+                              }
+                              if (_activeFilter == 'BUKA') {
                                 return status == 'open' || status == 'closed';
-                              if (_activeFilter == 'LIVE')
+                              }
+                              if (_activeFilter == 'LIVE') {
                                 return status == 'ongoing';
-                              if (_activeFilter == 'SELESAI')
+                              }
+                              if (_activeFilter == 'SELESAI') {
                                 return status == 'finished';
+                              }
                               return true;
                             }).toList();
 
@@ -550,12 +561,16 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          val,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: color,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            val,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
           ),
         ),
         Text(

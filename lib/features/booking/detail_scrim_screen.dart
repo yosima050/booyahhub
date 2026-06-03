@@ -166,37 +166,44 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                               // Info grid
                               Padding(
                                 padding: const EdgeInsets.all(14),
-                                child: GridView.count(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: 8,
-                                  crossAxisSpacing: 8,
-                                  childAspectRatio: 3.2,
-                                  children: [
-                                    _infoCell(
-                                      const Icon(Icons.gps_fixed, size: 16, color: Colors.white),
-                                      'MODE',
-                                      _scrim!.mode,
-                                    ),
-                                    _infoCell(
-                                      const Icon(Icons.groups, size: 16, color: Colors.white),
-                                      'KUOTA',
-                                      '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM',
-                                    ),
-                                    _infoCell(
-                                      const Icon(Icons.payments, size: 16, color: Colors.white),
-                                      'BIAYA',
-                                      'Rp${_scrim!.fee ~/ 1000}k',
-                                      valColor: BooyahTheme.gold,
-                                    ),
-                                    _infoCell(
-                                      const Icon(Icons.emoji_events, size: 16, color: Colors.white),
-                                      'HADIAH',
-                                      'Rp${_scrim!.prize ~/ 1000}k',
-                                      valColor: BooyahTheme.gold,
-                                    ),
-                                  ],
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final width = constraints.maxWidth;
+                                    final cardWidth = (width - 8) / 2;
+                                    final ratio = (cardWidth / 56).clamp(1.5, 3.5);
+                                    return GridView.count(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 8,
+                                      crossAxisSpacing: 8,
+                                      childAspectRatio: ratio,
+                                      children: [
+                                        _infoCell(
+                                          const Icon(Icons.gps_fixed, size: 16, color: Colors.white),
+                                          'MODE',
+                                          _scrim!.mode,
+                                        ),
+                                        _infoCell(
+                                          const Icon(Icons.groups, size: 16, color: Colors.white),
+                                          'KUOTA',
+                                          '${_scrim!.slotFilled}/${_scrim!.slotTotal} TIM',
+                                        ),
+                                        _infoCell(
+                                          const Icon(Icons.payments, size: 16, color: Colors.white),
+                                          'BIAYA',
+                                          'Rp${_scrim!.fee ~/ 1000}k',
+                                          valColor: BooyahTheme.gold,
+                                        ),
+                                        _infoCell(
+                                          const Icon(Icons.emoji_events, size: 16, color: Colors.white),
+                                          'HADIAH',
+                                          'Rp${_scrim!.prize ~/ 1000}k',
+                                          valColor: BooyahTheme.gold,
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               ),
 
@@ -331,10 +338,28 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
         child: Row(children: [
           icon,
           const SizedBox(width: 8),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: const TextStyle(fontSize: 13, color: BooyahTheme.textMuted, letterSpacing: 0.5)),
-            Text(val, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: valColor ?? BooyahTheme.textPri)),
-          ]),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: const TextStyle(fontSize: 11, color: BooyahTheme.textMuted, letterSpacing: 0.5),
+                  ),
+                ),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    val,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: valColor ?? BooyahTheme.textPri),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ]),
       );
 

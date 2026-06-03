@@ -56,8 +56,11 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
       final amount = c['amount'] as int? ?? 0;
       if (status == 'available') {
         totalAvailable += amount;
-      } else if (status == 'processing') totalProcessing += amount;
-      else if (status == 'verified') totalVerified += amount;
+      } else if (status == 'processing') {
+        totalProcessing += amount;
+      } else if (status == 'verified') {
+        totalVerified += amount;
+      }
     }
     
     return {

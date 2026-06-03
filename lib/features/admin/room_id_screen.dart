@@ -244,12 +244,14 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
                   size: 16,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  '${_scrims[_selectedScrimIdx]['slot_filled'] ?? 0} tim terverifikasi · siap menerima Room ID',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: BooyahTheme.green,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    '${_scrims[_selectedScrimIdx]['slot_filled'] ?? 0} tim terverifikasi · siap menerima Room ID',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: BooyahTheme.green,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
