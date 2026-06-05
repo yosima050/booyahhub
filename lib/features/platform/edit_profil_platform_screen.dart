@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:file_picker/file_picker.dart'; 
 import '../../core/theme.dart';
 import '../../core/auth_service.dart';
 import '../../services/supabase_service.dart' show UserService;
@@ -20,18 +21,8 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
-
-  // DAFTAR KOLEKSI AVATAR IKON SISTEM (Hanya simpan angka indeksnya di DB)
-  final List<IconData> _avatarCollection = [
-    Icons.apartment_rounded,      // Indeks 0 (Gedung bawaan)
-    Icons.admin_panel_settings,   // Indeks 1
-    Icons.gavel_rounded,          // Indeks 2
-    Icons.insights_rounded,       // Indeks 3
-    Icons.hub_rounded,            // Indeks 4
-    Icons.terminal_rounded,       // Indeks 5
-  ];
-
-  int _selectedAvatarIndex = 0;
+  bool _uploadingPhoto = false; 
+  String? _currentImageUrl; // Menampung URL foto profil aktif
 
   @override
   void initState() {
@@ -59,8 +50,7 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
           _nameController.text = userData['name']?.toString() ?? '';
           _usernameController.text = userData['username']?.toString() ?? '';
           _phoneController.text = userData['phone']?.toString() ?? '';
-          // Ambil indeks avatar dari kolom 'avatar_index' di tabel users
-          _selectedAvatarIndex = userData['avatar_index'] as int? ?? 0;
+          _currentImageUrl = userData['avatar_url']?.toString(); // Tarik status URL foto dari DB
         });
       }
     } catch (e) {
@@ -68,6 +58,67 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadPhoto() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    if (file.bytes == null) return;
+
+    setState(() => _uploadingPhoto = true);
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) return;
+
+      final ext = (file.extension ?? 'jpg').toLowerCase();
+      final filePath = 'avatars/${user.id}.$ext';
+
+      // Upload berkas biner gambar ke Supabase Storage bucket "avatars"
+      await Supabase.instance.client.storage
+          .from('avatars')
+          .uploadBinary(
+            filePath,
+            file.bytes!,
+            fileOptions: FileOptions(contentType: 'image/$ext', upsert: true),
+          );
+
+      final publicUrl = Supabase.instance.client.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+      // Simpan langsung perubahan URL ke tabel users berdasarkan uuid
+      await Supabase.instance.client
+          .from('users')
+          .update({'avatar_url': publicUrl})
+          .eq('uuid', user.id);
+
+      setState(() {
+        // Manipulasi URL dengan timestamp unik agar image engine Flutter dipaksa merender gambar terbaru
+        _currentImageUrl = "$publicUrl?v=${DateTime.now().millisecondsSinceEpoch}"; 
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profil admin berhasil diperbarui!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      debugPrint('Upload photo error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal upload foto: $e'), backgroundColor: BooyahTheme.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _uploadingPhoto = false);
       }
     }
   }
@@ -85,17 +136,17 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
         'name': _nameController.text.trim(),
         'username': _usernameController.text.trim().isEmpty ? null : _usernameController.text.trim(),
         'phone': _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-        'avatar_index': _selectedAvatarIndex, // Hanya menyimpan angka int saja, enteng banget!
+        'avatar_url': _currentImageUrl, 
         'updated_at': DateTime.now().toIso8601String(),
       };
 
       await Supabase.instance.client.from('users').update(updateData).eq('uuid', user.id);
 
-      // Trigger Audit Log
+      // Trigger Simpan ke Audit Log Sistem
       await Supabase.instance.client.from('audit_logs').insert({
         'actor_role': 'platform',
         'action': 'UPDATE_PLATFORM_PROFILE',
-        'description': 'Super Admin mengubah informasi profil dan mengganti ikon avatar.',
+        'description': 'Super Admin mengubah informasi data utama profil.',
         'entity_type': 'users',
       });
 
@@ -116,78 +167,6 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
-  }
-
-  void _showAvatarPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: BooyahTheme.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PILIH AVATAR SISTEM',
-                    style: TextStyle(fontFamily: 'Orbitron', fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Pilih ikon identitas visual master platform yang disediakan sistem',
-                    style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted),
-                  ),
-                  const SizedBox(height: 20),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: _avatarCollection.length,
-                    itemBuilder: (context, index) {
-                      final bool isSelected = _selectedAvatarIndex == index;
-                      return InkWell(
-                        onTap: () {
-                          setModalState(() => _selectedAvatarIndex = index);
-                          setState(() => _selectedAvatarIndex = index);
-                          Navigator.pop(context);
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isSelected ? BooyahTheme.maroonGlow.withAlpha(40) : BooyahTheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? BooyahTheme.maroonGlow : BooyahTheme.maroonGlow.withAlpha(20),
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
-                          child: Icon(
-                            _avatarCollection[index],
-                            color: isSelected ? Colors.white : BooyahTheme.textMuted,
-                            size: 28,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -213,7 +192,7 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
                   children: [
                     Center(
                       child: GestureDetector(
-                        onTap: _showAvatarPicker,
+                        onTap: _uploadingPhoto ? null : _pickAndUploadPhoto, // Langsung memicu FilePicker galeri
                         child: Stack(
                           children: [
                             Container(
@@ -227,18 +206,36 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
                               child: CircleAvatar(
                                 radius: 45,
                                 backgroundColor: BooyahTheme.maroonGlow,
-                                child: Icon(_avatarCollection[_selectedAvatarIndex], size: 42, color: Colors.white),
+                                child: _uploadingPhoto
+                                    ? const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                      )
+                                    : ClipRRect(
+                                        borderRadius: BorderRadius.circular(45),
+                                        child: (_currentImageUrl != null && _currentImageUrl!.isNotEmpty)
+                                            ? Image.network(
+                                                _currentImageUrl!,
+                                                fit: BoxFit.cover,
+                                                width: 90,
+                                                height: 90,
+                                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.person_rounded, size: 42, color: Colors.white),
+                                              )
+                                            : const Icon(Icons.person_rounded, size: 42, color: Colors.white),
+                                      ),
                               ),
                             ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: BooyahTheme.card,
-                                child: Icon(Icons.edit_rounded, size: 14, color: BooyahTheme.maroonGlow.withAlpha(220)),
+                            if (!_uploadingPhoto)
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: BooyahTheme.card,
+                                  child: Icon(Icons.camera_alt_rounded, size: 14, color: BooyahTheme.maroonGlow.withAlpha(220)),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -246,7 +243,7 @@ class _EditProfilPlatformScreenState extends State<EditProfilPlatformScreen> {
                     const SizedBox(height: 12),
                     const Text('SUPER OWNER PLATFORM', style: TextStyle(fontFamily: 'Orbitron', fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
                     const SizedBox(height: 4),
-                    const Text('KETUK FOTO UNTUK MENGGANTI AVATAR', style: TextStyle(fontSize: 9, color: BooyahTheme.maroonGlow, fontWeight: FontWeight.bold)),
+                    const Text('KETUK FOTO UNTUK MENGGANTI FOTO PROFIL DARI GALERI', style: TextStyle(fontSize: 9, color: BooyahTheme.maroonGlow, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 32),
 
                     Container(
