@@ -1,7 +1,3 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/platform/laporan_platform_screen.dart
-// UC-21: Melihat Laporan Keseluruhan
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
@@ -45,11 +41,9 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text('LAPORAN PLATFORM'),
-      actions: [Chip(label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
-        labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
-      ), const SizedBox(width: 8)]),
+    appBar: AppBar(
+      title: const Text('LAPORAN PLATFORM'),
+    ),
     body: _loading
         ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
         : _report.isEmpty
@@ -83,14 +77,41 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
 
               // Big KPI numbers
               GridView.count(
-                shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8,
+                shrinkWrap: true, 
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2, 
+                mainAxisSpacing: 8, 
+                crossAxisSpacing: 8,
                 childAspectRatio: 1.8,
                 children: [
-                  _bigKpi('👥','Total Pengguna',_report['total_users']?.toString() ?? '0','+312 baru', BooyahTheme.maroonB),
-                  _bigKpi('🏆','Total Scrim',_report['total_scrims']?.toString() ?? '0','+28 bulan ini', BooyahTheme.green),
-                  _bigKpi('💰','Total Transaksi',_fmtRupiah(_report['total_revenue'] as int? ?? 0),'+18% vs bulan lalu', BooyahTheme.gold),
-                  _bigKpi('⭐','Admin Premium',_report['premium_admins']?.toString() ?? '0','3 baru bergabung', BooyahTheme.yellow),
+                  _bigKpi(
+                    Icons.people_alt_rounded, 
+                    'Total Pengguna', 
+                    _report['total_users']?.toString() ?? '0', 
+                    '+${_report['new_users']?.toString() ?? '0'} baru', 
+                    BooyahTheme.maroonB,
+                  ),
+                  _bigKpi(
+                    Icons.emoji_events_rounded, 
+                    'Total Scrim', 
+                    _report['total_scrims']?.toString() ?? '0', 
+                    '+${_report['new_scrims_this_month']?.toString() ?? '0'} bulan ini', 
+                    BooyahTheme.green,
+                  ),
+                  _bigKpi(
+                    Icons.account_balance_wallet_rounded, 
+                    'Total Transaksi', 
+                    _fmtRupiah(_report['total_revenue'] as int? ?? 0), 
+                    '${_report['revenue_growth_percentage']?.toString() ?? '0'}% vs bulan lalu', 
+                    BooyahTheme.gold,
+                  ),
+                  _bigKpi(
+                    Icons.stars_rounded, 
+                    'Admin Premium', 
+                    _report['premium_admins']?.toString() ?? '0', 
+                    '${_report['new_premium_admins']?.toString() ?? '0'} baru bergabung',
+                    BooyahTheme.yellow,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -116,10 +137,19 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                   const SizedBox(height: 12),
                   MiniBarChart(values: _report['chart_data'] as List<double>? ?? List.filled(12, 0.5)),
                   const SizedBox(height: 4),
-                  const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Text('Feb 2026', style: TextStyle(fontSize: 9, color: Colors.white24)),
-                    Text('Mar 2026', style: TextStyle(fontSize: 9, color: Colors.white24)),
-                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                    children: [
+                      Text(
+                        _getStartPeriodLabel(_periodIdx), 
+                        style: const TextStyle(fontSize: 9, color: Colors.white24),
+                      ),
+                      Text(
+                        _getEndPeriodLabel(_periodIdx), 
+                        style: const TextStyle(fontSize: 9, color: Colors.white24),
+                      ),
+                    ],
+                  ),
                 ]),
               ),
               const SizedBox(height: 14),
@@ -133,9 +163,24 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                   border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
-                  _distRow('Peserta', 4678, 5847, BooyahTheme.maroonB),
-                  _distRow('Admin', 876, 5847, BooyahTheme.yellow),
-                  _distRow('Platform', 293, 5847, BooyahTheme.maroonGlow),
+                  Builder(
+                    builder: (context) {
+                      final int jmlPeserta = _report['role_peserta_count'] as int? ?? 0;
+                      final int jmlAdmin = _report['role_admin_count'] as int? ?? 0;
+                      final int jmlPlatform = _report['role_platform_count'] as int? ?? 0;
+                     
+                      final int totalUser = jmlPeserta + jmlAdmin + jmlPlatform;
+                      final int totalSistem = totalUser == 0 ? 1 : totalUser; 
+
+                      return Column(
+                        children: [
+                          _distRow('Peserta', jmlPeserta, totalSistem, BooyahTheme.maroonB),
+                          _distRow('Admin', jmlAdmin, totalSistem, BooyahTheme.yellow),
+                          _distRow('Platform', jmlPlatform, totalSistem, BooyahTheme.maroonGlow),
+                        ],
+                      );
+                    }
+                  )
                 ]),
               ),
               const SizedBox(height: 14),
@@ -144,16 +189,36 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
               const SectionHeader(title: 'TOP ADMIN SCRIM'),
               ...(_report['top_admins'] as List? ?? []).asMap().entries.map((e) {
                 final a = e.value as Map<String, dynamic>;
+                
+                IconData rankIcon;
+                Color iconColor;
+                
+                if (e.key == 0) {
+                  rankIcon = Icons.emoji_events_rounded; 
+                  iconColor = BooyahTheme.gold;
+                } else if (e.key == 1) {
+                  rankIcon = Icons.emoji_events_rounded; 
+                  iconColor = const Color(0xFFC0C0C0); 
+                } else if (e.key == 2) {
+                  rankIcon = Icons.emoji_events_rounded; 
+                  iconColor = const Color(0xFFCD7F32); 
+                } else {
+                  rankIcon = Icons.military_tech_rounded; 
+                  iconColor = BooyahTheme.textMuted;
+                }
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 7),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: BooyahTheme.card, borderRadius: BorderRadius.circular(8),
+                    color: BooyahTheme.card, 
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                   ),
                   child: Row(children: [
-                    Text(['🥇','🥈','🥉','#4'][e.key % 4], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                    Icon(rankIcon, color: iconColor, size: 24),
                     const SizedBox(width: 10),
+                    
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(a['admin_name'] as String? ?? '', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                       Text('${a['total_scrims_created']} scrim · ${_fmtRupiah(a['total_revenue'] as int? ?? 0)}', style: const TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
@@ -176,10 +241,30 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
                   border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.2)),
                 ),
                 child: Column(children: [
-                  BooyahProgress(label: 'Uptime Server',       valueLabel: '99.8%', percent: 0.998),
-                  BooyahProgress(label: 'Verifikasi Rata-rata', valueLabel: '< 2 jam', percent: 0.85),
-                  BooyahProgress(label: 'Kepuasan Pengguna',   valueLabel: '4.8/5.0', percent: 0.96),
-                  BooyahProgress(label: 'Scrim Berhasil',      valueLabel: '97.4%', percent: 0.974),
+                  Column(
+                    children: [
+                      BooyahProgress(
+                        label: 'Uptime Server', 
+                        valueLabel: '${_report['system_uptime']?.toString() ?? '100'}%', 
+                        percent: (_report['system_uptime_pct'] as num? ?? 1.0).toDouble(),
+                      ),
+                      BooyahProgress(
+                        label: 'Verifikasi Rata-rata', 
+                        valueLabel: _report['avg_verification_time'] as String? ?? '-', 
+                        percent: (_report['verification_speed_pct'] as num? ?? 1.0).toDouble(),
+                      ),
+                      BooyahProgress(
+                        label: 'Kepuasan Pengguna', 
+                        valueLabel: '${_report['user_satisfaction']?.toString() ?? '5.0'}/5.0', 
+                        percent: (_report['satisfaction_pct'] as num? ?? 1.0).toDouble(),
+                      ),
+                      BooyahProgress(
+                        label: 'Scrim Berhasil', 
+                        valueLabel: '${_report['scrim_success_rate']?.toString() ?? '100'}%', 
+                        percent: (_report['scrim_success_pct'] as num? ?? 1.0).toDouble(),
+                      ),
+                    ],
+                  )
                 ]),
               ),
               const SizedBox(height: 20),
@@ -187,27 +272,47 @@ class _LaporanPlatformScreenState extends State<LaporanPlatformScreen> {
           ),
   );
 
+  String _getStartPeriodLabel(int idx) {
+    switch (idx) {
+      case 0: return '7 Hari Lalu';
+      case 1: return '30 Hari Lalu';
+      case 2: return '3 Bulan Lalu';
+      case 3: return '6 Bulan Lalu';
+      case 4: return '1 Tahun Lalu';
+      default: return 'Awal Platform';
+    }
+  }
+
+  String _getEndPeriodLabel(int idx) {
+    switch (idx) {
+      case 0: 
+      case 1: return 'Hari Ini';
+      default: return 'Bulan Ini';
+    }
+  }
+
   String _fmtRupiah(int val) {
     if (val >= 1000000) return 'Rp${(val / 1000000).toStringAsFixed(0)}jt';
     if (val >= 1000) return 'Rp${(val / 1000).toStringAsFixed(0)}k';
     return 'Rp$val';
   }
 
-  Widget _bigKpi(String ico, String label, String val, String sub, Color color) =>
-      Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: BooyahTheme.card, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(ico, style: const TextStyle(fontSize: 18)),
-          const SizedBox(height: 3),
-          Text(val, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color)),
-          Text(label, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted)),
-          Text(sub, style: const TextStyle(fontSize: 9, color: BooyahTheme.green)),
-        ]),
-      );
+ Widget _bigKpi(IconData icon, String label, String val, String sub, Color color) =>
+    Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: BooyahTheme.card, 
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: 0.25)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Icon(icon, size: 20, color: color), 
+        const SizedBox(height: 6),
+        Text(val, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: color)),
+        Text(label, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted)),
+        Text(sub, style: const TextStyle(fontSize: 9, color: BooyahTheme.green)),
+      ]),
+    );
 
   Widget _distRow(String label, int val, int total, Color color) {
     final pct = val / total;
