@@ -43,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ── Secrets & Config (jangan di-commit!) ────────────────────────────────────
+# Supabase project credentials (URL + anon key)
+lib/config/supabase_config.dart
+
+# Supabase CLI local secrets & config
+supabase/.temp/
+supabase/config.toml
+.supabase/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+supabase/functions/create-transaction/index.ts
+supabase/functions/payment-notification/index.ts

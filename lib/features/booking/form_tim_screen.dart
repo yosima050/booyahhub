@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import '../../core/theme.dart';
 import '../../core/routes.dart';
+import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 
 class FormTimScreen extends StatefulWidget {
@@ -20,6 +21,17 @@ class _FormTimScreenState extends State<FormTimScreen> {
   String? _hpError;
   String? _captainError;
   final List<String?> _memberErrors = [null];
+
+  ScrimModel? _scrim;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is ScrimModel && _scrim == null) {
+      _scrim = args;
+    }
+  }
 
   void _addMember() {
     setState(() {
@@ -46,7 +58,20 @@ class _FormTimScreenState extends State<FormTimScreen> {
       return;
     }
 
-    Navigator.pushNamed(context, AppRoutes.pembayaran);
+    Navigator.pushNamed(
+      context,
+      AppRoutes.pembayaran,
+      arguments: {
+        'scrim': _scrim,
+        'team_name': _namaCtrl.text.trim(),
+        'captain_ff_id': _captainCtrl.text.trim(),
+        'phone': _hpCtrl.text.trim(),
+        'members': _memberCtrls
+            .map((c) => c.text.trim())
+            .where((s) => s.isNotEmpty)
+            .toList(),
+      },
+    );
   }
 
   void _showSnackBar(String message, Color bgColor) {

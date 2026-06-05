@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../shared/models/models.dart';
@@ -17,6 +18,8 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
   bool _loading = true;
   String? _error;
   bool _initialized = false;
+  Map<String, dynamic>? _myReg;
+  String? _registrationStatus;
 
   @override
   void initState() {
@@ -67,6 +70,36 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
           description: data['description'] as String? ?? '',
         );
       });
+
+      // Cek status registrasi user untuk scrim ini
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final userProfile = await Supabase.instance.client
+            .from('users')
+            .select('id')
+            .eq('uuid', user.id)
+            .single();
+        final int buyerId = userProfile['id'];
+
+        final regData = await Supabase.instance.client
+            .from('registrations')
+            .select('*, team_members(ff_id)')
+            .eq('scrim_id', int.parse(scrimId))
+            .eq('user_id', buyerId)
+            .maybeSingle();
+
+        if (regData != null) {
+          setState(() {
+            _myReg = regData;
+            _registrationStatus = regData['status'] as String?;
+          });
+        } else {
+          setState(() {
+            _myReg = null;
+            _registrationStatus = null;
+          });
+        }
+      }
     } catch (e) {
       debugPrint('Error loading scrim: $e');
       setState(() => _error = e.toString());
@@ -106,7 +139,7 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                     child: CustomScrollView(
                       slivers: [
                         SliverAppBar(
-                          expandedHeight: 150,
+                          expandedHeight: 160,
                           pinned: true,
                           backgroundColor: BooyahTheme.maroonD,
                           flexibleSpace: FlexibleSpaceBar(
@@ -119,40 +152,55 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
                                 ),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 45),
+                                padding: const EdgeInsets.only(left: 16, right: 16, top: 40, bottom: 8),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    Text(
-                                      _scrim!.title,
-                                      style: const TextStyle(
-                                        fontFamily: 'Orbitron',
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 1.5,
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        _scrim!.title,
+                                        style: const TextStyle(
+                                          fontFamily: 'Orbitron',
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1.5,
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 3),
-                                    Row(
+                                    const SizedBox(height: 5),
+                                    Wrap(
+                                      spacing: 12,
+                                      runSpacing: 4,
                                       children: [
                                         // Bagian Admin
-                                        Icon(Icons.person, size: 14, color: Colors.white70),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          _scrim!.adminName,
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.person, size: 14, color: Colors.white70),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _scrim!.adminName,
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(width: 12),
                                         
                                         // Bagian Waktu/Jam
-                                        Icon(Icons.access_time, size: 14, color: Colors.white70),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          '${_scrim!.date} · ${_scrim!.time}',
-                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.access_time, size: 14, color: Colors.white70),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${_scrim!.date} · ${_scrim!.time}',
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                                            ),
+                                          ],
                                         ),
                                       ],
-                                    )
+                                    ),
                                   ],
                                 ),
                               ),
@@ -317,16 +365,112 @@ class DetailScrimScreenState extends State<DetailScrimScreen> {
         : Container(
             padding: const EdgeInsets.all(14),
             color: BooyahTheme.surface,
-            child: ElevatedButton(
-              onPressed: () => Navigator.pushNamed(
-                ctx,
-                AppRoutes.formTim,
-                arguments: _scrim, 
-              ),
-              child: Text('DAFTAR SEKARANG → Rp${_scrim!.fee ~/ 1000}k'),
-            ),
-        ),
+            child: _buildActionButton(ctx),
+          ),
   );
+
+  Widget _buildActionButton(BuildContext ctx) {
+    if (_registrationStatus == 'verified') {
+      return ElevatedButton(
+        onPressed: null, // Disabled
+        style: ElevatedButton.styleFrom(
+          backgroundColor: BooyahTheme.green.withValues(alpha: 0.35),
+          disabledBackgroundColor: BooyahTheme.green.withValues(alpha: 0.35),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle_rounded, color: BooyahTheme.green, size: 18),
+            SizedBox(width: 8),
+            Text(
+              'ANDA SUDAH TERDAFTAR (TERVERIFIKASI)',
+              style: TextStyle(color: BooyahTheme.green, fontWeight: FontWeight.bold, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_registrationStatus == 'waiting_verify') {
+      return ElevatedButton(
+        onPressed: null, // Disabled
+        style: ElevatedButton.styleFrom(
+          backgroundColor: BooyahTheme.gold.withValues(alpha: 0.35),
+          disabledBackgroundColor: BooyahTheme.gold.withValues(alpha: 0.35),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.pending_actions_rounded, color: BooyahTheme.gold, size: 18),
+            SizedBox(width: 8),
+            Text(
+              'MENUNGGU VERIFIKASI PEMBAYARAN',
+              style: TextStyle(color: BooyahTheme.gold, fontWeight: FontWeight.bold, fontSize: 11),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_registrationStatus == 'pending_payment' && _myReg != null) {
+      return Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  ctx,
+                  AppRoutes.pembayaran,
+                  arguments: {
+                    'scrim': _scrim,
+                    'team_name': _myReg!['team_name'],
+                    'captain_ff_id': _myReg!['captain_ff_id'],
+                    'phone': _myReg!['phone'],
+                    'members': List<String>.from((_myReg!['team_members'] as List? ?? []).map((m) => m['ff_id'] as String)),
+                  },
+                ).then((_) => _loadScrim());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: BooyahTheme.gold,
+              ),
+              child: const Text('LANJUTKAN PEMBAYARAN'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 1,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pushNamed(
+                  ctx,
+                  AppRoutes.formTim,
+                  arguments: _scrim,
+                ).then((_) => _loadScrim());
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: BooyahTheme.maroon, width: 1.5),
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(0, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Icon(Icons.edit, color: BooyahTheme.maroonB),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Default: Belum daftar
+    return ElevatedButton(
+      onPressed: () => Navigator.pushNamed(
+        ctx,
+        AppRoutes.formTim,
+        arguments: _scrim, 
+      ).then((_) => _loadScrim()),
+      child: Text('DAFTAR SEKARANG → Rp${_scrim!.fee ~/ 1000}k'),
+    );
+  }
 
   Widget _infoCell(Widget icon, String label, String val, {Color? valColor}) =>
       Container(

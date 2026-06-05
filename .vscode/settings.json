@@ -1,3 +1,12 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
-}
+    "java.configuration.updateBuildConfiguration": "interactive",
+
+    // Deno — aktif HANYA untuk folder Edge Functions
+    "deno.enablePaths": [
+        "supabase/functions"
+    ],
+    "deno.unstable": [],
+    "[typescript]": {
+        "editor.defaultFormatter": "denoland.vscode-deno"
+    }
+}

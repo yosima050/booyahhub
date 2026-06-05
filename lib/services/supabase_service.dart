@@ -374,23 +374,64 @@ class RegistrationService {
         .single();
     final int buyerId = userProfile['id'];
 
-    // 3. Masukkan data pendaftaran ke tabel registrations (Midtrans-ready)
-    final expiresAt = DateTime.now().add(const Duration(minutes: 15));
-    final reg = await _db
+    // 3. Cek apakah user sudah punya registrasi untuk scrim ini
+    final existingRegs = await _db
         .from('registrations')
-        .insert({
-          'scrim_id': scrimId,
-          'user_id': buyerId,
-          'team_name': teamName,
-          'captain_ff_id': captainFfId,
-          'phone': phone,
-          'status': 'pending_payment',
-          'payment_amount': paymentAmount,
-          'booking_expires_at': expiresAt.toIso8601String(),
-          'midtrans_snap_token': ?midtransSnapToken,
-        })
         .select()
-        .single();
+        .eq('scrim_id', scrimId)
+        .eq('user_id', buyerId)
+        .maybeSingle();
+
+    Map<String, dynamic> reg;
+    final expiresAt = DateTime.now().add(const Duration(minutes: 15));
+
+    if (existingRegs != null) {
+      final String existingStatus = existingRegs['status'] as String;
+      if (existingStatus == 'verified' || existingStatus == 'waiting_verify') {
+        throw Exception('Anda sudah terdaftar di scrim ini!');
+      }
+
+      // Update registrasi yang ada (reset status ke pending_payment)
+      reg = await _db
+          .from('registrations')
+          .update({
+            'team_name': teamName,
+            'captain_ff_id': captainFfId,
+            'phone': phone,
+            'status': 'pending_payment',
+            'payment_amount': paymentAmount,
+            'booking_expires_at': expiresAt.toIso8601String(),
+            'midtrans_snap_token': midtransSnapToken,
+            'midtrans_status': 'pending',
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', existingRegs['id'])
+          .select()
+          .single();
+
+      // Hapus anggota tim yang lama untuk di-insert ulang
+      await _db
+          .from('team_members')
+          .delete()
+          .eq('registration_id', reg['id']);
+    } else {
+      // Masukkan data pendaftaran ke tabel registrations (baru)
+      reg = await _db
+          .from('registrations')
+          .insert({
+            'scrim_id': scrimId,
+            'user_id': buyerId,
+            'team_name': teamName,
+            'captain_ff_id': captainFfId,
+            'phone': phone,
+            'status': 'pending_payment',
+            'payment_amount': paymentAmount,
+            'booking_expires_at': expiresAt.toIso8601String(),
+            'midtrans_snap_token': midtransSnapToken,
+          })
+          .select()
+          .single();
+    }
 
     // 4. Masukkan susunan anggota tim ke tabel team_members
     if (members.isNotEmpty) {

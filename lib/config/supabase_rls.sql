@@ -62,8 +62,66 @@ CREATE POLICY "reg_delete" ON registrations FOR DELETE
   USING ((SELECT uuid FROM users WHERE id = user_id) = auth.uid()
          OR EXISTS (SELECT 1 FROM scrims WHERE id = scrim_id AND admin_id = auth.uid()));
 
--- 6. TEAM MEMBERS: semua bisa lihat (untuk tampil di detail registrasi)
-CREATE POLICY "tm_select" ON team_members FOR SELECT USING (true);
+-- 6. TEAM MEMBERS: semua bisa lihat, pendaftar/admin/platform bisa kelola
+CREATE POLICY "tm_select" ON team_members FOR SELECT
+  USING (EXISTS (SELECT 1 FROM registrations WHERE registrations.id = team_members.registration_id));
+
+CREATE POLICY "tm_insert" ON team_members FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM registrations
+      WHERE registrations.id = team_members.registration_id
+      AND (
+        registrations.user_id = (SELECT id FROM users WHERE uuid = auth.uid())
+        OR EXISTS (
+          SELECT 1 FROM scrims
+          WHERE scrims.id = registrations.scrim_id
+          AND (
+            scrims.admin_id = (SELECT id FROM users WHERE uuid = auth.uid())
+            OR (SELECT role::text FROM users WHERE uuid = auth.uid()) = 'platform'
+          )
+        )
+      )
+    )
+  );
+
+CREATE POLICY "tm_update" ON team_members FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM registrations
+      WHERE registrations.id = team_members.registration_id
+      AND (
+        registrations.user_id = (SELECT id FROM users WHERE uuid = auth.uid())
+        OR EXISTS (
+          SELECT 1 FROM scrims
+          WHERE scrims.id = registrations.scrim_id
+          AND (
+            scrims.admin_id = (SELECT id FROM users WHERE uuid = auth.uid())
+            OR (SELECT role::text FROM users WHERE uuid = auth.uid()) = 'platform'
+          )
+        )
+      )
+    )
+  );
+
+CREATE POLICY "tm_delete" ON team_members FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM registrations
+      WHERE registrations.id = team_members.registration_id
+      AND (
+        registrations.user_id = (SELECT id FROM users WHERE uuid = auth.uid())
+        OR EXISTS (
+          SELECT 1 FROM scrims
+          WHERE scrims.id = registrations.scrim_id
+          AND (
+            scrims.admin_id = (SELECT id FROM users WHERE uuid = auth.uid())
+            OR (SELECT role::text FROM users WHERE uuid = auth.uid()) = 'platform'
+          )
+        )
+      )
+    )
+  );
 
 -- 7. NOTIFICATIONS: hanya pemilik yang bisa lihat & update
 CREATE POLICY "notif_select_own" ON notifications FOR SELECT
