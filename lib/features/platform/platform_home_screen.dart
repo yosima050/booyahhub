@@ -100,28 +100,13 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
                           child: const Row(children: [
-                            Icon(Icons.verified, size: 11, color: BooyahTheme.maroonGlow),
-                            SizedBox(width: 4),
-                            Text('PLATFORM', style: TextStyle(fontSize: 9, color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700)),
                           ]),
                         ),
                         const Spacer(),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: BooyahTheme.green.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
                           child: const Row(children: [
-                            Icon(Icons.circle, size: 6, color: BooyahTheme.green),
-                            SizedBox(width: 5),
-                            Text('ONLINE', style: TextStyle(fontSize: 8, color: BooyahTheme.green, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 10),
                           ]),
                         ),
                       ]),
