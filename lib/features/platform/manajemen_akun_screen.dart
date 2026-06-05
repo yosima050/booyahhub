@@ -1,13 +1,9 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/platform/manajemen_akun_screen.dart
-// UC-03: Mengelola Akun + Pendaftaran Terisolasi Tanpa Bentrok Sesi
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../services/supabase_service.dart';
 import '../../shared/widgets/booyah_widgets.dart';
-import '../../config/supabase_config.dart'; // Sesuaikan folder path jika letaknya berbeda
+import '../../config/supabase_config.dart'; 
 
 class ManajemenAkunScreen extends StatefulWidget {
   const ManajemenAkunScreen({super.key});
@@ -23,7 +19,6 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Form controllers untuk pendaftaran akun platform & pencarian
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _passwordController;
@@ -93,17 +88,24 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
   void _toggleSuspend(Map<String, dynamic> u) {
     if (u['role'] == 'platform') {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('⛔ Akses Ditolak: Tidak bisa suspend akun Platform!'),
-          backgroundColor: BooyahTheme.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.gpp_bad, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Akses Ditolak: Tidak bisa suspend akun Platform!')),
+            ],
+          ),
+          backgroundColor: BooyahTheme.red,
+        ),
+      );
       return;
     }
 
     final currentStatus = u['is_suspended'] as bool? ?? false;
     final newStatus = !currentStatus;
     final reasonController = TextEditingController();
-
-    // Simpan messenger sebelum async gap
     final messenger = ScaffoldMessenger.of(context);
 
     showDialog(
@@ -112,8 +114,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
         builder: (dialogCtx, setDialogState) => AlertDialog(
           backgroundColor: BooyahTheme.card,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          title: Text(newStatus ? '🚫 SUSPEND AKUN' : '✅ AKTIFKAN AKUN',
-              style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.yellow)),
+          title: Row(
+            children: [
+              Icon(newStatus ? Icons.block : Icons.check_circle, color: BooyahTheme.yellow, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                newStatus ? 'SUSPEND AKUN' : 'AKTIFKAN AKUN',
+                style: const TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.yellow),
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,7 +166,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                 final reason = reasonController.text.trim();
                 if (newStatus && reason.isEmpty) {
                   ScaffoldMessenger.of(dialogCtx).showSnackBar(
-                    const SnackBar(content: Text('❌ Harap isi alasan suspend'), backgroundColor: BooyahTheme.red),
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          const Text('Harap isi alasan suspend'),
+                        ],
+                      ),
+                      backgroundColor: BooyahTheme.red,
+                    ),
                   );
                   return;
                 }
@@ -167,9 +186,17 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                   Navigator.pop(dialogCtx);
                   messenger.showSnackBar(
                     SnackBar(
-                      content: Text(newStatus
-                          ? '🚫 Akun ${u['name']} disuspend.'
-                          : '✅ Akun ${u['name']} diaktifkan.'),
+                      content: Row(
+                        children: [
+                          Icon(newStatus ? Icons.block : Icons.check_circle, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(newStatus
+                                ? 'Akun ${u['name']} disuspend.'
+                                : 'Akun ${u['name']} diaktifkan.'),
+                          ),
+                        ],
+                      ),
                       backgroundColor: newStatus ? BooyahTheme.red : BooyahTheme.green,
                     ),
                   );
@@ -177,7 +204,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                   if (!dialogCtx.mounted) return;
                   Navigator.pop(dialogCtx);
                   messenger.showSnackBar(
-                    SnackBar(content: Text('❌ Error: $e'), backgroundColor: BooyahTheme.red),
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text('Error: $e')),
+                        ],
+                      ),
+                      backgroundColor: BooyahTheme.red,
+                    ),
                   );
                 }
               },
@@ -191,9 +227,18 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
   void _deleteUser(Map<String, dynamic> u) {
     if (u['role'] == 'platform') {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('⛔ Akses Ditolak: Tidak bisa menghapus akun Platform!'),
-          backgroundColor: BooyahTheme.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.gpp_bad, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('Akses Ditolak: Tidak bisa menghapus akun Platform!')),
+            ],
+          ),
+          backgroundColor: BooyahTheme.red,
+        ),
+      );
       return;
     }
 
@@ -202,8 +247,14 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: BooyahTheme.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('🗑️ HAPUS PENGGUNA',
-            style: TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.red)),
+        title: Row(
+          children: [
+            const Icon(Icons.delete_forever, color: BooyahTheme.red, size: 18),
+            const SizedBox(width: 8),
+            const Text('HAPUS PENGGUNA',
+                style: TextStyle(fontFamily: 'Rajdhani', fontSize: 15, fontWeight: FontWeight.bold, color: BooyahTheme.red)),
+          ],
+        ),
         content: Text(
             'Apakah Anda yakin ingin menghapus akun "${u['name']}"? Tindakan ini akan menghapus akun secara lunak (soft delete) dan tidak akan ditampilkan lagi.',
             style: const TextStyle(fontSize: 12, color: BooyahTheme.textPri)),
@@ -221,7 +272,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('🗑️ Akun ${u['name']} berhasil dihapus.'),
+                      content: Row(
+                        children: [
+                          const Icon(Icons.delete_outline, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text('Akun ${u['name']} berhasil dihapus.')),
+                        ],
+                      ),
                       backgroundColor: BooyahTheme.red,
                     ),
                   );
@@ -230,7 +287,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('❌ Error: $e'), backgroundColor: BooyahTheme.red),
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text('Error: $e')),
+                        ],
+                      ),
+                      backgroundColor: BooyahTheme.red,
+                    ),
                   );
                 }
               }
@@ -249,7 +315,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
       if (name.isEmpty || email.isEmpty || password.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('❌ Semua field harus diisi'), backgroundColor: BooyahTheme.red),
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  const Text('Semua field harus diisi'),
+                ],
+              ),
+              backgroundColor: BooyahTheme.red,
+            ),
           );
         }
         return;
@@ -258,13 +333,21 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
       if (password.length < 6) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('❌ Password minimal 6 karakter'), backgroundColor: BooyahTheme.red),
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  const Text('Password minimal 6 karakter'),
+                ],
+              ),
+              backgroundColor: BooyahTheme.red,
+            ),
           );
         }
         return;
       }
 
-      // Memanggil konfigurasi URL dan AnonKey resmi dari instans Supabase global proyek kalian
       final isolatedClient = SupabaseClient(
         SupabaseConfig.url,
         SupabaseConfig.anonKey,
@@ -288,7 +371,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Akun Platform "$name" berhasil didaftarkan!'),
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Akun Platform "$name" berhasil didaftarkan!')),
+              ],
+            ),
             backgroundColor: BooyahTheme.green,
             duration: const Duration(seconds: 2),
           ),
@@ -299,7 +388,16 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Error: $e'), backgroundColor: BooyahTheme.red),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Error: $e')),
+              ],
+            ),
+            backgroundColor: BooyahTheme.red,
+          ),
         );
       }
       debugPrint('Error registering platform account: $e');
@@ -394,7 +492,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
               onPressed: _isRegistering
                   ? null
                   : () async {
-                      setDialogState(() {}); // Memicu loading indicator di dalam dialog
+                      setDialogState(() {}); 
                       await _registerPlatformAccount(
                         _nameController.text.trim(),
                         _emailController.text.trim(),
@@ -441,7 +539,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                     if (mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('✅ Role ${u['name']} diubah ke ${r.toUpperCase()}'),
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text('Role ${u['name']} diubah ke ${r.toUpperCase()}')),
+                          ],
+                        ),
                         backgroundColor: BooyahTheme.green,
                       ));
                     }
@@ -449,7 +553,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                     if (mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('❌ Error: $e'),
+                        content: Row(
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.white, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text('Error: $e')),
+                          ],
+                        ),
                         backgroundColor: BooyahTheme.red,
                       ));
                     }
@@ -466,11 +576,6 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
   @override
   Widget build(BuildContext ctx) => Scaffold(
         appBar: AppBar(title: const Text('MANAJEMEN AKUN'), actions: [
-          Chip(
-            label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-            backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
-            labelStyle: const TextStyle(color: BooyahTheme.maroonGlow, fontWeight: FontWeight.w700),
-          ),
           const SizedBox(width: 8)
         ]),
         body: _isLoading
@@ -482,7 +587,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                     children: [
                       const Icon(Icons.error_outline, size: 48, color: BooyahTheme.red),
                       const SizedBox(height: 16),
-                      Text('❌ Error: $_error', style: const TextStyle(color: BooyahTheme.textMuted), textAlign: TextAlign.center),
+                      Text('Error: $_error', style: const TextStyle(color: BooyahTheme.textMuted), textAlign: TextAlign.center),
                       const SizedBox(height: 16),
                       TextButton.icon(
                         onPressed: _loadUsers,
@@ -497,13 +602,13 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         color: BooyahTheme.surface,
                         child: Row(children: [
-                          _statBadge('👥 TOTAL', '${_users.length}', BooyahTheme.maroonB),
+                          _statBadge(Icons.groups, 'TOTAL', '${_users.length}', BooyahTheme.maroonB),
                           const SizedBox(width: 10),
-                          _statBadge('👤 PESERTA', '${_users.where((u) => u['role'] == 'peserta' && !(u['is_suspended'] as bool? ?? false)).length}', BooyahTheme.green),
+                          _statBadge(Icons.person, 'PESERTA', '${_users.where((u) => u['role'] == 'peserta' && !(u['is_suspended'] as bool? ?? false)).length}', BooyahTheme.green),
                           const SizedBox(width: 10),
-                          _statBadge('👨‍💼 ADMIN', '${_users.where((u) => u['role'] == 'admin').length}', BooyahTheme.yellow),
+                          _statBadge(Icons.admin_panel_settings, 'ADMIN', '${_users.where((u) => u['role'] == 'admin').length}', BooyahTheme.yellow),
                           const SizedBox(width: 10),
-                          _statBadge('🚫 SUSPEND', '${_users.where((u) => (u['is_suspended'] as bool? ?? false)).length}', BooyahTheme.red),
+                          _statBadge(Icons.block, 'SUSPEND', '${_users.where((u) => (u['is_suspended'] as bool? ?? false)).length}', BooyahTheme.red),
                         ]),
                       ),
                       Padding(
@@ -584,7 +689,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                                 border: Border.all(color: isSuspended ? BooyahTheme.red.withValues(alpha: 0.2) : BooyahTheme.maroon.withValues(alpha: 0.2)),
                               ),
                               child: Row(children: [
-                                const Text('👤', style: TextStyle(fontSize: 24)),
+                                Icon(
+                                  Icons.account_circle, 
+                                  size: 32, 
+                                  color: isSuspended ? BooyahTheme.textMuted : BooyahTheme.maroonB
+                                ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -602,7 +711,7 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
                                       style: const TextStyle(fontSize: 9, color: BooyahTheme.red, fontStyle: FontStyle.italic, fontWeight: FontWeight.w600),
                                     ),
                                   ],
-                                ])),
+                                ])) ,
                                 const SizedBox(width: 6),
                                 StatusBadge(
                                   label: isSuspended ? 'SUSPEND' : role.toUpperCase(),
@@ -654,8 +763,10 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
         ),
       );
 
-  Widget _statBadge(String label, String val, Color color) => Expanded(
+  Widget _statBadge(IconData icon, String label, String val, Color color) => Expanded(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(height: 4),
           Text(val, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
           Text(label, style: const TextStyle(fontSize: 9, color: BooyahTheme.textMuted), textAlign: TextAlign.center),
         ]),
