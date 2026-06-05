@@ -29,6 +29,8 @@ import '../features/platform/kelola_premium_screen.dart';
 import '../features/platform/verifikasi_klaim_screen.dart';
 import '../features/platform/laporan_platform_screen.dart';
 import '../shared/models/models.dart';
+import '../features/platform/audit_log_screen.dart';
+import '../features/platform/edit_profil_platform_screen.dart';
 
 class AppRoutes {
   // Auth
@@ -65,6 +67,8 @@ class AppRoutes {
   static const kelolaPremium     = '/kelola-premium';
   static const verifKlaim        = '/verifikasi-klaim';
   static const laporanPlat       = '/laporan-platform';
+  static const String auditLog   = '/platform/audit-log';
+  static const String editProfilPlat = '/platform/edit-profil';
 
   static Map<String, WidgetBuilder> get routes => {
     // Auth
@@ -101,6 +105,8 @@ class AppRoutes {
     kelolaPremium:     (_) => const KelolaPremiumScreen(),
     verifKlaim:        (_) => const VerifikasiKlaimScreen(),
     laporanPlat:       (_) => const LaporanPlatformScreen(),
+    auditLog:          (_) => const AuditLogScreen(),
+    editProfilPlat:    (_) => const EditProfilPlatformScreen(),
   };
 
   // Helper: route berdasarkan role setelah login
