@@ -95,7 +95,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
 
   @override
   Widget build(BuildContext ctx) {
-    // 💡 Hitung total pendapatan dinamis: (Jumlah admin aktif x Rp 50.000)
+    // Hitung total pendapatan dinamis: (Jumlah admin aktif x Rp 50.000)
     int totalRevenue = _active.length * 50000;
     // Format label pendapatan (misal: 50000 -> Rp50k, 100000 -> Rp100k)
     String revenueLabel = totalRevenue >= 1000 ? 'Rp${(totalRevenue / 1000).toStringAsFixed(0)}k' : 'Rp$totalRevenue';
