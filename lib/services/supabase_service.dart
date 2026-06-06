@@ -1125,6 +1125,77 @@ class UserService {
       return {'total_scrims': 0, 'total_kills': 0, 'total_rewards': 0};
     }
   }
+
+  /// Register device token (FCM) for push notifications
+  static Future<bool> registerDeviceToken({
+    required String authUuid,
+    required String token,
+    required String platform, // 'android', 'ios', 'web'
+  }) async {
+    try {
+      // 1. Resolve UUID to BIGINT ID
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', authUuid)
+          .maybeSingle();
+
+      if (userProfile == null) {
+        debugPrint('Error registering device token: User profile not found for UUID: $authUuid');
+        return false;
+      }
+      final int profileId = userProfile['id'];
+
+      // 2. Check if token already exists for this user
+      final existing = await _db
+          .from('device_tokens')
+          .select()
+          .eq('token', token)
+          .eq('user_id', profileId);
+
+      if (existing.isNotEmpty) {
+        // Token already registered, make sure it is active
+        final currentToken = existing.first;
+        if (currentToken['is_active'] != true) {
+          await _db.from('device_tokens').update({
+            'is_active': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          }).eq('id', currentToken['id']);
+        }
+        return true;
+      }
+
+      // 3. Register new token
+      await _db.from('device_tokens').insert({
+        'user_id': profileId,
+        'token': token,
+        'platform': platform,
+        'is_active': true,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+      });
+
+      return true;
+    } catch (e) {
+      debugPrint('Error registering device token: $e');
+      return false;
+    }
+  }
+
+  /// Deactivate device token (on logout)
+  static Future<bool> deactivateDeviceToken(String token) async {
+    try {
+      await _db.from('device_tokens').update({
+        'is_active': false,
+        'updated_at': DateTime.now().toIso8601String(),
+          }).eq('token', token);
+
+      return true;
+    } catch (e) {
+      debugPrint('Error deactivating device token: $e');
+      return false;
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════

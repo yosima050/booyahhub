@@ -88,6 +88,7 @@ class _KelolaPremiumScreenState extends State<KelolaPremiumScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(
       title: const Text('LAYANAN PREMIUM'),
+      automaticallyImplyLeading: false,
       actions: [
         Chip(
           label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),

@@ -575,9 +575,11 @@ class _ManajemenAkunScreenState extends State<ManajemenAkunScreen> {
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-        appBar: AppBar(title: const Text('MANAJEMEN AKUN'), actions: [
-          const SizedBox(width: 8)
-        ]),
+        appBar: AppBar(
+          title: const Text('MANAJEMEN AKUN'),
+          automaticallyImplyLeading: false,
+          actions: [const SizedBox(width: 8)],
+        ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator(color: BooyahTheme.maroonB))
             : _error != null

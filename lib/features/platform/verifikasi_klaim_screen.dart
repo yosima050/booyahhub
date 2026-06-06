@@ -130,7 +130,10 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text('VERIFIKASI KLAIM')),
+    appBar: AppBar(
+      title: const Text('VERIFIKASI KLAIM'),
+      automaticallyImplyLeading: false,
+    ),
     body: _loading
         ? const Center(
             child: CircularProgressIndicator(color: Color(0xFFB22222)),

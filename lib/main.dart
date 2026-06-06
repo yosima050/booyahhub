@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'config/supabase_config.dart';
 import 'core/theme.dart';
 import 'core/routes.dart';
 import 'shared/models/models.dart';
 import 'package:booyahhub/features/notification/notification_screen.dart';
 import 'package:booyahhub/features/search/search_screen.dart';
+import 'services/push_notification_service.dart';
 
 import 'services/supabase_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization warning: $e');
+  }
 
   await Supabase.initialize(
     url: SupabaseConfig.url,
@@ -25,6 +34,8 @@ Future<void> main() async {
   // jalankan sinkronisasi untuk mereparasi profil public.users jika hilang.
   if (Supabase.instance.client.auth.currentUser != null) {
     AuthService.syncOrCreateUserProfile();
+    // Initialize push notifications
+    PushNotificationService.initialize();
   }
 
   runApp(const BooyahHubApp());

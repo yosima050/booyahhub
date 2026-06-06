@@ -15,15 +15,28 @@ class PlatformShell extends StatefulWidget {
 
 class _PlatformShellState extends State<PlatformShell> {
   int _idx = 0;
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = const [
-    PlatformHomeScreen(),
-    ManajemenAkunScreen(),
-    KelolaPremiumScreen(),
-    VerifikasiKlaimScreen(),
-    DashboardKeuanganScreen(),
-    PlatformProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      PlatformHomeScreen(
+        onTabChanged: (index) {
+          setState(() => _idx = index);
+        },
+      ),
+      const ManajemenAkunScreen(),
+      const KelolaPremiumScreen(),
+      const VerifikasiKlaimScreen(),
+      const DashboardKeuanganScreen(),
+      PlatformProfileScreen(
+        onTabChanged: (index) {
+          setState(() => _idx = index);
+        },
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext ctx) => Scaffold(

@@ -8,7 +8,10 @@ import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart' hide AuthService;
 
 class PlatformHomeScreen extends StatefulWidget {
-  const PlatformHomeScreen({super.key});
+  final void Function(int)? onTabChanged;
+
+  const PlatformHomeScreen({super.key, this.onTabChanged});
+
   @override
   State<PlatformHomeScreen> createState() => _PlatformHomeScreenState();
 }
@@ -185,7 +188,13 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                           'Klaim Hadiah Menunggu',
                           '$_claimPending permintaan klaim belum diproses',
                           BooyahTheme.yellow,
-                          () => Navigator.pushNamed(ctx, AppRoutes.verifKlaim),
+                          () {
+                            if (widget.onTabChanged != null) {
+                              widget.onTabChanged!(3); // KLAIM
+                            } else {
+                              Navigator.pushNamed(ctx, AppRoutes.verifKlaim);
+                            }
+                          },
                           ctaLabel: 'PROSES',
                         ),
                         const SizedBox(height: 8),
@@ -194,8 +203,13 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                           'Admin Pending Approval',
                           '$_adminPending admin baru mengajukan upgrade',
                           BooyahTheme.maroonGlow,
-                          () =>
-                              Navigator.pushNamed(ctx, AppRoutes.kelolaPremium),
+                          () {
+                            if (widget.onTabChanged != null) {
+                              widget.onTabChanged!(2); // PREMIUM
+                            } else {
+                              Navigator.pushNamed(ctx, AppRoutes.kelolaPremium);
+                            }
+                          },
                           ctaLabel: 'REVIEW',
                         ),
                       ],
@@ -216,20 +230,26 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                               'MANAJEMEN\nAKUN',
                               Icons.people_rounded,
                               BooyahTheme.yellow,
-                              () => Navigator.pushNamed(
-                                ctx,
-                                AppRoutes.manajemenAkun,
-                              ),
+                              () {
+                                if (widget.onTabChanged != null) {
+                                  widget.onTabChanged!(1); // AKUN
+                                } else {
+                                  Navigator.pushNamed(ctx, AppRoutes.manajemenAkun);
+                                }
+                              },
                             ),
                             const SizedBox(width: 8),
                             _serviceCard(
                               'LAYANAN\nPREMIUM',
                               Icons.card_membership_rounded,
                               BooyahTheme.gold,
-                              () => Navigator.pushNamed(
-                                ctx,
-                                AppRoutes.kelolaPremium,
-                              ),
+                              () {
+                                if (widget.onTabChanged != null) {
+                                  widget.onTabChanged!(2); // PREMIUM
+                                } else {
+                                  Navigator.pushNamed(ctx, AppRoutes.kelolaPremium);
+                                }
+                              },
                             ),
                           ],
                         ),
@@ -240,20 +260,26 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                               'VERIFIKASI\nKLAIM',
                               Icons.verified_rounded,
                               BooyahTheme.maroonGlow,
-                              () => Navigator.pushNamed(
-                                ctx,
-                                AppRoutes.verifKlaim,
-                              ),
+                              () {
+                                if (widget.onTabChanged != null) {
+                                  widget.onTabChanged!(3); // KLAIM
+                                } else {
+                                  Navigator.pushNamed(ctx, AppRoutes.verifKlaim);
+                                }
+                              },
                             ),
                             const SizedBox(width: 8),
                             _serviceCard(
                               'KEUANGAN\nPLATFORM',
                               Icons.bar_chart_rounded,
                               BooyahTheme.green,
-                              () => Navigator.pushNamed(
-                                ctx,
-                                AppRoutes.dashKeuangan,
-                              ),
+                              () {
+                                if (widget.onTabChanged != null) {
+                                  widget.onTabChanged!(4); // KEUANGAN
+                                } else {
+                                  Navigator.pushNamed(ctx, AppRoutes.dashKeuangan);
+                                }
+                              },
                             ),
                           ],
                         ),

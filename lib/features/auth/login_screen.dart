@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../core/routes.dart';
 import '../../services/supabase_service.dart';
+import '../../services/push_notification_service.dart';
 import '../../shared/models/models.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -35,6 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
         _navigated = true;
         // Sync profile ke public.users
         await AuthService.syncOrCreateUserProfile();
+        // Initialize push notifications
+        await PushNotificationService.initialize();
 
         final rawRole = AuthService.currentRole;
         final UserRole role = UserRole.values.firstWhere(
@@ -42,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
           orElse: () => UserRole.peserta,
         );
         if (mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.homeForRole(role), (route) => false);
         }
       }
     });
@@ -109,6 +112,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Sync profile ke public.users (menangani pemulihan jika profil admin hilang akibat bug UUID)
         await AuthService.syncOrCreateUserProfile();
+        // Initialize push notifications
+        await PushNotificationService.initialize();
 
         if (!mounted) return;
 
@@ -125,9 +130,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
 
-        Navigator.pushReplacementNamed(
+        Navigator.pushNamedAndRemoveUntil(
           context,
           AppRoutes.homeForRole(role),
+          (route) => false,
         );
       }
     } catch (e) {

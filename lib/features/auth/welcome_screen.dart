@@ -33,7 +33,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           orElse: () => UserRole.peserta,
         );
         if (mounted) {
-          Navigator.pushReplacementNamed(context, AppRoutes.homeForRole(role));
+          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.homeForRole(role), (route) => false);
         }
       }
     });

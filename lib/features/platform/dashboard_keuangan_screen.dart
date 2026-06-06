@@ -62,6 +62,7 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(
       title: const Text('KEUANGAN PLATFORM'),
+      automaticallyImplyLeading: false,
       actions: [
         Chip(
           label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),

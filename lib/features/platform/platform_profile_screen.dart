@@ -5,7 +5,8 @@ import '../../core/routes.dart';
 import '../../core/auth_service.dart';
 
 class PlatformProfileScreen extends StatefulWidget {
-  const PlatformProfileScreen({super.key});
+  final void Function(int)? onTabChanged;
+  const PlatformProfileScreen({super.key, this.onTabChanged});
 
   @override
   State<PlatformProfileScreen> createState() => _PlatformProfileScreenState();
@@ -104,7 +105,10 @@ class _PlatformProfileScreenState extends State<PlatformProfileScreen> {
 
     return Scaffold(
       backgroundColor: BooyahTheme.bg,
-      appBar: AppBar(title: const Text('PROFILE PLATFORM')),
+      appBar: AppBar(
+        title: const Text('PROFILE PLATFORM'),
+        automaticallyImplyLeading: false,
+      ),
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: BooyahTheme.maroonGlow),
@@ -348,6 +352,16 @@ class _PlatformProfileScreenState extends State<PlatformProfileScreen> {
     );
   }
 
+  int? _routeToTabIndex(String route) {
+    switch (route) {
+      case AppRoutes.manajemenAkun: return 1;
+      case AppRoutes.kelolaPremium: return 2;
+      case AppRoutes.verifKlaim:    return 3;
+      case AppRoutes.dashKeuangan:  return 4;
+      default:                      return null;
+    }
+  }
+
   Widget _menuGroup(String title, List<(IconData, String, String?)> items) =>
       Container(
         decoration: BoxDecoration(
@@ -374,11 +388,16 @@ class _PlatformProfileScreenState extends State<PlatformProfileScreen> {
               (m) => InkWell(
                 onTap: m.$3 != null
                     ? () {
-                        Navigator.pushNamed(context, m.$3!).then((_) {
-                          if (m.$3 == AppRoutes.editProfilPlat) {
-                            _fetchProfileData();
-                          }
-                        });
+                        final tabIndex = _routeToTabIndex(m.$3!);
+                        if (tabIndex != null && widget.onTabChanged != null) {
+                          widget.onTabChanged!(tabIndex);
+                        } else {
+                          Navigator.pushNamed(context, m.$3!).then((_) {
+                            if (m.$3 == AppRoutes.editProfilPlat) {
+                              _fetchProfileData();
+                            }
+                          });
+                        }
                       }
                     : null,
                 child: Padding(

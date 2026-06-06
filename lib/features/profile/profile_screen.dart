@@ -8,6 +8,7 @@ import '../../core/routes.dart';
 import '../../core/auth_service.dart';
 import '../../shared/models/models.dart';
 import '../../services/supabase_service.dart' show UserService;
+import '../../services/push_notification_service.dart';
 import 'edit_profile_screen.dart'; // Pastikan import screen baru kamu di sini
 
 class ProfileScreen extends StatefulWidget {
@@ -272,6 +273,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         ElevatedButton(
           onPressed: () async {
+            // Deactivate FCM token in backend before logout
+            await PushNotificationService.deactivateToken();
             AuthService().logout();
             await Supabase.instance.client.auth.signOut();
             if (ctx.mounted) {
