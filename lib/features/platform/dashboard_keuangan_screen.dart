@@ -1,3 +1,7 @@
+// ──────────────────────────────────────────────────────────
+// FILE: lib/features/platform/dashboard_keuangan_screen.dart
+// UC-20: Dashboard Keuangan & Transaksi
+// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../shared/widgets/booyah_widgets.dart';
@@ -58,6 +62,17 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(
       title: const Text('KEUANGAN PLATFORM'),
+      actions: [
+        Chip(
+          label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
+          backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
+          labelStyle: const TextStyle(
+            color: BooyahTheme.maroonGlow,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(width: 8),
+      ],
     ),
     body: _loading
         ? const Center(
