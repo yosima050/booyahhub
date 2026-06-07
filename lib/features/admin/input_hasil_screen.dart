@@ -66,13 +66,23 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
             )
             .toList();
 
-        // Inisialisasi players map untuk setiap tim (default 4 player)
-        for (final t in _teams) {
-          if (!_playersMap.containsKey(t.id)) {
-            _playersMap[t.id] = List.generate(
-              4,
-              (_) => PlayerScoreModel(name: '', kills: 0),
-            );
+        // Inisialisasi players map untuk setiap tim dari team_members terdaftar
+        for (final d in data) {
+          if (d['status'] == 'verified' || d['status'] == 'ongoing') {
+            final String teamId = d['id'].toString();
+            final String captainFfId = d['captain_ff_id'] as String? ?? 'Kapten';
+            final List<dynamic> members = d['team_members'] as List? ?? [];
+            
+            final List<PlayerScoreModel> roster = [];
+            // Kapten selalu di indeks 0
+            roster.add(PlayerScoreModel(name: captainFfId, kills: 0));
+            // Anggota tim lainnya
+            roster.addAll(members.map((m) {
+              final String ffId = m['ff_id'] as String? ?? 'Player';
+              return PlayerScoreModel(name: ffId, kills: 0);
+            }));
+            
+            _playersMap[teamId] = roster;
           }
         }
       });
@@ -339,11 +349,13 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                           size: 16,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          _error!,
-                          style: const TextStyle(
-                            color: BooyahTheme.red,
-                            fontSize: 11,
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: BooyahTheme.red,
+                              fontSize: 11,
+                            ),
                           ),
                         ),
                       ],
@@ -488,6 +500,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
               SizedBox(
                 width: 72,
                 child: DropdownButtonFormField<int>(
+                  isExpanded: true,
                   initialValue: t.placement,
                   dropdownColor: BooyahTheme.surface,
                   style: const TextStyle(
@@ -633,27 +646,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const Spacer(),
-                    // Tombol tambah player
-                    GestureDetector(
-                      onTap: () => setState(() {
-                        players.add(PlayerScoreModel(name: '', kills: 0));
-                      }),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.add, size: 12, color: BooyahTheme.green),
-                          SizedBox(width: 2),
-                          Text(
-                            'TAMBAH',
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: BooyahTheme.green,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    // (Daftar anggota ditentukan saat pendaftaran)
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -687,7 +680,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                      SizedBox(width: 24),
+                      // Removed width: 24 spacing since delete button is removed
                     ],
                   ),
                 ),
@@ -696,6 +689,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 ...players.asMap().entries.map((entry) {
                   final pIdx = entry.key;
                   final player = entry.value;
+                  final isCaptain = pIdx == 0;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
@@ -706,57 +700,63 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                           height: 20,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: BooyahTheme.maroon.withValues(alpha: 0.25),
+                            color: isCaptain 
+                                ? BooyahTheme.gold.withValues(alpha: 0.2)
+                                : BooyahTheme.maroon.withValues(alpha: 0.25),
                           ),
                           child: Center(
                             child: Text(
                               '${pIdx + 1}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 9,
-                                color: BooyahTheme.textMuted,
+                                color: isCaptain ? BooyahTheme.gold : BooyahTheme.textMuted,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 6),
-                        // Input nama player
+                        // Read-only nama player
                         Expanded(
-                          child: TextFormField(
-                            initialValue: player.name,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: BooyahTheme.textPri,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 7,
                             ),
-                            decoration: InputDecoration(
-                              hintText: 'Nama player...',
-                              hintStyle: const TextStyle(
-                                fontSize: 10,
-                                color: BooyahTheme.textMuted,
-                              ),
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 7,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: BooyahTheme.maroon.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5),
-                                borderSide: BorderSide(
-                                  color: BooyahTheme.maroon.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
+                            decoration: BoxDecoration(
+                              color: isCaptain 
+                                  ? BooyahTheme.maroon.withValues(alpha: 0.1) 
+                                  : BooyahTheme.surface,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: isCaptain 
+                                    ? BooyahTheme.gold.withValues(alpha: 0.4) 
+                                    : BooyahTheme.maroon.withValues(alpha: 0.15),
                               ),
                             ),
-                            onChanged: (v) => setState(() => player.name = v),
+                            child: Row(
+                              children: [
+                                if (isCaptain) ...[
+                                  const Icon(
+                                    Icons.star_rounded, 
+                                    color: BooyahTheme.gold, 
+                                    size: 13,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    player.name + (isCaptain ? ' (Kapten)' : ''),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isCaptain ? BooyahTheme.gold : BooyahTheme.textPri,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -799,16 +799,6 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                             onChanged: (v) => setState(
                               () => player.kills = int.tryParse(v) ?? 0,
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        // Hapus player
-                        GestureDetector(
-                          onTap: () => setState(() => players.removeAt(pIdx)),
-                          child: const Icon(
-                            Icons.remove_circle_outline,
-                            size: 18,
-                            color: BooyahTheme.red,
                           ),
                         ),
                       ],

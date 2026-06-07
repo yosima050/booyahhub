@@ -224,50 +224,38 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final width = constraints.maxWidth;
-                        final cardWidth = (width - 8) / 2;
-                        final ratio = (cardWidth / 88).clamp(1.2, 2.2);
-                        return GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 8,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: ratio,
-                          children: [
-                            _kpiCard(
-                              Icons.people,
-                              'TIM TERDAFTAR',
-                              '${_stats['total_teams'] ?? 0}',
-                              '+${_stats['new_teams_today'] ?? 0}',
-                              BooyahTheme.maroonB,
-                            ),
-                            _kpiCard(
-                              Icons.attach_money,
-                              'PEMASUKAN',
-                              _fmtRupiah(_stats['total_income'] as int? ?? 0),
-                              '↑ ${_stats['income_growth'] ?? '0%'}',
-                              BooyahTheme.gold,
-                            ),
-                            _kpiCard(
-                              Icons.pending_actions,
-                              'PENDING VERIF',
-                              '${_stats['pending_verifications'] ?? 0}',
-                              'SEGERA',
-                              BooyahTheme.yellow,
-                            ),
-                            _kpiCard(
-                              Icons.emoji_events,
-                              'SCRIM AKTIF',
-                              '${_stats['active_scrims'] ?? 0}',
-                              'LIVE',
-                              BooyahTheme.green,
-                            ),
-                          ],
-                        );
-                      },
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _kpiCard(
+                            Icons.people,
+                            'TIM TERDAFTAR',
+                            '${_stats['total_teams'] ?? 0}',
+                            'TOTAL',
+                            BooyahTheme.maroonB,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _kpiCard(
+                            Icons.attach_money,
+                            'PEMASUKAN',
+                            _fmtRupiah(_stats['gross_income'] as int? ?? 0),
+                            'GROSS',
+                            BooyahTheme.gold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _kpiCard(
+                            Icons.emoji_events,
+                            'SCRIM AKTIF',
+                            '${_stats['active_scrims'] ?? 0}',
+                            'LIVE',
+                            BooyahTheme.green,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -356,7 +344,7 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                           builder: (context) {
                             final filteredScrims = _myScrim.where((s) {
                               final status = s['status'] as String? ?? 'open';
-                              if (_activeFilter == 'SEMUA') return true;
+                              if (_activeFilter == 'SEMUA') return status != 'finished';
                               if (_activeFilter == 'DRAFT') {
                                 return status == 'draft';
                               }

@@ -50,6 +50,39 @@ class PaymentService {
     }
   }
 
+  // ── Buat Transaksi Premium Midtrans via Edge Function ────────────────────
+  static Future<Map<String, dynamic>> createPremiumTransaction({
+    required int premiumRequestId,
+    required int amount,
+    String? paymentMethod,
+  }) async {
+    try {
+      final response = await _db.functions.invoke(
+        'create-transaction',
+        body: {
+          'premium_request_id': premiumRequestId,
+          'amount': amount,
+          if (paymentMethod != null) 'payment_method': paymentMethod,
+        },
+      );
+
+      if (response.data == null) {
+        throw Exception('Tidak ada respons dari server pembayaran');
+      }
+
+      final data = Map<String, dynamic>.from(response.data as Map);
+
+      if (data.containsKey('error')) {
+        throw Exception(data['error']);
+      }
+
+      return data; // { snap_token, redirect_url, order_id }
+    } catch (e) {
+      debugPrint('PaymentService.createPremiumTransaction error: $e');
+      rethrow;
+    }
+  }
+
   // ── Cek Status Pembayaran (polling manual) ───────────────────────────────
   /// Mengambil status terkini dari tabel registrations berdasarkan ID.
   static Future<String?> getPaymentStatus(int registrationId) async {

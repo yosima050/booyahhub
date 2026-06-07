@@ -308,11 +308,19 @@ class ScrimService {
     required String password,
     String? extraMessage,
   }) async {
+    // Resolve UUID to bigint ID
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', AuthService.currentUser!.id)
+        .single();
+    final int adminBigId = userProfile['id'];
+
     await _db.rpc('sp_send_room_id', params: {
       'p_scrim_id': scrimId,
       'p_room_id': roomId,
       'p_room_pass': password,
-      'p_admin_id': AuthService.currentUser!.id,
+      'p_admin_id': adminBigId,
       'p_extra_msg': ?extraMessage,
     });
   }
@@ -480,7 +488,7 @@ class RegistrationService {
         .from('v_user_riwayat')
         .select()
         .eq('user_id', userProfile['id'])
-        .order('created_at', ascending: false);
+        .order('registration_id', ascending: false);
     return List<Map<String, dynamic>>.from(res);
   }
 
@@ -536,6 +544,14 @@ class ResultService {
       }
     }
 
+    // Resolve UUID to bigint ID
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', AuthService.currentUser!.id)
+        .single();
+    final int inputtedByBigInt = userProfile['id'];
+
     // Upsert semua hasil (trigger DB akan hitung poin otomatis)
     await _db.from('match_results').upsert(
       results
@@ -545,7 +561,7 @@ class ResultService {
                 'team_name': r['team_name'],
                 'placement': r['placement'],
                 'kills': r['kills'],
-                'inputted_by': AuthService.currentUser!.id,
+                'inputted_by': inputtedByBigInt,
               })
           .toList(),
       onConflict: 'scrim_id, registration_id',
@@ -597,14 +613,27 @@ class ClaimService {
     final user = AuthService.currentUser;
     if (user == null) return [];
 
-    final res = await _db
-        .from('prize_claims')
-        .select('''
-          *, scrims(title), match_results(rank, total_point)
-        ''')
-        .eq('user_id', user.id)
-        .order('created_at', ascending: false);
-    return List<Map<String, dynamic>>.from(res);
+    try {
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', user.id)
+          .maybeSingle();
+      if (userProfile == null) return [];
+      final int profileId = userProfile['id'];
+
+      final res = await _db
+          .from('prize_claims')
+          .select('''
+            *, scrims(title), match_results(rank, total_point)
+          ''')
+          .eq('user_id', profileId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(res);
+    } catch (e) {
+      debugPrint('Error getMyClaims: $e');
+      return [];
+    }
   }
 
   // UC-04: Ajukan klaim
@@ -636,9 +665,17 @@ class ClaimService {
     required bool approve,
     String? reason,
   }) async {
+    // Resolve UUID to bigint ID
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', AuthService.currentUser!.id)
+        .single();
+    final int platformBigId = userProfile['id'];
+
     await _db.rpc('sp_verify_claim', params: {
       'p_claim_id': claimId,
-      'p_platform_id': AuthService.currentUser!.id,
+      'p_platform_id': platformBigId,
       'p_approve': approve,
       'p_reason': ?reason,
     });
@@ -692,18 +729,46 @@ class NotificationService {
 
   // UC-13: Tandai dibaca
   static Future<void> markRead(int id) async {
-    await _db.from('notifications').update({
-      'is_read': true,
-      'read_at': DateTime.now().toIso8601String(),
-    }).eq('id', id).eq('user_id', AuthService.currentUser!.id);
+    final user = AuthService.currentUser;
+    if (user == null) return;
+    try {
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', user.id)
+          .maybeSingle();
+      if (userProfile == null) return;
+      final int profileId = userProfile['id'];
+
+      await _db.from('notifications').update({
+        'is_read': true,
+        'read_at': DateTime.now().toIso8601String(),
+      }).eq('id', id).eq('user_id', profileId);
+    } catch (e) {
+      debugPrint('Error marking notification read: $e');
+    }
   }
 
   // Tandai semua dibaca
   static Future<void> markAllRead() async {
-    await _db.from('notifications').update({
-      'is_read': true,
-      'read_at': DateTime.now().toIso8601String(),
-    }).eq('user_id', AuthService.currentUser!.id).eq('is_read', false);
+    final user = AuthService.currentUser;
+    if (user == null) return;
+    try {
+      final userProfile = await _db
+          .from('users')
+          .select('id')
+          .eq('uuid', user.id)
+          .maybeSingle();
+      if (userProfile == null) return;
+      final int profileId = userProfile['id'];
+
+      await _db.from('notifications').update({
+        'is_read': true,
+        'read_at': DateTime.now().toIso8601String(),
+      }).eq('user_id', profileId).eq('is_read', false);
+    } catch (e) {
+      debugPrint('Error marking all notifications read: $e');
+    }
   }
 
   // UC-17: Kirim pengumuman (Admin)
@@ -715,7 +780,7 @@ class NotificationService {
   }) async {
     final result = await _db.rpc('fn_send_announcement', params: {
       'p_admin_id': AuthService.currentUser!.id,
-      'p_scrim_id': ?scrimId,
+      'p_scrim_id': scrimId,
       'p_title': title,
       'p_message': message,
       'p_target': target,
@@ -734,11 +799,6 @@ class NotificationService {
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'notifications',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'user_id',
-            value: userId,
-          ),
           callback: (payload) => onNew(payload.newRecord),
         )
         .subscribe();
@@ -845,6 +905,14 @@ class PlatformService {
 
   // UC-19: Approve / reject premium
   static Future<void> processPremium(int requestId, bool approve) async {
+    // Resolve UUID to bigint ID
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', AuthService.currentUser!.id)
+        .single();
+    final int platformBigId = userProfile['id'];
+
     if (approve) {
       final req = await _db
           .from('premium_requests')
@@ -861,11 +929,47 @@ class PlatformService {
 
       final expired = DateTime.now().add(Duration(days: months * 30));
 
-      await _db.from('admin_profiles').update({
-        'is_premium': true,
-        'premium_started_at': DateTime.now().toIso8601String(),
-        'premium_expired_at': expired.toIso8601String(),
-      }).eq('user_id', req['admin_user_id']);
+      // 1. Promote user role to admin in public.users
+      await _db.from('users').update({
+        'role': 'admin',
+        'updated_at': DateTime.now().toIso8601String(),
+      }).eq('id', req['admin_user_id']);
+
+      // 2. Check if admin profile exists, insert if not, update if yes
+      final existingProfile = await _db
+          .from('admin_profiles')
+          .select('id')
+          .eq('user_id', req['admin_user_id'])
+          .maybeSingle();
+
+      if (existingProfile == null) {
+        final userDetail = await _db
+            .from('users')
+            .select('name')
+            .eq('id', req['admin_user_id'])
+            .single();
+
+        await _db.from('admin_profiles').insert({
+          'user_id': req['admin_user_id'],
+          'display_name': userDetail['name'] ?? 'Admin',
+          'is_premium': true,
+          'premium_started_at': DateTime.now().toIso8601String(),
+          'premium_expired_at': expired.toIso8601String(),
+          'total_scrims_created': 0,
+          'total_participants': 0,
+          'rating': 5.0,
+          'is_trusted': false,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+      } else {
+        await _db.from('admin_profiles').update({
+          'is_premium': true,
+          'premium_started_at': DateTime.now().toIso8601String(),
+          'premium_expired_at': expired.toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('user_id', req['admin_user_id']);
+      }
 
       // Notifikasi ke admin
       await _db.from('notifications').insert({
@@ -873,13 +977,13 @@ class PlatformService {
         'type': 'announcement',
         'title': '⭐ Premium Aktif!',
         'message': 'Akun admin Anda berhasil di-upgrade ke Premium.',
-        'sent_by': AuthService.currentUser!.id,
+        'sent_by': platformBigId,
       });
     }
 
     await _db.from('premium_requests').update({
       'status': approve ? 'approved' : 'rejected',
-      'approved_by': AuthService.currentUser!.id,
+      'approved_by': platformBigId,
       'approved_at': DateTime.now().toIso8601String(),
     }).eq('id', requestId);
   }
@@ -935,7 +1039,6 @@ class AdminService {
           'total_teams': 0,
           'active_scrims': 0,
           'gross_income': 0,
-          'pending_verifications': 0,
         },
         'recent_scrims': <Map<String, dynamic>>[],
       };
@@ -957,20 +1060,15 @@ class AdminService {
             .eq('admin_id', adminBigId)
             .isFilter('deleted_at', null),
         _db
-            .from('registrations')
-            .select('id, status')
-            .eq('status', 'waiting_verify'),
-        _db
             .from('scrims')
             .select('id, uuid, title, scheduled_at, slot_filled, slot_total, status')
             .eq('admin_id', adminBigId)
             .isFilter('deleted_at', null)
-            .order('scheduled_at', ascending: true),
+            .order('created_at', ascending: false),
       ]);
 
       final myScrims = results[0] as List;
-      final pending = results[1] as List;
-      final recentScrims = results[2] as List;
+      final recentScrims = results[1] as List;
 
       final grossIncome = myScrims.fold<int>(0, (sum, s) {
         final fee = (s['fee'] as num? ?? 0).toInt();
@@ -982,9 +1080,8 @@ class AdminService {
         'stats': {
           'total_scrims': myScrims.length,
           'total_teams': myScrims.fold(0, (s, x) => s + ((x['slot_filled'] as num? ?? 0).toInt())),
-          'active_scrims': myScrims.where((s) => s['status'] == 'open').length,
+          'active_scrims': myScrims.where((s) => s['status'] == 'open' || s['status'] == 'closed' || s['status'] == 'ongoing').length,
           'gross_income': grossIncome,
-          'pending_verifications': pending.length,
         },
         'recent_scrims': List<Map<String, dynamic>>.from(recentScrims),
       };
@@ -1073,7 +1170,7 @@ class UserService {
   static Future<Map<String, dynamic>> getUserProfile(String userId) async {
     final res = await _db
         .from('users')
-        .select('id, name, email, phone, ff_id, team_name, username, role, avatar_url')
+        .select('id, name, email, phone, ff_id, team_name, username, role, avatar_url, admin_profiles(*)')
         .eq('uuid', userId) // 🟢 DIPERBAIKI: Menyaring berdasarkan string UUID, bukan BIGINT id
         .single();
     return Map<String, dynamic>.from(res);
@@ -1159,7 +1256,7 @@ class UserService {
         if (currentToken['is_active'] != true) {
           await _db.from('device_tokens').update({
             'is_active': true,
-            'updated_at': DateTime.now().toIso8601String(),
+            'last_used_at': DateTime.now().toIso8601String(),
           }).eq('id', currentToken['id']);
         }
         return true;
@@ -1172,7 +1269,7 @@ class UserService {
         'platform': platform,
         'is_active': true,
         'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'last_used_at': DateTime.now().toIso8601String(),
       });
 
       return true;
@@ -1187,7 +1284,7 @@ class UserService {
     try {
       await _db.from('device_tokens').update({
         'is_active': false,
-        'updated_at': DateTime.now().toIso8601String(),
+        'last_used_at': DateTime.now().toIso8601String(),
           }).eq('token', token);
 
       return true;

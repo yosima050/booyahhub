@@ -137,11 +137,11 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               // Summary cards
               Row(children: [
-                Expanded(child: _statCard('💰', 'TERSEDIA', _fmtRupiah(_stats['available']), BooyahTheme.gold)),
+                Expanded(child: _statCard(Icons.account_balance_wallet_outlined, 'TERSEDIA', _fmtRupiah(_stats['available']), BooyahTheme.gold)),
                 const SizedBox(width: 8),
-                Expanded(child: _statCard('⏳', 'PROSES', _fmtRupiah(_stats['processing']), BooyahTheme.yellow)),
+                Expanded(child: _statCard(Icons.hourglass_empty_rounded, 'PROSES', _fmtRupiah(_stats['processing']), BooyahTheme.yellow)),
                 const SizedBox(width: 8),
-                Expanded(child: _statCard('✅', 'TERKIRIM', _fmtRupiah(_stats['verified']), BooyahTheme.green)),
+                Expanded(child: _statCard(Icons.check_circle_outline_rounded, 'TERKIRIM', _fmtRupiah(_stats['verified']), BooyahTheme.green)),
               ]),
               const SizedBox(height: 20),
 
@@ -161,7 +161,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
                       border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.3)),
                     ),
                     child: Row(children: [
-                      const Text('💰', style: TextStyle(fontSize: 20)),
+                      const Icon(Icons.monetization_on_outlined, color: BooyahTheme.gold, size: 20),
                       const SizedBox(width: 10),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         const Text('Nominal Hadiah', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
@@ -265,7 +265,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
           ),
   );
 
-  Widget _statCard(String ico, String label, String val, Color color) => Container(
+  Widget _statCard(IconData icon, String label, String val, Color color) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
       color: BooyahTheme.card,
@@ -273,7 +273,7 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
       border: Border.all(color: color.withValues(alpha: 0.3)),
     ),
     child: Column(children: [
-      Text(ico, style: const TextStyle(fontSize: 24)),
+      Icon(icon, size: 24, color: color),
       const SizedBox(height: 4),
       Text(val, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
       Text(label, style: const TextStyle(fontSize: 8, color: BooyahTheme.textMuted)),

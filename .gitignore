@@ -45,17 +45,32 @@ app.*.map.json
 /android/app/release
 
 # ── Secrets & Config (jangan di-commit!) ────────────────────────────────────
-# Supabase project credentials (URL + anon key)
+
+# Flutter: Supabase credentials (URL + anon key)
 lib/config/supabase_config.dart
 
-# Supabase CLI local secrets & config
+# Firebase: Google Services config (berisi API key & project ID)
+**/google-services.json
+**/GoogleService-Info.plist
+
+# Android: local machine SDK paths (berbeda tiap developer)
+android/local.properties
+android/.gradle/
+android/.kotlin/
+
+# Supabase CLI: local temp cache & linked project info
 supabase/.temp/
-supabase/config.toml
 .supabase/
+
+# Supabase: project config (berisi project ref)
+supabase/config.toml
 
 # Environment variables
 .env
 .env.*
 !.env.example
+
+# Supabase Edge Functions (logic bisnis, jangan expose ke publik)
 supabase/functions/create-transaction/index.ts
 supabase/functions/payment-notification/index.ts
+supabase/functions/send-push/index.ts

@@ -356,7 +356,7 @@ class UserService {
         'platform': platform,
         'is_active': true,
         'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'last_used_at': DateTime.now().toIso8601String(),
       });
 
       return true;
@@ -371,13 +371,28 @@ class UserService {
     try {
       await _db.from('device_tokens').update({
         'is_active': false,
-        'updated_at': DateTime.now().toIso8601String(),
+        'last_used_at': DateTime.now().toIso8601String(),
       }).eq('token', token);
 
       return true;
     } catch (e) {
       debugPrint('Error deactivating device token: $e');
       return false;
+    }
+  }
+
+  /// Get transactions for a user
+  static Future<List<Map<String, dynamic>>> getUserTransactions(int userId) async {
+    try {
+      final response = await _db
+          .from('transactions')
+          .select()
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      debugPrint('Error getting user transactions: $e');
+      return [];
     }
   }
 

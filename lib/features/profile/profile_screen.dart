@@ -10,6 +10,9 @@ import '../../shared/models/models.dart';
 import '../../services/supabase_service.dart' show UserService;
 import '../../services/push_notification_service.dart';
 import 'edit_profile_screen.dart'; // Pastikan import screen baru kamu di sini
+import '../admin/admin_subscription_screen.dart';
+import 'rekening_ewallet_screen.dart';
+import 'riwayat_pembayaran_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -443,12 +446,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _MenuItem(
                               Icons.account_balance_wallet,
                               'Rekening & E-Wallet',
-                              null,
+                              () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const RekeningEwalletScreen(),
+                                ),
+                              ),
                             ),
                             _MenuItem(
                               Icons.receipt_long,
                               'Riwayat Pembayaran',
-                              null,
+                              () => Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const RiwayatPembayaranScreen(),
+                                ),
+                              ),
                             ),
                           ]),
 
@@ -475,6 +488,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 alpha: 0.35,
                               ),
                               titleColor: BooyahTheme.yellow,
+                            ),
+                          ] else ...[
+                            const SizedBox(height: 10),
+                            _menuGroup(
+                              'LAYANAN ADMIN',
+                              [
+                                _MenuItem(
+                                  Icons.workspace_premium,
+                                  'BELI SUBSCRIPTION ADMIN',
+                                  () {
+                                    Navigator.push(
+                                      ctx,
+                                      MaterialPageRoute(
+                                        builder: (_) => const AdminSubscriptionScreen(),
+                                      ),
+                                    ).then((_) => _loadUserData());
+                                  },
+                                  iconColor: BooyahTheme.gold,
+                                ),
+                              ],
+                              borderColor: BooyahTheme.gold.withValues(
+                                alpha: 0.35,
+                              ),
+                              titleColor: BooyahTheme.gold,
                             ),
                           ],
 

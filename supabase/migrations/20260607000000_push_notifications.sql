@@ -48,11 +48,11 @@ BEGIN
   -- Perform an asynchronous POST request to our Edge Function
   PERFORM net.http_post(
     url := v_url,
+    body := v_payload,
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-webhook-secret', 'BOOYAH_SECRET_12345'
-    ),
-    body := v_payload::text
+    )
   );
 
   RETURN NEW;

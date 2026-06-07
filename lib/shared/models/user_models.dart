@@ -108,6 +108,8 @@ class AdminProfileModel {
   final bool isPremium;
   final double rating; // 0.00 to 5.00
   final bool isTrusted;
+  final DateTime? premiumStartedAt;
+  final DateTime? premiumExpiredAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -119,6 +121,8 @@ class AdminProfileModel {
     this.isPremium = false,
     this.rating = 0.0,
     this.isTrusted = false,
+    this.premiumStartedAt,
+    this.premiumExpiredAt,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -133,6 +137,8 @@ class AdminProfileModel {
       isPremium: json['is_premium'] ?? false,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       isTrusted: json['is_trusted'] ?? false,
+      premiumStartedAt: json['premium_started_at'] != null ? DateTime.parse(json['premium_started_at']) : null,
+      premiumExpiredAt: json['premium_expired_at'] != null ? DateTime.parse(json['premium_expired_at']) : null,
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
     );
@@ -146,6 +152,8 @@ class AdminProfileModel {
       'is_premium': isPremium,
       'rating': rating,
       'is_trusted': isTrusted,
+      'premium_started_at': premiumStartedAt?.toIso8601String(),
+      'premium_expired_at': premiumExpiredAt?.toIso8601String(),
     };
 
     if (!forUpdate) {
@@ -163,6 +171,8 @@ class AdminProfileModel {
     bool? isPremium,
     double? rating,
     bool? isTrusted,
+    DateTime? premiumStartedAt,
+    DateTime? premiumExpiredAt,
   }) {
     return AdminProfileModel(
       id: id,
@@ -172,6 +182,8 @@ class AdminProfileModel {
       isPremium: isPremium ?? this.isPremium,
       rating: rating ?? this.rating,
       isTrusted: isTrusted ?? this.isTrusted,
+      premiumStartedAt: premiumStartedAt ?? this.premiumStartedAt,
+      premiumExpiredAt: premiumExpiredAt ?? this.premiumExpiredAt,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );

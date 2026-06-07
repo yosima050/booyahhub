@@ -35,6 +35,11 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateRole(UserRole newRole) {
+    _role = newRole;
+    notifyListeners();
+  }
+
   void logout() {
     _role   = null;
     _name   = '';

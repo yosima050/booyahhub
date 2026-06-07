@@ -9,6 +9,8 @@ import '../../services/supabase_service.dart' show UserService;
 import 'edit_profile_screen.dart';
 import 'bantuan_faq_screen.dart';
 import '../admin/admin_subscription_screen.dart';
+import 'rekening_ewallet_screen.dart';
+import 'riwayat_pembayaran_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -176,6 +178,27 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   @override
   Widget build(BuildContext ctx) {
     final auth = AuthService();
+
+    dynamic adminProfData = _userData?['admin_profiles'];
+    Map<String, dynamic>? adminProfile;
+    if (adminProfData is List && adminProfData.isNotEmpty) {
+      adminProfile = adminProfData.first as Map<String, dynamic>?;
+    } else if (adminProfData is Map) {
+      adminProfile = Map<String, dynamic>.from(adminProfData);
+    }
+    final bool isPremium = adminProfile?['is_premium'] as bool? ?? false;
+    final String? expiredAtStr = adminProfile?['premium_expired_at'] as String?;
+
+    bool isPremiumActive = false;
+    int remainingDays = 0;
+    if (isPremium && expiredAtStr != null) {
+      final expiredAt = DateTime.parse(expiredAtStr);
+      remainingDays = expiredAt.difference(DateTime.now()).inDays;
+      if (remainingDays > 0) {
+        isPremiumActive = true;
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('PROFIL ADMIN'),
@@ -205,20 +228,29 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
-                        color: BooyahTheme.yellow.withValues(alpha: 0.15),
+                        color: isPremiumActive 
+                            ? BooyahTheme.yellow.withValues(alpha: 0.15)
+                            : BooyahTheme.textMuted.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
+                        border: Border.all(
+                          color: isPremiumActive ? BooyahTheme.yellow.withValues(alpha: 0.4) : BooyahTheme.textMuted.withValues(alpha: 0.4)
+                        ),
                       ),
-                      child: const Text('★ ADMIN PREMIUM', style: TextStyle(
-                        fontSize: 10, color: BooyahTheme.yellow, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                      child: Text(
+                        isPremiumActive ? '★ ADMIN PREMIUM' : '★ BASIC ADMIN', 
+                        style: TextStyle(
+                          fontSize: 10, 
+                          color: isPremiumActive ? BooyahTheme.yellow : BooyahTheme.textMuted, 
+                          fontWeight: FontWeight.w700, 
+                          letterSpacing: 1
+                        )
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      _stat('42', 'SCRIM\nDIBUAT'),
+                      _stat('${adminProfile?['total_scrims_created'] ?? 0}', 'SCRIM\nDIBUAT'),
                       Container(width: 1, height: 32, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-                      _stat('834', 'TIM\nDIDAFTAR'),
-                      Container(width: 1, height: 32, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-                      _stat('97%', 'RATING\nVERIF'),
+                      _stat('${adminProfile?['total_participants'] ?? 0}', 'TIM\nDIDAFTAR'),
                     ]),
                   ]),
                 ),
@@ -227,79 +259,81 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(
-  padding: const EdgeInsets.all(14),
-  decoration: BoxDecoration(
-    color: BooyahTheme.yellow.withValues(alpha: 0.06),
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(
-      color: BooyahTheme.yellow.withValues(alpha: 0.3),
-    ),
-  ),
-  child: Row(
-    children: [
-      const Text(
-        '⭐',
-        style: TextStyle(fontSize: 28),
-      ),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: isPremiumActive 
+                            ? BooyahTheme.yellow.withValues(alpha: 0.06)
+                            : BooyahTheme.textMuted.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isPremiumActive ? BooyahTheme.yellow.withValues(alpha: 0.3) : BooyahTheme.textMuted.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            isPremiumActive ? '⭐' : '⚪',
+                            style: const TextStyle(fontSize: 28),
+                          ),
 
-      const SizedBox(width: 12),
+                          const SizedBox(width: 12),
 
-      const Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Premium Aktif',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Text(
-              '28 hari tersisa',
-              style: TextStyle(
-                fontSize: 10,
-                color: BooyahTheme.yellow,
-              ),
-            ),
-          ],
-        ),
-      ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isPremiumActive ? 'Premium Aktif' : 'Premium Tidak Aktif',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                Text(
+                                  isPremiumActive ? '$remainingDays hari tersisa' : 'Silakan lakukan pembayaran',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isPremiumActive ? BooyahTheme.yellow : BooyahTheme.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-      GestureDetector(
-        onTap: () {
-          Navigator.push(
-            ctx,
-            MaterialPageRoute(
-              builder: (_) => const AdminSubscriptionScreen(),
-            ),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: BooyahTheme.yellow.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: BooyahTheme.yellow.withValues(alpha: 0.4),
-            ),
-          ),
-          child: const Text(
-            'PERBARUI',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                ctx,
+                                MaterialPageRoute(
+                                  builder: (_) => const AdminSubscriptionScreen(),
+                                ),
+                              ).then((_) => _loadUserData());
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: BooyahTheme.yellow.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: BooyahTheme.yellow.withValues(alpha: 0.4),
+                                ),
+                              ),
+                              child: const Text(
+                                'PERBARUI',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 14),
 
                     _menuGroup('AKUN', [
@@ -313,6 +347,30 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                               builder: (_) => const EditProfileScreen(),
                             ),
                           ).then((_) => _loadUserData());
+                        }
+                      ),
+                      (
+                        Icons.account_balance_wallet,
+                        'Rekening & E-Wallet',
+                        () {
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => const RekeningEwalletScreen(),
+                            ),
+                          );
+                        }
+                      ),
+                      (
+                        Icons.receipt_long,
+                        'Riwayat Pembayaran',
+                        () {
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => const RiwayatPembayaranScreen(),
+                            ),
+                          );
                         }
                       ),
                       (
