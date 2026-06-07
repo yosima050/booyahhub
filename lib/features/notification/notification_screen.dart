@@ -43,13 +43,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final data = await NotificationService.getAll();
-      setState(() => _notifs = data);
+      if (!mounted) return;
+      setState(() {
+        _notifs = data;
+        _loading = false;
+      });
     } catch (e) {
       debugPrint('Error notifs: $e');
-    } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }

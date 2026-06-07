@@ -23,6 +23,7 @@ class _BookingScreenState extends State<BookingScreen> {
   Future<void> _initBookingInitialData() async {
     try {
       final data = await ScrimService.getAll(status: 'open', page: 1, limit: 50);
+      if (!mounted) return;
       if (data.isNotEmpty) {
         final earliestDate = _getEarliestScrimDate(data);
         if (earliestDate != null) {
@@ -33,17 +34,19 @@ class _BookingScreenState extends State<BookingScreen> {
       loadScrims();
     } catch (e) {
       debugPrint('Error init booking: $e');
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
 
 Future<void> loadScrims() async {
+    if (!mounted) return;
+    setState(() => _loading = true);
     try {
-      setState(() => _loading = true);
-      
       // 1. Ambil semua open scrim dari database
       final data = await ScrimService.getAll(status: 'open', page: 1, limit: 50);
-      
+      if (!mounted) return;
+
       // 2. Saring data di sisi aplikasi agar HANYA menampilkan scrim yang tanggalnya cocok dengan _selectedDate
       final filteredData = data.where((scrim) {
         if (scrim['scheduled_at'] == null) return false;
@@ -57,10 +60,11 @@ Future<void> loadScrims() async {
 
       setState(() {
         scrims = filteredData;
+        _loading = false;
       });
     } catch (e) {
       debugPrint('Error loading scrims: $e');
-    } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
