@@ -273,11 +273,6 @@ class _PlatformProfileScreenState extends State<PlatformProfileScreen> {
                               AppRoutes.manajemenAkun,
                             ),
                             (
-                              Icons.star,
-                              'Kelola Premium',
-                              AppRoutes.kelolaPremium,
-                            ),
-                            (
                               Icons.verified,
                               'Verifikasi Klaim',
                               AppRoutes.verifKlaim,
@@ -355,9 +350,8 @@ class _PlatformProfileScreenState extends State<PlatformProfileScreen> {
   int? _routeToTabIndex(String route) {
     switch (route) {
       case AppRoutes.manajemenAkun: return 1;
-      case AppRoutes.kelolaPremium: return 2;
-      case AppRoutes.verifKlaim:    return 3;
-      case AppRoutes.dashKeuangan:  return 4;
+      case AppRoutes.verifKlaim:    return 2;
+      case AppRoutes.dashKeuangan:  return 3;
       default:                      return null;
     }
   }

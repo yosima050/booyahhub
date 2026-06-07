@@ -47,6 +47,27 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
     }
   }
 
+  /// Kelompokkan transaksi per bulan (12 bulan terakhir) → list 0.0–1.0
+  List<double> _buildChartValues() {
+    final now = DateTime.now();
+    final monthly = List<int>.filled(12, 0);
+
+    for (final t in _transaksi) {
+      final raw = t['created_at'] as String?;
+      if (raw == null) continue;
+      final dt = DateTime.tryParse(raw)?.toLocal();
+      if (dt == null) continue;
+      final diff = (now.year - dt.year) * 12 + (now.month - dt.month);
+      if (diff < 0 || diff >= 12) continue;
+      final idx = 11 - diff; // bulan terlama = index 0, bulan ini = index 11
+      monthly[idx] += (t['amount'] as num? ?? 0).toInt();
+    }
+
+    final maxVal = monthly.reduce((a, b) => a > b ? a : b);
+    if (maxVal == 0) return List.filled(12, 0.05); // bar minimal supaya tidak kosong
+    return monthly.map((v) => v / maxVal).toList();
+  }
+
   String _fmtRupiah(int amount) {
     if (amount == 0) return 'Rp0';
     final formatter = amount.toString().split('').reversed.toList();
@@ -128,22 +149,14 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      const MiniBarChart(
-                        values: [
-                          0.25,
-                          0.4,
-                          0.3,
-                          0.55,
-                          0.45,
-                          0.7,
-                          0.5,
-                          0.65,
-                          0.6,
-                          0.85,
-                          0.7,
-                          1.0,
-                        ],
-                      ),
+                      Builder(builder: (ctx) {
+                        final chartVals = _buildChartValues();
+                        // Temukan index bulan ini (selalu index terakhir = 11)
+                        return MiniBarChart(
+                          values: chartVals,
+                          highlightIndex: chartVals.length - 1,
+                        );
+                      }),
                     ],
                   ),
                 ),

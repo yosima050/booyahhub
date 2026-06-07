@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import 'platform_home_screen.dart';
 import 'manajemen_akun_screen.dart';
-import 'kelola_premium_screen.dart';
 import 'verifikasi_klaim_screen.dart';
 import 'dashboard_keuangan_screen.dart';
 import 'platform_profile_screen.dart';
@@ -26,15 +25,14 @@ class _PlatformShellState extends State<PlatformShell> {
           setState(() => _idx = index);
         },
       ),
-      const ManajemenAkunScreen(),
-      const KelolaPremiumScreen(),
-      const VerifikasiKlaimScreen(),
-      const DashboardKeuanganScreen(),
+      const ManajemenAkunScreen(),   // index 1
+      const VerifikasiKlaimScreen(), // index 2
+      const DashboardKeuanganScreen(), // index 3
       PlatformProfileScreen(
         onTabChanged: (index) {
           setState(() => _idx = index);
         },
-      ),
+      ), // index 4
     ];
   }
 
@@ -49,18 +47,14 @@ class _PlatformShellState extends State<PlatformShell> {
       child: SafeArea(
         child: SizedBox(
           height: 58,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _navItem(0, Icons.space_dashboard_rounded, 'LAYANAN'),
-                _navItem(1, Icons.people_rounded, 'AKUN'),
-                _navItem(2, Icons.card_membership_rounded, 'PREMIUM'),
-                _navItem(3, Icons.verified_rounded, 'KLAIM'),
-                _navItem(4, Icons.bar_chart_rounded, 'KEUANGAN'),
-                _navItem(5, Icons.admin_panel_settings_rounded, 'PROFIL'),
-              ],
-            ),
+          child: Row(
+            children: [
+              _navItem(0, Icons.space_dashboard_rounded, 'LAYANAN'),
+              _navItem(1, Icons.people_rounded, 'AKUN'),
+              _navItem(2, Icons.verified_rounded, 'KLAIM'),
+              _navItem(3, Icons.bar_chart_rounded, 'KEUANGAN'),
+              _navItem(4, Icons.admin_panel_settings_rounded, 'PROFIL'),
+            ],
           ),
         ),
       ),
@@ -69,8 +63,7 @@ class _PlatformShellState extends State<PlatformShell> {
 
   Widget _navItem(int idx, IconData icon, String label) {
     final active = _idx == idx;
-    return SizedBox(
-      width: 70,
+    return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _idx = idx),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

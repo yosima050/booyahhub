@@ -1002,25 +1002,36 @@ class PlatformService {
   // UC-21: Laporan keseluruhan
   static Future<Map<String, dynamic>> getReport() async {
     final finance = await _db.from('v_platform_finance').select().single();
-    if ((finance['total_scrims'] as int? ?? 0) == 0) {
-      throw Exception('Data tidak cukup untuk dianalisis');
-    }
 
     final topAdmins = await _db
         .from('admin_profiles')
-        .select('*, users(name)')
+        .select('display_name, is_premium, total_scrims_created, total_participants')
         .order('total_scrims_created', ascending: false)
         .limit(10);
 
-    final scrimStats = await _db
+    final userRoles = await _db
+        .from('users')
+        .select('role')
+        .isFilter('deleted_at', null);
+
+    final scrims = await _db
         .from('scrims')
         .select('status')
         .isFilter('deleted_at', null);
 
+    final recentUsers = await _db
+        .from('users')
+        .select('created_at')
+        .isFilter('deleted_at', null)
+        .order('created_at', ascending: false)
+        .limit(100);
+
     return {
       'summary': finance,
       'top_admins': topAdmins,
-      'scrim_stats': scrimStats,
+      'user_roles': userRoles,
+      'scrims': scrims,
+      'recent_users': recentUsers,
     };
   }
 }

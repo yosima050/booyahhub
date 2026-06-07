@@ -17,7 +17,7 @@ class PlatformHomeScreen extends StatefulWidget {
 }
 
 class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
-  int _userCount = 0, _scrimCount = 0, _claimPending = 0, _adminPending = 0;
+  int _userCount = 0, _scrimCount = 0, _claimPending = 0;
   String _transactionTotal = 'Rp0';
   bool _loading = true;
 
@@ -55,7 +55,6 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
       final users = await PlatformService.getUsers(limit: 100);
       final scrims = await ScrimService.getAll(limit: 100);
       final claims = await ClaimService.getPendingClaims();
-      final premium = await PlatformService.getPremiumRequests();
 
       final txData = await PlatformService.getFinance();
       final summary = txData['summary'] as Map<String, dynamic>;
@@ -65,7 +64,6 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
           _userCount = (users as List).length;
           _scrimCount = (scrims as List).length;
           _claimPending = (claims as List).length;
-          _adminPending = (premium as List).length;
           _transactionTotal = _fmtRupiah(summary['total_revenue'] as int? ?? 0);
           _loading = false;
         });
@@ -112,17 +110,6 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Container(child: const Row(children: [])),
-                            const Spacer(),
-                            Container(
-                              child: const Row(
-                                children: [const SizedBox(height: 10)],
-                              ),
-                            ),
-                          ],
-                        ),
                         const SizedBox(height: 14),
                         Text(
                           'Halo, ${Supabase.instance.client.auth.currentUser?.userMetadata?['name'] ?? 'Admin'}',
@@ -177,42 +164,23 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                   ),
                 ),
 
-                // Dua alert card notifikasi:
+                // Alert card notifikasi klaim:
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
-                    child: Column(
-                      children: [
-                        _alertCard(
-                          Icons.hourglass_empty_rounded,
-                          'Klaim Hadiah Menunggu',
-                          '$_claimPending permintaan klaim belum diproses',
-                          BooyahTheme.yellow,
-                          () {
-                            if (widget.onTabChanged != null) {
-                              widget.onTabChanged!(3); // KLAIM
-                            } else {
-                              Navigator.pushNamed(ctx, AppRoutes.verifKlaim);
-                            }
-                          },
-                          ctaLabel: 'PROSES',
-                        ),
-                        const SizedBox(height: 8),
-                        _alertCard(
-                          Icons.gavel_rounded,
-                          'Admin Pending Approval',
-                          '$_adminPending admin baru mengajukan upgrade',
-                          BooyahTheme.maroonGlow,
-                          () {
-                            if (widget.onTabChanged != null) {
-                              widget.onTabChanged!(2); // PREMIUM
-                            } else {
-                              Navigator.pushNamed(ctx, AppRoutes.kelolaPremium);
-                            }
-                          },
-                          ctaLabel: 'REVIEW',
-                        ),
-                      ],
+                    child: _alertCard(
+                      Icons.hourglass_empty_rounded,
+                      'Klaim Hadiah Menunggu',
+                      '$_claimPending permintaan klaim belum diproses',
+                      BooyahTheme.yellow,
+                      () {
+                        if (widget.onTabChanged != null) {
+                          widget.onTabChanged!(2); // KLAIM (tab index baru setelah premium dihapus)
+                        } else {
+                          Navigator.pushNamed(ctx, AppRoutes.verifKlaim);
+                        }
+                      },
+                      ctaLabel: 'PROSES',
                     ),
                   ),
                 ),
@@ -240,29 +208,12 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                             ),
                             const SizedBox(width: 8),
                             _serviceCard(
-                              'LAYANAN\nPREMIUM',
-                              Icons.card_membership_rounded,
-                              BooyahTheme.gold,
-                              () {
-                                if (widget.onTabChanged != null) {
-                                  widget.onTabChanged!(2); // PREMIUM
-                                } else {
-                                  Navigator.pushNamed(ctx, AppRoutes.kelolaPremium);
-                                }
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _serviceCard(
                               'VERIFIKASI\nKLAIM',
                               Icons.verified_rounded,
                               BooyahTheme.maroonGlow,
                               () {
                                 if (widget.onTabChanged != null) {
-                                  widget.onTabChanged!(3); // KLAIM
+                                  widget.onTabChanged!(2); // KLAIM
                                 } else {
                                   Navigator.pushNamed(ctx, AppRoutes.verifKlaim);
                                 }
@@ -275,7 +226,7 @@ class _PlatformHomeScreenState extends State<PlatformHomeScreen> {
                               BooyahTheme.green,
                               () {
                                 if (widget.onTabChanged != null) {
-                                  widget.onTabChanged!(4); // KEUANGAN
+                                  widget.onTabChanged!(3); // KEUANGAN
                                 } else {
                                   Navigator.pushNamed(ctx, AppRoutes.dashKeuangan);
                                 }

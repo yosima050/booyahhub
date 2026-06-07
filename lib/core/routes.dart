@@ -25,7 +25,6 @@ import '../features/admin/kirim_pengumuman_screen.dart';
 import '../features/admin/laporan_scrim_screen.dart';
 import '../features/platform/dashboard_keuangan_screen.dart';
 import '../features/platform/manajemen_akun_screen.dart';
-import '../features/platform/kelola_premium_screen.dart';
 import '../features/platform/verifikasi_klaim_screen.dart';
 import '../features/platform/laporan_platform_screen.dart';
 import '../shared/models/models.dart';
@@ -64,7 +63,6 @@ class AppRoutes {
   static const platformHome      = '/platform/home';
   static const dashKeuangan      = '/dashboard-keuangan';
   static const manajemenAkun     = '/manajemen-akun';
-  static const kelolaPremium     = '/kelola-premium';
   static const verifKlaim        = '/verifikasi-klaim';
   static const laporanPlat       = '/laporan-platform';
   static const String auditLog   = '/platform/audit-log';
@@ -102,7 +100,6 @@ class AppRoutes {
     platformHome:      (_) => const PlatformHomeScreen(),
     dashKeuangan:      (_) => const DashboardKeuanganScreen(),
     manajemenAkun:     (_) => const ManajemenAkunScreen(),
-    kelolaPremium:     (_) => const KelolaPremiumScreen(),
     verifKlaim:        (_) => const VerifikasiKlaimScreen(),
     laporanPlat:       (_) => const LaporanPlatformScreen(),
     auditLog:          (_) => const AuditLogScreen(),
