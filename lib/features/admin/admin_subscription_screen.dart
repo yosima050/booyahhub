@@ -16,8 +16,7 @@ class AdminSubscriptionScreen extends StatefulWidget {
       _AdminSubscriptionScreenState();
 }
 
-class _AdminSubscriptionScreenState
-    extends State<AdminSubscriptionScreen> {
+class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen> {
   int _selectedPlan = 1;
   int _selectedPayment = 0;
 
@@ -52,12 +51,7 @@ class _AdminSubscriptionScreenState
     },
   ];
 
-  final payments = [
-    'QRIS',
-    'DANA',
-    'GoPay',
-    'Transfer Bank',
-  ];
+  final payments = ['GoPay', 'shopeepay'];
 
   @override
   void initState() {
@@ -125,9 +119,12 @@ class _AdminSubscriptionScreenState
 
       final int requestId = req['id'] as int;
 
-      final selectedPaymentMethod = payments[_selectedPayment].toLowerCase().replaceAll(' ', '_');
+      final selectedPaymentMethod = payments[_selectedPayment]
+          .toLowerCase()
+          .replaceAll(' ', '_');
       String mappedMethod = selectedPaymentMethod;
-      if (selectedPaymentMethod == 'transfer_bank') mappedMethod = 'bank_transfer';
+      if (selectedPaymentMethod == 'transfer_bank')
+        mappedMethod = 'bank_transfer';
 
       // 2. Minta Snap Token dari Edge Function
       final tx = await PaymentService.createPremiumTransaction(
@@ -155,7 +152,11 @@ class _AdminSubscriptionScreenState
       setState(() => _loadingPay = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal: ${e.toString().replaceAll('Exception: ', '')}')),
+          SnackBar(
+            content: Text(
+              'Gagal: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+          ),
         );
       }
     }
@@ -277,8 +278,8 @@ class _AdminSubscriptionScreenState
         content: Text(
           success
               ? (_userData?['role']?.toString().toLowerCase() == 'admin'
-                  ? 'Selamat! Subscription Premium Admin Anda telah diperpanjang.\nDashboard dan fitur admin kini aktif kembali.'
-                  : 'Selamat! Pembelian Premium Admin berhasil.\nAnda kini beralih ke Mode Admin.')
+                    ? 'Selamat! Subscription Premium Admin Anda telah diperpanjang.\nDashboard dan fitur admin kini aktif kembali.'
+                    : 'Selamat! Pembelian Premium Admin berhasil.\nAnda kini beralih ke Mode Admin.')
               : (_error ?? 'Terjadi kesalahan saat memproses pembayaran.'),
           style: const TextStyle(
             fontSize: 12,
@@ -305,7 +306,7 @@ class _AdminSubscriptionScreenState
               backgroundColor: success ? BooyahTheme.green : BooyahTheme.maroon,
             ),
             child: const Text('OK'),
-          )
+          ),
         ],
       ),
     );
@@ -397,10 +398,7 @@ class _AdminSubscriptionScreenState
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF5C0000),
-                    Color(0xFF1A0000),
-                  ],
+                  colors: [Color(0xFF5C0000), Color(0xFF1A0000)],
                 ),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -410,8 +408,12 @@ class _AdminSubscriptionScreenState
               child: Row(
                 children: [
                   Icon(
-                    isPremiumActive ? Icons.workspace_premium : Icons.gpp_maybe_rounded,
-                    color: isPremiumActive ? BooyahTheme.gold : BooyahTheme.textMuted,
+                    isPremiumActive
+                        ? Icons.workspace_premium
+                        : Icons.gpp_maybe_rounded,
+                    color: isPremiumActive
+                        ? BooyahTheme.gold
+                        : BooyahTheme.textMuted,
                     size: 40,
                   ),
                   const SizedBox(width: 14),
@@ -420,7 +422,9 @@ class _AdminSubscriptionScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isPremiumActive ? 'PREMIUM AKTIF' : 'BASIC / TIDAK AKTIF',
+                          isPremiumActive
+                              ? 'PREMIUM AKTIF'
+                              : 'BASIC / TIDAK AKTIF',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -428,11 +432,13 @@ class _AdminSubscriptionScreenState
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          isPremiumActive 
+                          isPremiumActive
                               ? '$remainingDays Hari Tersisa'
                               : 'Silakan beli paket premium',
                           style: TextStyle(
-                            color: isPremiumActive ? BooyahTheme.gold : BooyahTheme.textMuted,
+                            color: isPremiumActive
+                                ? BooyahTheme.gold
+                                : BooyahTheme.textMuted,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -458,73 +464,71 @@ class _AdminSubscriptionScreenState
             ),
             const SizedBox(height: 10),
 
-            ...plans.asMap().entries.map(
-              (e) {
-                final selectedCard = _selectedPlan == e.key;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPlan = e.key;
-                    });
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
+            ...plans.asMap().entries.map((e) {
+              final selectedCard = _selectedPlan == e.key;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedPlan = e.key;
+                  });
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: selectedCard
+                        ? BooyahTheme.gold.withValues(alpha: 0.08)
+                        : BooyahTheme.card,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: selectedCard
-                          ? BooyahTheme.gold.withValues(alpha: 0.08)
-                          : BooyahTheme.card,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: selectedCard
-                            ? BooyahTheme.gold
-                            : BooyahTheme.maroon.withValues(alpha: 0.25),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          selectedCard
-                              ? Icons.check_circle
-                              : Icons.circle_outlined,
-                          color: selectedCard
-                              ? BooyahTheme.gold
-                              : BooyahTheme.textMuted,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                e.value['name'].toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              Text(
-                                e.value['duration'].toString(),
-                                style: const TextStyle(
-                                  color: BooyahTheme.textMuted,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          rupiah(e.value['price'] as int),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: BooyahTheme.gold,
-                          ),
-                        ),
-                      ],
+                          ? BooyahTheme.gold
+                          : BooyahTheme.maroon.withValues(alpha: 0.25),
                     ),
                   ),
-                );
-              },
-            ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        selectedCard
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: selectedCard
+                            ? BooyahTheme.gold
+                            : BooyahTheme.textMuted,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              e.value['name'].toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              e.value['duration'].toString(),
+                              style: const TextStyle(
+                                color: BooyahTheme.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        rupiah(e.value['price'] as int),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: BooyahTheme.gold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
 
             const SizedBox(height: 10),
 
@@ -544,44 +548,42 @@ class _AdminSubscriptionScreenState
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: payments.asMap().entries.map(
-                (e) {
-                  final selectedMethod = _selectedPayment == e.key;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedPayment = e.key;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
+              children: payments.asMap().entries.map((e) {
+                final selectedMethod = _selectedPayment == e.key;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPayment = e.key;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selectedMethod
+                          ? BooyahTheme.gold.withValues(alpha: 0.1)
+                          : BooyahTheme.card,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
                         color: selectedMethod
-                            ? BooyahTheme.gold.withValues(alpha: 0.1)
-                            : BooyahTheme.card,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: selectedMethod
-                              ? BooyahTheme.gold
-                              : BooyahTheme.maroon.withValues(alpha: 0.2),
-                        ),
-                      ),
-                      child: Text(
-                        e.value,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: selectedMethod
-                              ? BooyahTheme.gold
-                              : BooyahTheme.textPri,
-                        ),
+                            ? BooyahTheme.gold
+                            : BooyahTheme.maroon.withValues(alpha: 0.2),
                       ),
                     ),
-                  );
-                },
-              ).toList(),
+                    child: Text(
+                      e.value,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: selectedMethod
+                            ? BooyahTheme.gold
+                            : BooyahTheme.textPri,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
 
             const SizedBox(height: 20),
@@ -619,11 +621,14 @@ class _AdminSubscriptionScreenState
               height: 52,
               child: ElevatedButton.icon(
                 onPressed: _loadingPay ? null : _paySubscription,
-                icon: _loadingPay 
+                icon: _loadingPay
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
                       )
                     : const Icon(Icons.payment),
                 label: Text(
@@ -649,17 +654,10 @@ class _AdminSubscriptionScreenState
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
-              color: BooyahTheme.textMuted,
-            ),
+            style: const TextStyle(color: BooyahTheme.textMuted),
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
       ],
     );
   }
