@@ -144,6 +144,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
         'registration_closes_at': registrationClosesAt.toIso8601String(),
         'slot_total': int.parse(_kuotaCtrl.text),
         'fee': int.parse(_biayaCtrl.text),
+        'prize_pool': _hadiah,
         'rules': _aturCtrl.text.trim(),
         'admin_id': adminBigId,
         'status': status,
