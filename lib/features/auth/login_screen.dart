@@ -16,7 +16,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
+  final _passCtrl  = TextEditingController();
 
   bool _obscure = true;
   bool _loading = false;
@@ -45,11 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
           orElse: () => UserRole.peserta,
         );
         if (mounted) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.homeForRole(role),
-            (route) => false,
-          );
+          Navigator.pushNamedAndRemoveUntil(context, AppRoutes.homeForRole(role), (route) => false);
         }
       }
     });
@@ -103,7 +99,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await AuthService.login(email: email, password: password);
+      await AuthService.login(
+        email: email,
+        password: password,
+      );
 
       if (mounted && !_navigated) {
         _navigated = true;
@@ -126,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Selamat datang kembali di BooyahHub!'),
+            content: Text('⚡ Selamat datang kembali di BooyahHub!'),
             backgroundColor: BooyahTheme.green,
           ),
         );
@@ -139,7 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String errorMsg = e.toString().replaceAll('Exception:', '').trim();
+        String errorMsg = e.toString()
+            .replaceAll('Exception:', '')
+            .trim();
 
         if (errorMsg.contains('Invalid login credentials')) {
           errorMsg = 'Email atau password salah.';
@@ -164,7 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
               const SizedBox(height: 50),
+
 
               Center(
                 child: Container(
@@ -183,7 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(30),
                     child: Image.asset(
-                      'assets/images/logo.jpeg',
+                      'assets/images/logo_scrim.png',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -206,10 +209,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
 
               // ================= EMAIL =================
+
               TextField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: BooyahTheme.textPri),
+                style: const TextStyle(
+                  color: BooyahTheme.textPri,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'EMAIL',
                   prefixIcon: Icon(
@@ -223,10 +229,13 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
 
               // ================= PASSWORD =================
+
               TextField(
                 controller: _passCtrl,
                 obscureText: _obscure,
-                style: const TextStyle(color: BooyahTheme.textPri),
+                style: const TextStyle(
+                  color: BooyahTheme.textPri,
+                ),
                 decoration: InputDecoration(
                   labelText: 'PASSWORD',
                   prefixIcon: const Icon(
@@ -236,7 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscure ? Icons.visibility_off : Icons.visibility,
+                      _obscure
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: BooyahTheme.textMuted,
                       size: 18,
                     ),
@@ -250,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
 
               // ================= ERROR =================
+
               if (_error != null) ...[
                 const SizedBox(height: 12),
 
@@ -289,6 +301,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 28),
 
               // ================= BUTTON =================
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -309,6 +322,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20),
 
               // ================= GOOGLE BUTTON =================
+
               Row(
                 children: [
                   const Expanded(child: Divider(color: Colors.white12)),
@@ -336,12 +350,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 height: 48,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     backgroundColor: Colors.white.withValues(alpha: 0.03),
                   ),
                   onPressed: _googleLoading ? null : _loginWithGoogle,
@@ -360,8 +370,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Image.network(
                               'https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg',
                               height: 18,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.login_rounded, size: 18),
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.login_rounded, size: 18),
                             ),
                             const SizedBox(width: 10),
                             const Text(
@@ -381,10 +390,14 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 16),
 
               // ================= REGISTER =================
+
               Center(
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.register);
+                    Navigator.pushNamed(
+                      context,
+                      AppRoutes.register,
+                    );
                   },
                   child: RichText(
                     text: const TextSpan(
