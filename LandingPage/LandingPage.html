@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BooyahHub — Platform Scrim Free Fire Indonesia #1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --red: #C62828;
+  --red-bright: #E53935;
+  --red-dark: #7a0000;
+  --gold: #F9A825;
+  --gold-dim: #F57F17;
+  --white: #ffffff;
+  --gray-100: #f5f5f5;
+  --gray-300: #bdbdbd;
+  --gray-500: #757575;
+  --gray-700: #424242;
+  --dark: #0d0d0d;
+  --dark-surface: #141414;
+  --dark-card: #1a1a1a;
+  --dark-border: rgba(255,255,255,0.07);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ─── NAVBAR ─── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 18px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(13,13,13,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.nav-logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--white);
+}
+
+.nav-logo-text span { color: var(--red-bright); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--gray-300);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--white); }
+
+.nav-cta {
+  background: var(--red);
+  color: var(--white);
+  padding: 9px 22px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.nav-cta:hover { background: var(--red-bright); transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 120px 5% 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 40%, rgba(180,0,0,0.12), transparent 70%),
+    linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--dark) 100%);
+  pointer-events: none;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(180,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,0,0,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(180,0,0,0.15);
+  border: 1px solid rgba(180,0,0,0.4);
+  padding: 6px 18px;
+  border-radius: 100px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #ff7777;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 9vw, 100px);
+  line-height: 0.95;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.hero-title .line-red { color: var(--red-bright); display: block; }
+.hero-title .line-gold { color: var(--gold); display: block; font-size: 0.65em; }
+
+.hero-subtitle {
+  max-width: 560px;
+  font-size: 16px;
+  color: var(--gray-300);
+  line-height: 1.7;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  position: relative;
+  margin-bottom: 60px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--red), var(--red-bright));
+  color: var(--white);
+  padding: 14px 36px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(180,0,0,0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--white);
+  padding: 14px 36px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: border-color 0.2s, background 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.05);
+}
+
+/* ─── STATS BANNER ─── */
+.stats-banner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--dark-border);
+  border-top: 1px solid var(--dark-border);
+  border-bottom: 1px solid var(--dark-border);
+  position: relative;
+  max-width: 800px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.stat-block {
+  background: var(--dark-surface);
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.stat-block-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--red-bright);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-block-label {
+  font-size: 11px;
+  color: var(--gray-500);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ─── SECTIONS COMMON ─── */
+section {
+  padding: 90px 5%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  color: var(--red-bright);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: 2px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+}
+
+.section-desc {
+  font-size: 15px;
+  color: var(--gray-300);
+  line-height: 1.8;
+  max-width: 560px;
+}
+
+/* ─── FEATURES ─── */
+#features {
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+
+#features .section-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+#features .section-desc { margin: 0 auto; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.feature-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 28px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.25s;
+}
+
+.feature-card:hover {
+  border-color: rgba(180,0,0,0.4);
+  transform: translateY(-4px);
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--red-dark), var(--red-bright));
+}
+
+.feature-card-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(180,0,0,0.12);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.feature-card-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.feature-card-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.7;
+}
+
+/* ─── HOW IT WORKS ─── */
+#cara-kerja {
+  padding-top: 0;
+  padding-bottom: 90px;
+}
+
+#cara-kerja .section-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  position: relative;
+}
+
+.steps-container::before {
+  content: '';
+  position: absolute;
+  top: 32px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--red-dark), transparent);
+}
+
+.step-item {
+  text-align: center;
+  padding: 0 20px;
+  position: relative;
+}
+
+.step-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
+  border: 2px solid rgba(255,100,100,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.step-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.step-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+
+.step-desc {
+  font-size: 12px;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+/* ─── ROLE TABS ─── */
+#roles {
+  padding-top: 0;
+  padding-bottom: 90px;
+}
+
+#roles .section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.role-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 40px;
+  border: 1px solid var(--dark-border);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.role-tab {
+  flex: 1;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--gray-500);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-right: 1px solid var(--dark-border);
+}
+
+.role-tab:last-child { border-right: none; }
+.role-tab.active { background: var(--red); color: var(--white); }
+.role-tab:hover:not(.active) { background: rgba(255,255,255,0.04); color: var(--white); }
+
+.role-panel { display: none; }
+.role-panel.active { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.role-feature {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.role-feature-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.role-feature-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.role-feature-desc {
+  font-size: 12px;
+  color: var(--gray-500);
+  line-height: 1.5;
+}
+
+/* ─── SWOT / WHY SECTION ─── */
+#mengapa {
+  padding-top: 0;
+  padding-bottom: 90px;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  align-items: center;
+}
+
+.why-points {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.why-point {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.why-point-num {
+  width: 36px;
+  height: 36px;
+  background: rgba(180,0,0,0.15);
+  border: 1px solid rgba(180,0,0,0.3);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red-bright);
+  flex-shrink: 0;
+}
+
+.why-point-content {}
+
+.why-point-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.why-point-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+.why-visual {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.why-visual::before {
+  content: '⚡';
+  position: absolute;
+  font-size: 100px;
+  right: -20px;
+  bottom: -20px;
+  opacity: 0.04;
+}
+
+.why-visual-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.comparison-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.comparison-label {
+  font-size: 12px;
+  color: var(--gray-500);
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.comparison-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.comparison-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+.comparison-bar.red { background: var(--red-bright); }
+.comparison-bar.gray { background: rgba(255,255,255,0.2); }
+
+.comparison-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  color: var(--white);
+  width: 32px;
+  text-align: right;
+}
+
+/* ─── PRICING ─── */
+#harga {
+  padding-top: 0;
+  padding-bottom: 90px;
+}
+
+#harga .section-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.25s;
+}
+
+.pricing-card:hover { transform: translateY(-4px); }
+
+.pricing-card.featured {
+  border-color: var(--red);
+  background: linear-gradient(180deg, rgba(180,0,0,0.08), var(--dark-card));
+}
+
+.pricing-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold);
+  color: #000;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 16px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.pricing-role {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.pricing-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px;
+  letter-spacing: 2px;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.pricing-amount .currency {
+  font-size: 22px;
+  color: var(--gray-500);
+  vertical-align: super;
+  margin-right: 4px;
+}
+
+.pricing-period {
+  font-size: 12px;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+
+.pricing-features {
+  list-style: none;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.pricing-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray-300);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.pricing-features li::before {
+  content: '✓';
+  color: var(--red-bright);
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.pricing-cta {
+  display: block;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.pricing-cta.outline {
+  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--white);
+}
+
+.pricing-cta.outline:hover { background: rgba(255,255,255,0.05); }
+
+.pricing-cta.solid {
+  background: var(--red);
+  color: var(--white);
+}
+
+.pricing-cta.solid:hover { background: var(--red-bright); }
+
+/* ─── TESTIMONIAL ─── */
+#komunitas {
+  padding-top: 0;
+  padding-bottom: 90px;
+}
+
+#komunitas .section-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.testi-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.testi-quote {
+  font-size: 13px;
+  color: var(--gray-300);
+  line-height: 1.8;
+  margin-bottom: 18px;
+  font-style: italic;
+}
+
+.testi-quote::before { content: '"'; color: var(--red-bright); font-size: 18px; font-style: normal; }
+.testi-quote::after  { content: '"'; color: var(--red-bright); font-size: 18px; font-style: normal; }
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.testi-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.testi-name {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.testi-role {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+/* ─── CTA FINAL ─── */
+.cta-final {
+  padding: 90px 5%;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-final-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 50% 80% at 50% 50%, rgba(180,0,0,0.15), transparent 70%);
+  pointer-events: none;
+}
+
+.cta-final-badge {
+  display: inline-block;
+  background: rgba(249,168,37,0.15);
+  border: 1px solid rgba(249,168,37,0.35);
+  color: var(--gold);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  padding: 6px 20px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.cta-final-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(42px, 7vw, 80px);
+  letter-spacing: 3px;
+  line-height: 1;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.cta-final-title span { color: var(--red-bright); }
+
+.cta-final-desc {
+  font-size: 15px;
+  color: var(--gray-300);
+  max-width: 500px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+  position: relative;
+}
+
+.cta-final-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--dark-surface);
+  border-top: 1px solid var(--dark-border);
+  padding: 48px 5% 32px;
+}
+
+.footer-grid {
+  max-width: 1100px;
+  margin: 0 auto 36px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+.footer-brand {}
+
+.footer-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.footer-brand-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.footer-brand-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+}
+
+.footer-brand-name span { color: var(--red-bright); }
+
+.footer-brand-desc {
+  font-size: 13px;
+  color: var(--gray-500);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.footer-social {
+  display: flex;
+  gap: 10px;
+}
+
+.footer-social a {
+  width: 34px;
+  height: 34px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.footer-social a:hover { background: rgba(180,0,0,0.2); }
+
+.footer-col-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--white);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links a {
+  font-size: 13px;
+  color: var(--gray-500);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-links a:hover { color: var(--white); }
+
+.footer-bottom {
+  max-width: 1100px;
+  margin: 0 auto;
+  border-top: 1px solid var(--dark-border);
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+
+.footer-made {
+  font-size: 12px;
+  color: var(--gray-700);
+}
+
+.footer-made span { color: var(--red-bright); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .steps-container { grid-template-columns: 1fr; }
+  .steps-container::before { display: none; }
+  .role-panel.active { grid-template-columns: 1fr; }
+  .why-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .testi-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .stats-banner { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">🔥</div>
+    <div class="nav-logo-text"><span>BOOYAH</span>HUB</div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Fitur</a></li>
+    <li><a href="#cara-kerja">Cara Kerja</a></li>
+    <li><a href="#roles">Role</a></li>
+    <li><a href="#harga">Harga</a></li>
+    <li><a href="#komunitas">Komunitas</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">Daftar Gratis</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">
+    <span class="live-dot"></span>
+    3 Scrim Sedang Berlangsung
+  </div>
+
+  <h1 class="hero-title">
+    Revolusi Scrim
+    <span class="line-red">Free Fire</span>
+    <span class="line-gold">Dimulai Di Sini</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    BooyahHub mengubah pengelolaan scrim dari grup WhatsApp berantakan menjadi satu ekosistem digital yang terintegrasi, transparan, dan otomatis.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#cta" class="btn-primary">🔥 Mulai Gratis Sekarang</a>
+    <a href="#cara-kerja" class="btn-secondary">Pelajari Cara Kerja →</a>
+  </div>
+
+  <div class="stats-banner">
+    <div class="stat-block">
+      <span class="stat-block-num">192M+</span>
+      <span class="stat-block-label">Gamer ID</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-block-num">30M+</span>
+      <span class="stat-block-label">Pemain Aktif</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-block-num">618K+</span>
+      <span class="stat-block-label">Peserta Scrim</span>
+    </div>
+    <div class="stat-block">
+      <span class="stat-block-num">97%</span>
+      <span class="stat-block-label">Tingkat Verifikasi</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features" style="max-width:1100px; margin:0 auto; padding:90px 5%;">
+  <div class="section-header" style="text-align:center; margin-bottom:56px;">
+    <span class="section-label">Fitur Unggulan</span>
+    <h2 class="section-title">Semua yang Kamu Butuhkan,<br>dalam Satu Platform</h2>
+    <p class="section-desc" style="margin:0 auto;">Dari pendaftaran hingga pencairan hadiah — BooyahHub mengelola seluruh siklus scrim secara otomatis.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-card-icon">📅</div>
+      <div class="feature-card-title">Booking Kalender Real-Time</div>
+      <div class="feature-card-desc">Pilih jadwal scrim dengan indikator ketersediaan slot real-time. Slot otomatis terkunci jika kuota penuh.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">💸</div>
+      <div class="feature-card-title">Pembayaran Digital</div>
+      <div class="feature-card-desc">Dukung QRIS (GoPay/OVO/DANA) dan Transfer Bank. Upload bukti bayar langsung dari aplikasi.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">✅</div>
+      <div class="feature-card-title">Verifikasi Otomatis</div>
+      <div class="feature-card-desc">Admin memverifikasi bukti pembayaran dengan mudah. Status peserta berubah real-time saat diapprove.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">🔑</div>
+      <div class="feature-card-title">Distribusi Room ID Otomatis</div>
+      <div class="feature-card-desc">Room ID dikirim otomatis via notifikasi ke seluruh peserta yang sudah terverifikasi. Tanpa manual!</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">🏆</div>
+      <div class="feature-card-title">Leaderboard Otomatis</div>
+      <div class="feature-card-desc">Admin input poin, sistem langsung hitung total dan update leaderboard. Pemenang ditentukan otomatis.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">💰</div>
+      <div class="feature-card-title">Klaim Hadiah Transparan</div>
+      <div class="feature-card-desc">Pemenang klaim hadiah langsung via aplikasi. Dana dicairkan oleh Platform dengan bukti yang transparan.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">📊</div>
+      <div class="feature-card-title">Laporan & Analitik</div>
+      <div class="feature-card-desc">Dashboard laporan lengkap untuk Admin: total pendapatan, tim terdaftar, dan performa scrim.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">🔔</div>
+      <div class="feature-card-title">Notifikasi Cerdas</div>
+      <div class="feature-card-desc">Notifikasi otomatis untuk pembayaran, Room ID, perubahan jadwal, hasil pertandingan, dan status hadiah.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-card-icon">⭐</div>
+      <div class="feature-card-title">Layanan Premium Admin</div>
+      <div class="feature-card-desc">Admin Premium tampil di halaman utama dengan badge Terpercaya dan analitik detail per scrim.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="cara-kerja" style="max-width:1100px; margin:0 auto; padding:0 5% 90px;">
+  <div class="section-header" style="text-align:center; margin-bottom:60px;">
+    <span class="section-label">Cara Kerja</span>
+    <h2 class="section-title">6 Langkah Mudah<br>dari Daftar ke Hadiah</h2>
+  </div>
+  <div class="steps-container">
+    <div class="step-item">
+      <div class="step-circle"><span class="step-num">1</span></div>
+      <div class="step-title">Daftar & Login</div>
+      <div class="step-desc">Buat akun gratis dengan email. Login dan akses semua fitur BooyahHub.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-circle"><span class="step-num">2</span></div>
+      <div class="step-title">Pilih Scrim</div>
+      <div class="step-desc">Browse jadwal scrim, lihat detail, ketersediaan slot, dan biaya pendaftaran.</div>
+    </div>
+    <div class="step-item">
+      <div class="step-circle"><span class="step-num">3</span></div>
+      <div class="step-title">Daftar Tim</div>
+      <div class="step-desc">Isi nama tim, ID captain, dan anggota. Lanjut ke halaman pembayaran.</div>
+    </div>
+    <div class="step-item" style="margin-top:40px;">
+      <div class="step-circle"><span class="step-num">4</span></div>
+      <div class="step-title">Bayar & Upload</div>
+      <div class="step-desc">Transfer via QRIS atau bank, upload bukti bayar, tunggu verifikasi Admin.</div>
+    </div>
+    <div class="step-item" style="margin-top:40px;">
+      <div class="step-circle"><span class="step-num">5</span></div>
+      <div class="step-title">Main & Menang</div>
+      <div class="step-desc">Terima Room ID otomatis, masuk ruangan, bertanding dan raih poin terbaik!</div>
+    </div>
+    <div class="step-item" style="margin-top:40px;">
+      <div class="step-circle"><span class="step-num">6</span></div>
+      <div class="step-title">Klaim Hadiah</div>
+      <div class="step-desc">Masuk top 3? Klaim hadiah langsung via aplikasi. Dana masuk ke rekening kamu.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section id="roles" style="max-width:1100px; margin:0 auto; padding:0 5% 90px;">
+  <div class="section-header" style="text-align:center; margin-bottom:40px;">
+    <span class="section-label">Peran Pengguna</span>
+    <h2 class="section-title">Satu Platform,<br>Tiga Peran Berbeda</h2>
+  </div>
+
+  <div class="role-tabs" id="roleTabs">
+    <button class="role-tab active" onclick="showRole('user', this)">👤 Peserta</button>
+    <button class="role-tab" onclick="showRole('admin', this)">🛡️ Admin Scrim</button>
+    <button class="role-tab" onclick="showRole('platform', this)">⚙️ Platform</button>
+  </div>
+
+  <div class="role-panel active" id="role-user">
+    <div class="role-feature">
+      <div class="role-feature-icon">📅</div>
+      <div><div class="role-feature-title">Lihat & Booking Scrim</div><div class="role-feature-desc">Telusuri jadwal scrim, booking slot, isi data tim.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">💸</div>
+      <div><div class="role-feature-title">Bayar via QRIS / Bank</div><div class="role-feature-desc">Pilih metode, upload bukti bayar langsung dari HP.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">🔔</div>
+      <div><div class="role-feature-title">Terima Notifikasi & Room ID</div><div class="role-feature-desc">Dapat pemberitahuan real-time untuk semua status.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">🏆</div>
+      <div><div class="role-feature-title">Lihat Leaderboard</div><div class="role-feature-desc">Pantau peringkat tim kamu setelah pertandingan.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">💰</div>
+      <div><div class="role-feature-title">Klaim Hadiah</div><div class="role-feature-desc">Ajukan pencairan hadiah langsung ke rekening pribadi.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">📋</div>
+      <div><div class="role-feature-title">Riwayat Scrim</div><div class="role-feature-desc">Lihat catatan semua scrim yang pernah diikuti.</div></div>
+    </div>
+  </div>
+
+  <div class="role-panel" id="role-admin">
+    <div class="role-feature">
+      <div class="role-feature-icon">➕</div>
+      <div><div class="role-feature-title">Buat Scrim Baru</div><div class="role-feature-desc">Atur jadwal, kuota, biaya, dan aturan pertandingan.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">✅</div>
+      <div><div class="role-feature-title">Verifikasi Pembayaran</div><div class="role-feature-desc">Approve atau tolak bukti bayar peserta dengan cepat.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">🔑</div>
+      <div><div class="role-feature-title">Input & Kirim Room ID</div><div class="role-feature-desc">Room ID otomatis didistribusikan ke peserta terverifikasi.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">📊</div>
+      <div><div class="role-feature-title">Input Hasil Pertandingan</div><div class="role-feature-desc">Masukkan poin, leaderboard langsung terupdate.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">📢</div>
+      <div><div class="role-feature-title">Kirim Pengumuman</div><div class="role-feature-desc">Broadcast pesan ke seluruh peserta scrim kamu.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">📈</div>
+      <div><div class="role-feature-title">Laporan Pendapatan</div><div class="role-feature-desc">Dashboard statistik pendapatan dan performa scrim.</div></div>
+    </div>
+  </div>
+
+  <div class="role-panel" id="role-platform">
+    <div class="role-feature">
+      <div class="role-feature-icon">👥</div>
+      <div><div class="role-feature-title">Manajemen Akun</div><div class="role-feature-desc">Kelola semua akun User, Admin, dan Platform.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">⭐</div>
+      <div><div class="role-feature-title">Kelola Premium Admin</div><div class="role-feature-desc">Approve upgrade dan pantau masa aktif layanan premium.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">🎁</div>
+      <div><div class="role-feature-title">Verifikasi Klaim Hadiah</div><div class="role-feature-desc">Proses pencairan dana pemenang dengan akuntabilitas penuh.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">💹</div>
+      <div><div class="role-feature-title">Dasbor Keuangan</div><div class="role-feature-desc">Pantau aliran dana platform, fee, dan hadiah secara menyeluruh.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">📉</div>
+      <div><div class="role-feature-title">Laporan Keseluruhan</div><div class="role-feature-desc">Analitik big data: total user, total scrim, dan performa sistem.</div></div>
+    </div>
+    <div class="role-feature">
+      <div class="role-feature-icon">🔒</div>
+      <div><div class="role-feature-title">Keamanan Sistem</div><div class="role-feature-desc">Pantau uptime, suspend akun, dan jaga integritas platform.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY BOOYAHHUB -->
+<section id="mengapa" style="max-width:1100px; margin:0 auto; padding:0 5% 90px;">
+  <div class="why-grid">
+    <div>
+      <span class="section-label">Mengapa BooyahHub?</span>
+      <h2 class="section-title">Bukan Sekadar<br>Platform Scrim</h2>
+      <div class="why-points" style="margin-top:28px;">
+        <div class="why-point">
+          <div class="why-point-num">01</div>
+          <div class="why-point-content">
+            <div class="why-point-title">Hemat Waktu Admin hingga 50%</div>
+            <div class="why-point-desc">Otomatisasi verifikasi, Room ID, dan leaderboard menggantikan pekerjaan manual yang memakan waktu berjam-jam.</div>
+          </div>
+        </div>
+        <div class="why-point">
+          <div class="why-point-num">02</div>
+          <div class="why-point-content">
+            <div class="why-point-title">Dana Peserta 100% Aman</div>
+            <div class="why-point-desc">Platform bertindak sebagai mediator terpercaya. Uang pendaftaran dikelola transparan, bukan di tangan satu pihak.</div>
+          </div>
+        </div>
+        <div class="why-point">
+          <div class="why-point-num">03</div>
+          <div class="why-point-content">
+            <div class="why-point-title">Strategi Blue Ocean Indonesia</div>
+            <div class="why-point-desc">Satu-satunya platform yang menyatukan seluruh ekosistem scrim komunitas dalam satu aplikasi terintegrasi.</div>
+          </div>
+        </div>
+        <div class="why-point">
+          <div class="why-point-num">04</div>
+          <div class="why-point-content">
+            <div class="why-point-title">Fee Minimal, Fitur Maksimal</div>
+            <div class="why-point-desc">Fee platform hanya 5% dari pendaftaran — cukup untuk operasional, tidak memberatkan komunitas.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="why-visual">
+      <div class="why-visual-title">Perbandingan: WhatsApp vs BooyahHub</div>
+
+      <div style="margin-bottom:8px; font-size:12px; color:#555; letter-spacing:1px;">EFISIENSI WAKTU ADMIN</div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#888;">WhatsApp</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar gray" style="width:30%"></div></div>
+        <span class="comparison-val">30%</span>
+      </div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#E53935; font-weight:600;">BooyahHub</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar red" style="width:95%"></div></div>
+        <span class="comparison-val">95%</span>
+      </div>
+
+      <div style="margin:18px 0 8px; font-size:12px; color:#555; letter-spacing:1px;">TRANSPARANSI KEUANGAN</div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#888;">WhatsApp</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar gray" style="width:15%"></div></div>
+        <span class="comparison-val">15%</span>
+      </div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#E53935; font-weight:600;">BooyahHub</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar red" style="width:100%"></div></div>
+        <span class="comparison-val">100%</span>
+      </div>
+
+      <div style="margin:18px 0 8px; font-size:12px; color:#555; letter-spacing:1px;">KEPUASAN PESERTA</div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#888;">WhatsApp</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar gray" style="width:45%"></div></div>
+        <span class="comparison-val">45%</span>
+      </div>
+      <div class="comparison-row">
+        <span class="comparison-label" style="font-size:11px; color:#E53935; font-weight:600;">BooyahHub</span>
+        <div class="comparison-bar-wrap"><div class="comparison-bar red" style="width:97%"></div></div>
+        <span class="comparison-val">97%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="harga" style="max-width:1100px; margin:0 auto; padding:0 5% 90px;">
+  <div class="section-header" style="text-align:center; margin-bottom:50px;">
+    <span class="section-label">Model Bisnis</span>
+    <h2 class="section-title">Transparan &<br>Menguntungkan Semua Pihak</h2>
+    <p class="section-desc" style="margin:0 auto;">Fee otomatis dipotong dari biaya pendaftaran — tidak ada biaya tersembunyi.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-role">Peserta (User)</div>
+      <div class="pricing-amount"><span class="currency">Rp</span>0</div>
+      <div class="pricing-period">untuk mendaftar & gunakan aplikasi</div>
+      <ul class="pricing-features">
+        <li>Booking scrim gratis</li>
+        <li>Lihat leaderboard gratis</li>
+        <li>Klaim hadiah gratis</li>
+        <li>Biaya hanya pendaftaran scrim</li>
+      </ul>
+      <a href="#cta" class="pricing-cta outline">Daftar Peserta</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="pricing-badge">⭐ Paling Populer</div>
+      <div class="pricing-role">Admin Scrim Reguler</div>
+      <div class="pricing-amount"><span class="currency"></span>Gratis</div>
+      <div class="pricing-period">+ fee platform 5% dari total pendaftaran</div>
+      <ul class="pricing-features">
+        <li>Buat & kelola scrim tak terbatas</li>
+        <li>Verifikasi pembayaran peserta</li>
+        <li>Input & distribusi Room ID</li>
+        <li>Laporan pendapatan dasar</li>
+        <li>Fee admin 3.75% otomatis</li>
+      </ul>
+      <a href="#cta" class="pricing-cta solid">Daftar Admin</a>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-role">Admin Premium</div>
+      <div class="pricing-amount"><span class="currency">Rp</span>50K</div>
+      <div class="pricing-period">per bulan + fee 5% per scrim</div>
+      <ul class="pricing-features">
+        <li>Semua fitur Admin Reguler</li>
+        <li>Scrim tampil di halaman utama</li>
+        <li>Badge "Admin Terpercaya"</li>
+        <li>Analitik detail per scrim</li>
+        <li>Room ID tak terbatas</li>
+      </ul>
+      <a href="#cta" class="pricing-cta outline">Upgrade Premium</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section id="komunitas" style="max-width:1100px; margin:0 auto; padding:0 5% 90px;">
+  <div class="section-header" style="text-align:center; margin-bottom:50px;">
+    <span class="section-label">Kata Komunitas</span>
+    <h2 class="section-title">Dipercaya oleh<br>Komunitas Scrim Indonesia</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <p class="testi-quote">Dulu verifikasi manual di WA bisa 2-3 jam per event. Sekarang dengan BooyahHub, 20 menit beres semua. Admin scrim makin profesional!</p>
+      <div class="testi-author">
+        <div class="testi-avatar">🔥</div>
+        <div>
+          <div class="testi-name">ProScrim_ID</div>
+          <div class="testi-role">Admin Premium — 89 Scrim diselenggarakan</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <p class="testi-quote">Akhirnya platform scrim yang serius! Room ID langsung ke notif HP, gak perlu nunggu di WA yang penuh spam. Hadiah juga cair tepat waktu.</p>
+      <div class="testi-author">
+        <div class="testi-avatar">⚡</div>
+        <div>
+          <div class="testi-name">WolfAlpha#321</div>
+          <div class="testi-role">Peserta — 12 Scrim diikuti, Juara 3x</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <p class="testi-quote">Leaderboard otomatis itu game-changer! Gak ada lagi ribut soal perhitungan poin. Semua transparan, semua bisa lihat. Mantap BooyahHub!</p>
+      <div class="testi-author">
+        <div class="testi-avatar">🏆</div>
+        <div>
+          <div class="testi-name">ScrimKing_JKT</div>
+          <div class="testi-role">Admin Premium — 67 Scrim, Rating 4.9/5</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="cta-final" id="cta">
+  <div class="cta-final-bg"></div>
+  <div class="cta-final-badge">🎮 Gratis untuk Semua Peserta</div>
+  <h2 class="cta-final-title">
+    Siap untuk<br><span>BOOYAH</span>?
+  </h2>
+  <p class="cta-final-desc">Bergabunglah dengan ribuan tim Free Fire yang sudah menggunakan BooyahHub untuk scrim yang lebih seru, adil, dan profesional.</p>
+  <div class="cta-final-actions">
+    <a href="#" class="btn-primary">🔥 Download Sekarang — Gratis</a>
+    <a href="#" class="btn-secondary">Buka di Browser →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-brand-logo">
+        <div class="footer-brand-icon">🔥</div>
+        <span class="footer-brand-name"><span>BOOYAH</span>HUB</span>
+      </div>
+      <p class="footer-brand-desc">Platform digital manajemen scrim Free Fire Indonesia. Terintegrasi, transparan, dan otomatis.</p>
+      <div class="footer-social">
+        <a href="#">📷</a>
+        <a href="#">📱</a>
+        <a href="#">🐦</a>
+        <a href="#">📺</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Produk</div>
+      <ul class="footer-links">
+        <li><a href="#">Fitur</a></li>
+        <li><a href="#">Cara Kerja</a></li>
+        <li><a href="#">Harga</a></li>
+        <li><a href="#">Layanan Premium</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Komunitas</div>
+      <ul class="footer-links">
+        <li><a href="#">Grup Telegram</a></li>
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">YouTube</a></li>
+        <li><a href="#">Forum</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Dukungan</div>
+      <ul class="footer-links">
+        <li><a href="#">Buku Panduan</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Hubungi Kami</a></li>
+        <li><a href="#">Kebijakan Privasi</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2026 BooyahHub — Kelompok 6, D-IV Sistem Informasi Bisnis, Politeknik Negeri Malang.<br>Dikembangkan sebagai bagian dari Project Based Learning (PBL).</p>
+    <p class="footer-made">Dibuat dengan <span>❤️</span> untuk komunitas esports Indonesia</p>
+  </div>
+</footer>
+
+<script>
+function showRole(role, btn) {
+  document.querySelectorAll('.role-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('role-' + role).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>
