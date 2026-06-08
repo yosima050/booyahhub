@@ -62,7 +62,7 @@ class PaymentService {
         body: {
           'premium_request_id': premiumRequestId,
           'amount': amount,
-          if (paymentMethod != null) 'payment_method': paymentMethod,
+          'payment_method': ?paymentMethod,
         },
       );
 

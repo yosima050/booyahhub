@@ -69,8 +69,9 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
   }
 
   String _fmtRupiah(int amount) {
-    if (amount == 0) return 'Rp0';
-    final formatter = amount.toString().split('').reversed.toList();
+    final absAmount = amount.abs();
+    if (absAmount == 0) return 'Rp0';
+    final formatter = absAmount.toString().split('').reversed.toList();
     String result = '';
     for (int i = 0; i < formatter.length; i++) {
       if (i > 0 && i % 3 == 0) result += '.';
@@ -336,13 +337,11 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
                             ),
                           ),
                           Text(
-                            _fmtRupiah((t['amount'] as int?) ?? 0),
+                            '${(t['amount'] as int? ?? 0) >= 0 ? '+' : '-'}${_fmtRupiah((t['amount'] as int?) ?? 0)}',
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w800,
-                              color:
-                                  ((t['type'] as String?) ?? 'debit') ==
-                                      'credit'
+                              color: (t['amount'] as int? ?? 0) >= 0
                                   ? BooyahTheme.green
                                   : BooyahTheme.red,
                             ),

@@ -8,16 +8,6 @@ import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart';
 import '../../services/payment_service.dart';
 
-// ──────────────────────────────────────────────────────────────
-// PEMBAYARAN SCREEN (Midtrans Snap Integration)
-// Flow:
-//   1. Terima args dari FormTimScreen
-//   2. Panggil RegistrationService.book() → buat draft di DB
-//   3. Panggil PaymentService.createTransaction() → dapat snap_token
-//   4. Buka Snap via WebView
-//   5. Supabase Realtime update status → tampilkan dialog hasil
-// ──────────────────────────────────────────────────────────────
-
 class PembayaranScreen extends StatefulWidget {
   const PembayaranScreen({super.key});
   @override
@@ -272,7 +262,10 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
               },
               child: const Text(
                 'LIHAT STATUS',
-                style: TextStyle(color: BooyahTheme.green, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: BooyahTheme.green,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             ElevatedButton(
@@ -293,7 +286,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
               ),
               child: const Text('OK'),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -438,11 +431,16 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: BooyahTheme.green, width: 1.5),
                 minimumSize: const Size(double.infinity, 48),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text(
                 'LIHAT STATUS PENDAFTARAN',
-                style: TextStyle(color: BooyahTheme.green, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: BooyahTheme.green,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
