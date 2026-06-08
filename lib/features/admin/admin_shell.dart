@@ -48,7 +48,9 @@ class _AdminShellState extends State<AdminShell> {
       if (adminProf != null) {
         final bool isPremium = adminProf['is_premium'] as bool? ?? false;
         final String? expiredAtStr = adminProf['premium_expired_at'] as String?;
-        final DateTime? expiredAt = expiredAtStr != null ? DateTime.parse(expiredAtStr) : null;
+        final DateTime? expiredAt = expiredAtStr != null
+            ? DateTime.parse(expiredAtStr)
+            : null;
 
         bool isActive = false;
         if (isPremium) {
@@ -111,11 +113,7 @@ class _AdminShellState extends State<AdminShell> {
         body: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xFF300000),
-                Color(0xFF150000),
-                BooyahTheme.bg,
-              ],
+              colors: [Color(0xFF300000), Color(0xFF150000), BooyahTheme.bg],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -158,10 +156,7 @@ class _AdminShellState extends State<AdminShell> {
                   const Text(
                     'Aktifkan premium untuk mulai membuat scrim turnamen, mengelola peserta, dan mengakses dashboard admin.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -176,7 +171,10 @@ class _AdminShellState extends State<AdminShell> {
                           ),
                         ).then((_) => _checkSubscription());
                       },
-                      icon: const Icon(Icons.workspace_premium_rounded, color: Colors.black),
+                      icon: const Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Colors.black,
+                      ),
                       label: const Text(
                         'PILIH PAKET PREMIUM',
                         style: TextStyle(
@@ -206,10 +204,18 @@ class _AdminShellState extends State<AdminShell> {
                         );
                       }
                     },
-                    icon: const Icon(Icons.logout, color: BooyahTheme.textMuted, size: 18),
+                    icon: const Icon(
+                      Icons.logout,
+                      color: BooyahTheme.textMuted,
+                      size: 18,
+                    ),
                     label: const Text(
                       'KELUAR AKUN',
-                      style: TextStyle(color: BooyahTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: BooyahTheme.textMuted,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -221,6 +227,7 @@ class _AdminShellState extends State<AdminShell> {
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: IndexedStack(index: _idx, children: _screens),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -251,6 +258,7 @@ class _AdminShellState extends State<AdminShell> {
           ],
         ),
         child: SafeArea(
+          top: false,
           child: SizedBox(
             height: 60,
             child: Row(
