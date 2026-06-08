@@ -15,6 +15,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
   final _deskCtrl = TextEditingController();
   final _kuotaCtrl = TextEditingController(text: '20');
   final _biayaCtrl = TextEditingController(text: '25000');
+  final _totalCtrl = TextEditingController(text: '');
   final _aturCtrl = TextEditingController();
   String _mode = 'Battle Royale';
   String _server = 'Official Server';
@@ -24,7 +25,9 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
 
   int get _biaya => int.tryParse(_biayaCtrl.text) ?? 0;
   int get _kuota => int.tryParse(_kuotaCtrl.text) ?? 0;
-  int get _gross => _biaya * _kuota;
+  // _gross dari input manual admin, fallback ke biaya*kuota jika kosong
+  int get _gross =>
+      int.tryParse(_totalCtrl.text.replaceAll('.', '')) ?? (_biaya * _kuota);
   int get _feePlat => (_gross * 0.05).round();
   int get _feeAdm => (_gross * 0.0375).round();
   int get _hadiah => (_gross * 0.85).round();
@@ -466,21 +469,85 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
               ),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'KALKULASI OTOMATIS',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: BooyahTheme.textMuted,
-                    letterSpacing: 1,
+                const Center(
+                  child: Text(
+                    'KALKULASI OTOMATIS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: BooyahTheme.textMuted,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                _calcRow(
-                  'Total Pendapatan',
-                  'Rp${_fmt(_gross)}',
-                  BooyahTheme.textSec,
+                const SizedBox(height: 10),
+                // Total Pendapatan — input manual admin
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Total Pendapatan',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: BooyahTheme.textMuted,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 130,
+                      height: 36,
+                      child: TextField(
+                        controller: _totalCtrl,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: BooyahTheme.textPri,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Rp${_fmt(_biaya * _kuota)}',
+                          hintStyle: const TextStyle(
+                            fontSize: 12,
+                            color: BooyahTheme.textMuted,
+                          ),
+                          prefixText: 'Rp',
+                          prefixStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: BooyahTheme.textPri,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide(
+                              color: BooyahTheme.gold.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide(
+                              color: BooyahTheme.gold.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(
+                              color: BooyahTheme.gold,
+                            ),
+                          ),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 6),
                 _calcRow(
                   'Fee Platform (5%)',
                   '-Rp${_fmt(_feePlat)}',
