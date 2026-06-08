@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Image.asset(
-                    'assets/images/logo.jpeg',
+                    'assets/images/logo_scrim.png',
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => const Center(
                       child: Text('🎮', style: TextStyle(fontSize: 16)),

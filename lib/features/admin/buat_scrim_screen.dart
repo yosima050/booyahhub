@@ -15,6 +15,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
   final _deskCtrl = TextEditingController();
   final _kuotaCtrl = TextEditingController(text: '20');
   final _biayaCtrl = TextEditingController(text: '25000');
+  final _totalCtrl = TextEditingController(text: '');
   final _aturCtrl = TextEditingController();
   String _mode = 'Battle Royale';
   String _server = 'Official Server';
@@ -27,7 +28,10 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
   int get _gross => _biaya * _kuota;
   int get _feePlat => (_gross * 0.05).round();
   int get _feeAdm => (_gross * 0.0375).round();
-  int get _hadiah => (_gross * 0.85).round();
+  // _hadiah dari input manual admin, fallback ke 85% jika kosong
+  int get _hadiah =>
+      int.tryParse(_totalCtrl.text.replaceAll('.', '')) ??
+      (_gross * 0.85).round();
 
   void _saveScrim({required String status}) async {
     // Validasi UC-02 Langkah 6a
@@ -140,6 +144,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
         'registration_closes_at': registrationClosesAt.toIso8601String(),
         'slot_total': int.parse(_kuotaCtrl.text),
         'fee': int.parse(_biayaCtrl.text),
+        'prize_pool': _hadiah,
         'rules': _aturCtrl.text.trim(),
         'admin_id': adminBigId,
         'status': status,
@@ -466,16 +471,19 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
               ),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'KALKULASI OTOMATIS',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: BooyahTheme.textMuted,
-                    letterSpacing: 1,
+                const Center(
+                  child: Text(
+                    'KALKULASI OTOMATIS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: BooyahTheme.textMuted,
+                      letterSpacing: 1,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 _calcRow(
                   'Total Pendapatan',
                   'Rp${_fmt(_gross)}',
@@ -492,10 +500,71 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                   BooyahTheme.yellow,
                 ),
                 const Divider(color: Colors.white12),
-                _calcRow(
-                  'Dana Hadiah (85%)',
-                  'Rp${_fmt(_hadiah)}',
-                  BooyahTheme.gold,
+                // Dana Hadiah — input manual admin
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Dana Hadiah',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: BooyahTheme.textMuted,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 140,
+                      height: 36,
+                      child: TextField(
+                        controller: _totalCtrl,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: BooyahTheme.gold,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: _fmt((_gross * 0.85).round()),
+                          hintStyle: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: BooyahTheme.gold,
+                          ),
+                          prefixText: 'Rp',
+                          prefixStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: BooyahTheme.gold,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide(
+                              color: BooyahTheme.gold.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: BorderSide(
+                              color: BooyahTheme.gold.withValues(alpha: 0.4),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                            borderSide: const BorderSide(
+                              color: BooyahTheme.gold,
+                            ),
+                          ),
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

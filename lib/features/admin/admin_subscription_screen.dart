@@ -51,7 +51,12 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen> {
     },
   ];
 
-  final payments = ['GoPay', 'shopeepay'];
+  final payments = [
+    {'name': 'QRIS', 'value': 'qris'},
+    {'name': 'GoPay', 'value': 'gopay'},
+    {'name': 'ShopeePay', 'value': 'shopeepay'},
+    {'name': 'Transfer Bank (VA)', 'value': 'bank_transfer'},
+  ];
 
   @override
   void initState() {
@@ -119,12 +124,7 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen> {
 
       final int requestId = req['id'] as int;
 
-      final selectedPaymentMethod = payments[_selectedPayment]
-          .toLowerCase()
-          .replaceAll(' ', '_');
-      String mappedMethod = selectedPaymentMethod;
-      if (selectedPaymentMethod == 'transfer_bank')
-        mappedMethod = 'bank_transfer';
+      final mappedMethod = payments[_selectedPayment]['value']!;
 
       // 2. Minta Snap Token dari Edge Function
       final tx = await PaymentService.createPremiumTransaction(
@@ -573,7 +573,7 @@ class _AdminSubscriptionScreenState extends State<AdminSubscriptionScreen> {
                       ),
                     ),
                     child: Text(
-                      e.value,
+                      e.value['name']!,
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         color: selectedMethod

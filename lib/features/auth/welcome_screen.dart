@@ -134,7 +134,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                         child: ClipRRect(
                                           borderRadius: BorderRadius.circular(20),
                                           child: Image.asset(
-                                            'assets/images/logo.jpeg',
+                                            'assets/images/logo_scrim.png',
                                             width: 100,
                                             height: 100,
                                           ),
