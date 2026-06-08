@@ -25,12 +25,13 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
 
   int get _biaya => int.tryParse(_biayaCtrl.text) ?? 0;
   int get _kuota => int.tryParse(_kuotaCtrl.text) ?? 0;
-  // _gross dari input manual admin, fallback ke biaya*kuota jika kosong
-  int get _gross =>
-      int.tryParse(_totalCtrl.text.replaceAll('.', '')) ?? (_biaya * _kuota);
+  int get _gross => _biaya * _kuota;
   int get _feePlat => (_gross * 0.05).round();
   int get _feeAdm => (_gross * 0.0375).round();
-  int get _hadiah => (_gross * 0.85).round();
+  // _hadiah dari input manual admin, fallback ke 85% jika kosong
+  int get _hadiah =>
+      int.tryParse(_totalCtrl.text.replaceAll('.', '')) ??
+      (_gross * 0.85).round();
 
   void _saveScrim({required String status}) async {
     // Validasi UC-02 Langkah 6a
@@ -482,20 +483,36 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                // Total Pendapatan — input manual admin
+                _calcRow(
+                  'Total Pendapatan',
+                  'Rp${_fmt(_gross)}',
+                  BooyahTheme.textSec,
+                ),
+                _calcRow(
+                  'Fee Platform (5%)',
+                  '-Rp${_fmt(_feePlat)}',
+                  BooyahTheme.red,
+                ),
+                _calcRow(
+                  'Fee Admin (3.75%)',
+                  '+Rp${_fmt(_feeAdm)}',
+                  BooyahTheme.yellow,
+                ),
+                const Divider(color: Colors.white12),
+                // Dana Hadiah — input manual admin
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
-                      'Total Pendapatan',
+                      'Dana Hadiah',
                       style: TextStyle(
                         fontSize: 11,
                         color: BooyahTheme.textMuted,
                       ),
                     ),
                     SizedBox(
-                      width: 130,
+                      width: 140,
                       height: 36,
                       child: TextField(
                         controller: _totalCtrl,
@@ -504,19 +521,20 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: BooyahTheme.textPri,
+                          color: BooyahTheme.gold,
                         ),
                         decoration: InputDecoration(
-                          hintText: 'Rp${_fmt(_biaya * _kuota)}',
+                          hintText: _fmt((_gross * 0.85).round()),
                           hintStyle: const TextStyle(
-                            fontSize: 12,
-                            color: BooyahTheme.textMuted,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: BooyahTheme.gold,
                           ),
                           prefixText: 'Rp',
                           prefixStyle: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: BooyahTheme.textPri,
+                            color: BooyahTheme.gold,
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -526,13 +544,13 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(6),
                             borderSide: BorderSide(
-                              color: BooyahTheme.gold.withValues(alpha: 0.3),
+                              color: BooyahTheme.gold.withValues(alpha: 0.4),
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(6),
                             borderSide: BorderSide(
-                              color: BooyahTheme.gold.withValues(alpha: 0.3),
+                              color: BooyahTheme.gold.withValues(alpha: 0.4),
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -546,23 +564,6 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 6),
-                _calcRow(
-                  'Fee Platform (5%)',
-                  '-Rp${_fmt(_feePlat)}',
-                  BooyahTheme.red,
-                ),
-                _calcRow(
-                  'Fee Admin (3.75%)',
-                  '+Rp${_fmt(_feeAdm)}',
-                  BooyahTheme.yellow,
-                ),
-                const Divider(color: Colors.white12),
-                _calcRow(
-                  'Dana Hadiah (85%)',
-                  'Rp${_fmt(_hadiah)}',
-                  BooyahTheme.gold,
                 ),
               ],
             ),
