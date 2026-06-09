@@ -1887,237 +1887,155 @@ sequenceDiagram
 classDiagram
     direction TB
 
-    class User {
-        +int id
-        +String uuid
-        +String name
-        +String email
-        +String username
-        +String role
-        +bool is_suspended
-        +String? avatar_url
-        +String? phone
-        +String? ff_id
-        +String? team_name
-        +DateTime? last_login_at
-        +DateTime created_at
+    class Account {
+        #String accountID
+        #String name
+        #String email
+        #String passwordHash
+        #String role
+        #DateTime createdAt
         +login()
         +logout()
-        +updateProfile()
-    }
-
-    class AdminProfile {
-        +int id
-        +int user_id
-        +String display_name
-        +String? bio
-        +bool is_premium
-        +DateTime? premium_started_at
-        +DateTime? premium_expired_at
-        +int total_scrims_created
-        +int total_participants
-        +double rating
-        +bool is_trusted
-        +String? bank_name
-        +String? bank_account
-        +String? bank_holder
-        +createScrim()
-        +manageScrim()
-        +inputMatchResult()
-    }
-
-    class Scrim {
-        +int id
-        +String uuid
-        +int admin_id
-        +String title
-        +String? description
-        +String mode
-        +String? rules
-        +String server
-        +DateTime scheduled_at
-        +DateTime registration_closes_at
-        +int slot_total
-        +int slot_filled
-        +int fee
-        +int gross_income
-        +int fee_platform
-        +int fee_admin
-        +int prize_pool
-        +bool is_premium
-        +bool is_featured
-        +String status
-        +String? room_id
-        +String? room_password
-        +String? cancel_reason
-        +create()
-        +update()
-        +cancel()
-        +sendRoomInfo()
-        +finish()
-    }
-
-    class Registration {
-        +int id
-        +String uuid
-        +int scrim_id
-        +int user_id
-        +String team_name
-        +String captain_ff_id
-        +String phone
-        +String status
-        +String? payment_method
-        +int? payment_amount
-        +DateTime? booking_expires_at
-        +String? midtrans_snap_token
-        +String? midtrans_transaction_id
-        +String? midtrans_status
-        +String? payment_type
         +register()
-        +cancel()
-        +confirm()
     }
 
-    class TeamMember {
-        +int id
-        +int registration_id
-        +String ff_id
-        +int member_order
-        +DateTime created_at
+    class Admin {
+        -String communityName
+        -boolean isPremium
+        -String bio
+        -String logoUrl
+        -int totalScrimParticipants
+        -double totalScrimRevenue
+        +createScrim()
+        +updateScrim()
+        +verifyPayment()
+        +inputRoomID()
+        +inputResult()
+        +sendAnnouncement()
+        +manageRoomID()
+        +viewScrimReport()
     }
 
-    class MatchResult {
-        +int id
-        +int scrim_id
-        +int registration_id
-        +String team_name
-        +int placement
-        +int kills
-        +int placement_point
-        +int total_point
-        +int? rank
-        +int? prize_amount
-        +int inputted_by
-        +DateTime inputted_at
-        +calculatePoints()
-        +setRanking()
+    class User {
+        -String statusPeserta
+        -double totalWinnings
+        +bookingSlot()
+        +viewPaymentHistori()
+        +claimPrice()
+        +viewHistory()
+        +viewNotification()
     }
 
-    class PrizeClaim {
-        +int id
-        +String uuid
-        +int user_id
-        +int scrim_id
-        +int match_result_id
-        +int amount
-        +String? bank_type
-        +String? bank_name
-        +String? accountNumber
-        +String? accountName
-        +String status
-        +DateTime? claimed_at
-        +DateTime? verified_at
-        +int? verified_by
-        +String? reject_reason
-        +claim()
-        +approve()
-        +reject()
-    }
-
-    class Transaction {
-        +int id
-        +String uuid
-        +String type
-        +int amount
-        +String? reference_type
-        +int? reference_id
-        +String description
-        +int? user_id
-        +int? scrim_id
-        +int? balance_after
-        +DateTime created_at
-        +record()
-    }
-
-    class PremiumRequest {
-        +int id
-        +int admin_user_id
-        +String package_type
-        +int amount
-        +String? payment_proof
-        +String status
-        +int? approved_by
-        +DateTime? approved_at
-        +String? reject_reason
-        +String? midtrans_snap_token
-        +String? midtrans_status
-        +String? payment_type
-        +requestPremium()
-        +approve()
-        +reject()
+    class Platform {
+        -double totalPlatformRevenue
+        -double totalPlatformFeeCollected
+        +manageAccount()
+        +managePremiumService()
+        +verifyPrizeClaim()
+        +updateClaimStatus()
+        +viewFinancialDashboard()
+        +updateStatusTransfer()
+        +viewOverallReport()
     }
 
     class Notification {
-        +int id
-        +int user_id
-        +String type
-        +String title
-        +String message
-        +Map? data
-        +bool is_read
-        +DateTime? read_at
-        +int? sent_by
-        +int? scrim_id
-        +DateTime created_at
-        +markAsRead()
-        +send()
+        -String notifID
+        -String userID
+        -String title
+        -String message
+        -boolean isRead
+        -DateTime createdAt
     }
 
-    class BankAccount {
-        +int id
-        +int user_id
-        +String bank_type
-        +String bank_name
-        +String account_number
-        +String account_name
-        +bool is_primary
-        +bool is_verified
-        +add()
-        +setPrimary()
-        +delete()
+    class Scrim {
+        -String scrimID
+        -String adminID
+        -String title
+        -String description
+        -String mode
+        -DateTime scheduledDate
+        -Time startTime
+        -int quota
+        -int availableSlots
+        -double price
+        -String status
+        -String roomID
+        -String roomPassword
+        -double platformFee
+        -double adminFee
+        +updateStatus()
+        +checkAvailability()
+        +calculatePlatformFee()
+        +calculateTotalPrice()
     }
 
-    class AuditLog {
-        +int id
-        +int? actor_id
-        +String? actor_role
-        +String action
-        +String entity_type
-        +int? entity_id
-        +Map? old_values
-        +Map? new_values
-        +String? description
-        +String? ip_address
-        +DateTime created_at
-        +record()
+    class Leaderboard {
+        -String scrimID
+        -List teamList
+        -String resultID
+        -String registrationID
+        -int kills
+        -int placementPoints
+        -int totalPoints
+        -int rank
+        +sortRanking()
     }
 
-    User "1" --> "0..1" AdminProfile : memiliki
-    User "1" --> "0..*" Registration : melakukan
-    User "1" --> "0..*" PrizeClaim : mengajukan
-    User "1" --> "0..*" BankAccount : mendaftarkan
-    User "1" --> "0..*" Notification : menerima
-    User "1" --> "0..*" Transaction : terlibat dalam
-    AdminProfile "1" --> "0..*" Scrim : membuat
-    AdminProfile "1" --> "0..*" PremiumRequest : mengajukan
-    Scrim "1" --> "0..*" Registration : mempunyai
-    Scrim "1" --> "0..*" MatchResult : menghasilkan
-    Scrim "1" --> "0..*" Transaction : terkait
-    Scrim "1" --> "0..*" Notification : memicu
-    Registration "1" --> "1..*" TeamMember : berisi
-    Registration "1" --> "0..1" MatchResult : menghasilkan
-    MatchResult "1" --> "0..1" PrizeClaim : memunculkan
-    PrizeClaim "1" --> "0..1" Transaction : dicatat sebagai
+    class Team {
+        -String registrationID
+        -String scrimID
+        -String userID
+        -String teamName
+        -String statusPendaftaran
+        -List teamList
+    }
+
+    class Payment {
+        -String orderID
+        -String registrationID
+        -double grossAmount
+        -String paymentType
+        -String transactionStatus
+        -String midtransSnapToken
+        -String midtransTransactionID
+        -DateTime createdAt
+        -String transactionType
+        -DateTime logTimestamp
+        +createTransaction()
+        +handleNotification()
+    }
+
+    class PrizeClaim {
+        -String claimID
+        -String resultID
+        -String userID
+        -double amount
+        -String statusClaim
+        -String bankName
+        -String bankAccountName
+        -String bankAccountNumber
+        -String transactionType
+        -DateTime logTimestamp
+    }
+
+    %% Inheritance (Pewarisan)
+    Account <|-- Admin
+    Account <|-- User
+    Account <|-- Platform
+
+    %% Relations (Relasi)
+    Account "1" --> "0..*" Notification : Mempunyai
+    Admin "1" --> "1..*" Scrim : Membuat
+    Leaderboard "1" *-- "1" Scrim : Memiliki
+    Leaderboard "1" --> "1..*" Team : Mencatat
+    Team "1..*" --> "1..*" Scrim : Mendaftar
+    User "1" --> "1..*" Team : Mendaftarkan Team
+    Team "1" o-- "1" User : Aggregation
+    Team "1" --> "0..*" Payment : Melakukan
+    Scrim "1" --> "1" Payment : Untuk Scrim
+    Platform ..> Payment : Melihat
+    User "1" --> "0..*" PrizeClaim : Mengajukan
+    Platform ..> PrizeClaim : Meverifikasi
 ```
 
 ---
