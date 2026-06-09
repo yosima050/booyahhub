@@ -10,11 +10,13 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime? _selectedDate;
   List<Map<String, dynamic>> scrims = [];
   bool _loading = true;
+  bool _isLanjutSelected = false;
+  List<DateTime> _availableDates = [];
 
-@override
+  @override
   void initState() {
     super.initState();
     _initBookingInitialData();
@@ -24,13 +26,24 @@ class _BookingScreenState extends State<BookingScreen> {
     try {
       final data = await ScrimService.getAll(status: 'open', page: 1, limit: 50);
       if (!mounted) return;
-      if (data.isNotEmpty) {
-        final earliestDate = _getEarliestScrimDate(data);
-        if (earliestDate != null) {
-          _selectedDate = earliestDate;
-        }
+
+      // Urutkan data secara kronologis dari paling dekat ke paling jauh
+      data.sort((a, b) {
+        final da = DateTime.parse(a['scheduled_at'] ?? '');
+        final db = DateTime.parse(b['scheduled_at'] ?? '');
+        return da.compareTo(db);
+      });
+
+      _availableDates = _getUniqueScrimDates(data);
+
+      if (_availableDates.isNotEmpty) {
+        _selectedDate = _availableDates.first;
+        _isLanjutSelected = false;
+      } else {
+        _selectedDate = DateTime.now();
+        _isLanjutSelected = false;
       }
-      // Setelah mendapatkan tanggal scrim terdekat, muat data yang terfilter
+
       loadScrims();
     } catch (e) {
       debugPrint('Error init booking: $e');
@@ -39,24 +52,44 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-Future<void> loadScrims() async {
+  Future<void> loadScrims() async {
     if (!mounted) return;
     setState(() => _loading = true);
     try {
-      // 1. Ambil semua open scrim dari database
       final data = await ScrimService.getAll(status: 'open', page: 1, limit: 50);
       if (!mounted) return;
 
-      // 2. Saring data di sisi aplikasi agar HANYA menampilkan scrim yang tanggalnya cocok dengan _selectedDate
-      final filteredData = data.where((scrim) {
-        if (scrim['scheduled_at'] == null) return false;
-        
-        final scrimDate = DateTime.parse(scrim['scheduled_at']).toLocal(); 
-        
-        return scrimDate.year == _selectedDate.year &&
-              scrimDate.month == _selectedDate.month &&
-              scrimDate.day == _selectedDate.day;
-      }).toList();
+      // Urutkan data secara kronologis dari paling dekat ke paling jauh
+      data.sort((a, b) {
+        final da = DateTime.parse(a['scheduled_at'] ?? '');
+        final db = DateTime.parse(b['scheduled_at'] ?? '');
+        return da.compareTo(db);
+      });
+
+      _availableDates = _getUniqueScrimDates(data);
+
+      List<Map<String, dynamic>> filteredData = [];
+
+      if (_isLanjutSelected) {
+        // Tampilkan scrim yang tanggalnya lebih dari 7 tanggal teratas (atau lebih dari 7 hari)
+        final Set<String> first7DateKeys = _availableDates.take(7).map((d) => '${d.year}-${d.month}-${d.day}').toSet();
+        filteredData = data.where((scrim) {
+          if (scrim['scheduled_at'] == null) return false;
+          final dt = DateTime.parse(scrim['scheduled_at']).toLocal();
+          final key = '${dt.year}-${dt.month}-${dt.day}';
+          return !first7DateKeys.contains(key);
+        }).toList();
+      } else {
+        if (_selectedDate != null) {
+          filteredData = data.where((scrim) {
+            if (scrim['scheduled_at'] == null) return false;
+            final scrimDate = DateTime.parse(scrim['scheduled_at']).toLocal();
+            return scrimDate.year == _selectedDate!.year &&
+                scrimDate.month == _selectedDate!.month &&
+                scrimDate.day == _selectedDate!.day;
+          }).toList();
+        }
+      }
 
       setState(() {
         scrims = filteredData;
@@ -69,26 +102,22 @@ Future<void> loadScrims() async {
     }
   }
 
-  DateTime? _getEarliestScrimDate(List<Map<String, dynamic>> scrimList) {
-    if (scrimList.isEmpty) return null;
-    try {
-      DateTime earliest = DateTime.parse(scrimList.first['scheduled_at'] ?? '');
-      for (final scrim in scrimList) {
-        final scheduledAt = DateTime.parse(scrim['scheduled_at'] ?? '');
-        if (scheduledAt.isBefore(earliest)) {
-          earliest = scheduledAt;
-        }
-      }
-      return earliest;
-    } catch (e) {
-      debugPrint('Error parsing scrim dates: $e');
-      return null;
-    }
-  }
+  List<DateTime> _getUniqueScrimDates(List<Map<String, dynamic>> allScrims) {
+    final Set<String> uniqueKeys = {};
+    final List<DateTime> dates = [];
 
-  List<DateTime> get _weekDays {
-    final start = DateTime.now();
-    return List.generate(7, (i) => start.add(Duration(days: i)));
+    for (final scrim in allScrims) {
+      if (scrim['scheduled_at'] == null) continue;
+      final dt = DateTime.parse(scrim['scheduled_at']).toLocal();
+      final key = '${dt.year}-${dt.month}-${dt.day}';
+      if (!uniqueKeys.contains(key)) {
+        uniqueKeys.add(key);
+        dates.add(DateTime(dt.year, dt.month, dt.day));
+      }
+    }
+
+    dates.sort((a, b) => a.compareTo(b));
+    return dates;
   }
 
   bool _isFull(Map s)       => (s['slot_filled'] as int? ?? 0) >= (s['slot_total'] as int? ?? 1);
@@ -133,14 +162,56 @@ Future<void> loadScrims() async {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 14),
-              itemCount: _weekDays.length,
+              itemCount: _availableDates.take(7).length + (_availableDates.length > 7 ? 1 : 0),
               itemBuilder: (_, i) {
-                final d = _weekDays[i];
-                final active = d.day == _selectedDate.day && d.month == _selectedDate.month;
+                final datesToShow = _availableDates.take(7).toList();
+                
+                if (i == datesToShow.length) {
+                  final active = _isLanjutSelected;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isLanjutSelected = true;
+                        _selectedDate = null;
+                      });
+                      loadScrims();
+                    },
+                    child: Container(
+                      width: 68,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: active ? BooyahTheme.maroon : BooyahTheme.card,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: active ? BooyahTheme.maroonB : BooyahTheme.maroon.withValues(alpha: 0.2)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.arrow_forward, size: 16, color: active ? Colors.white : BooyahTheme.textMuted),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Lanjut',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: active ? BooyahTheme.gold : BooyahTheme.textPri,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+
+                final d = datesToShow[i];
+                final active = !_isLanjutSelected && _selectedDate != null && d.day == _selectedDate!.day && d.month == _selectedDate!.month;
                 final dayNames = ['Sen','Sel','Rab','Kam','Jum','Sab','Min'];
                 return GestureDetector(
                   onTap: () {
-                    setState(() => _selectedDate = d);
+                    setState(() {
+                      _selectedDate = d;
+                      _isLanjutSelected = false;
+                    });
                     loadScrims();
                   },
                   child: Container(
@@ -362,7 +433,8 @@ Future<void> loadScrims() async {
     ]),
   );
 
-  String _fmtMonth(DateTime d) {
+  String _fmtMonth(DateTime? d) {
+    if (d == null) return 'JADWAL LAINNYA';
     const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     return '${months[d.month - 1]} ${d.year}';
   }

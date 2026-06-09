@@ -30,9 +30,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: false
-  image_path: "assets/images/logo_scrim.png"
+  image_path: "assets/images/logo1.png"
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/logo_scrim.png
+    - assets/images/logo1.png
+    - assets/images/welcome_splash.png
