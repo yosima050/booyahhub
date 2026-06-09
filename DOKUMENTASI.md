@@ -714,7 +714,7 @@ flowchart TD
         T3 -->|Filter Jenis| T5[Pilih Jenis Pendapatan / Pengeluaran]
         T3 -->|Tidak| T6[Lihat Total Pendapatan, Pengeluaran & Saldo Bersih]
         T4 & T5 --> T6
-        T6 --> T7[Klik Unduh Laporan CSV] --> T8([🔴 Selesai])
+        T6 --> T8([🔴 Selesai])
     end
 
     subgraph Sistem ["💻 Sistem (Supabase DB)"]
@@ -722,8 +722,6 @@ flowchart TD
         S1 --> S2[Render Grafik & Tabel Ringkasan Keuangan] --> T3
         T4 & T5 --> S3[Query transactions Sesuai Parameter Filter]
         S3 --> S4[Render Ulang Chart & Tabel Arus Kas] --> T6
-        T7 --> S5[Generate Laporan CSV Berdasarkan Data Aktif]
-        S5 --> S6[Kirim File CSV ke Penyimpanan Device Platform] --> T8
     end
 ```
 
@@ -1438,13 +1436,6 @@ sequenceDiagram
         App->>DB: SELECT * FROM transactions\nWHERE type IN ('registration_fee','subscription')\nOR type = 'prize_payout'
         DB-->>App: Transaksi terfilter
         App-->>Platform: Tampilkan sesuai filter
-    end
-
-    opt Export Data
-        Platform->>App: Klik Export CSV
-        App->>DB: SELECT semua transaksi\nsesuai filter aktif
-        DB-->>App: Data lengkap
-        App-->>Platform: Generate & download file CSV
     end
 ```
 
