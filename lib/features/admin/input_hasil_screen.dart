@@ -3,6 +3,7 @@
 // UC-08: Input Hasil Pertandingan
 // ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
@@ -33,6 +34,8 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   final Map<String, List<PlayerScoreModel>> _playersMap = {};
   // Track which teams are expanded
   final Set<String> _expandedTeams = {};
+  // Controllers for team kills to sync changes
+  final Map<String, TextEditingController> _teamKillsControllers = {};
 
   @override
   void initState() {
@@ -43,6 +46,14 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    for (final ctrl in _teamKillsControllers.values) {
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
   Future<void> _loadTeams() async {
     setState(() => _loading = true);
     try {
@@ -50,25 +61,50 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
       final scrim = await ScrimService.getById(scrimId.toString());
       _scrimData = scrim;
 
-      // 2. Ambil tim yang sudah verified di scrim ini
+      // 2. Fetch existing match results
+      final existingResults = await Supabase.instance.client
+          .from('match_results')
+          .select()
+          .eq('scrim_id', scrimId);
+          
+      final Map<int, Map<String, dynamic>> resultsMap = {
+        for (var r in existingResults) r['registration_id'] as int: r
+      };
+
+      // 3. Ambil tim yang sudah verified/ongoing/waiting_room_id/finished di scrim ini
       final data = await RegistrationService.getByScrim(scrimId);
       setState(() {
         _teams = data
-            .where((d) => d['status'] == 'verified' || d['status'] == 'ongoing')
+            .where((d) =>
+                d['status'] == 'verified' ||
+                d['status'] == 'ongoing' ||
+                d['status'] == 'waiting_room_id' ||
+                d['status'] == 'finished')
             .map(
-              (d) => TeamScoreModel(
-                id: d['id'].toString(),
-                teamName: d['team_name'] as String,
-                icon: '',
-                placement: 1,
-                kills: 0,
-              ),
+              (d) {
+                final int regId = d['id'] as int;
+                final existing = resultsMap[regId];
+                final String teamId = regId.toString();
+                final int kills = existing?['kills'] as int? ?? 0;
+                
+                // Initialize controller
+                _teamKillsControllers[teamId] = TextEditingController(text: '$kills');
+                
+                return TeamScoreModel(
+                  id: teamId,
+                  teamName: d['team_name'] as String,
+                  icon: '',
+                  placement: existing?['placement'] as int? ?? 1,
+                  kills: kills,
+                );
+              },
             )
             .toList();
 
         // Inisialisasi players map untuk setiap tim dari team_members terdaftar
         for (final d in data) {
-          if (d['status'] == 'verified' || d['status'] == 'ongoing') {
+          final String status = d['status'] as String? ?? '';
+          if (status == 'verified' || status == 'ongoing' || status == 'waiting_room_id' || status == 'finished') {
             final String teamId = d['id'].toString();
             final String captainFfId = d['captain_ff_id'] as String? ?? 'Kapten';
             final List<dynamic> members = d['team_members'] as List? ?? [];
@@ -537,7 +573,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
               SizedBox(
                 width: 52,
                 child: TextFormField(
-                  initialValue: '${t.kills}',
+                  controller: _teamKillsControllers[t.id],
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
@@ -559,8 +595,11 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                       ),
                     ),
                   ),
-                  onChanged: (v) =>
-                      setState(() => _teams[idx].kills = int.tryParse(v) ?? 0),
+                  onChanged: (v) {
+                    setState(() {
+                      _teams[idx].kills = int.tryParse(v) ?? 0;
+                    });
+                  },
                 ),
               ),
               const SizedBox(width: 4),
@@ -796,9 +835,14 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                                 ),
                               ),
                             ),
-                            onChanged: (v) => setState(
-                              () => player.kills = int.tryParse(v) ?? 0,
-                            ),
+                            onChanged: (v) {
+                              setState(() {
+                                player.kills = int.tryParse(v) ?? 0;
+                                final totalKills = players.fold<int>(0, (sum, p) => sum + p.kills);
+                                _teams[idx].kills = totalKills;
+                                _teamKillsControllers[t.id]?.text = '$totalKills';
+                              });
+                            },
                           ),
                         ),
                       ],

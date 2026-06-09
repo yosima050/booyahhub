@@ -439,27 +439,32 @@ flowchart TD
 
 ### UC-11 Lihat Leaderboard
 
-**Aktor:** Peserta  
-**Tujuan:** Memantau akumulasi skor performa tim terbaik secara global maupun regional  
-**Prasyarat:** Peserta telah login ke sistem  
+**Aktor:** Peserta, Umum  
+**Tujuan:** Memantau akumulasi skor performa tim terbaik pada Scrim yang diikuti maupun semua Scrim umum  
+**Prasyarat:** Pengguna membuka halaman Leaderboard  
 
 ```mermaid
 flowchart TD
-    subgraph Aktor ["👤 Aktor (Peserta)"]
-        K1([🟢 Mulai]) --> K2[Buka Menu Peringkat / Leaderboard]
-        K2 --> K3{Pilih Tipe Klasemen?}
-        K3 -->|Global| K4[Tinjau Top 50 Akumulasi Poin Tim]
-        K3 -->|Per Scrim| K5[Pilih Event Tertentu]
-        K4 & K5 --> K6[Lihat Statistik Skor & Kills] --> K7([🔴 Selesai])
+    subgraph Aktor [Aktor Peserta/Umum]
+        K1([Mulai]) --> K2[Buka Menu Leaderboard]
+        K2 --> K3{Pilih Tab}
+        K3 -->|Scrim Saya| K4[Lihat Daftar Scrim yang Diikuti]
+        K3 -->|Scrim Umum| K5[Lihat Daftar Semua Scrim Aplikasi]
+        K4 --> K6{Daftar Kosong}
+        K6 -->|Ya| K7[Tampilkan Pesan Pemandu Kosong]
+        K6 -->|Tidak| K8[Pilih Salah Satu Scrim]
+        K5 --> K8
+        K8 --> K9[Tinjau Klasemen Lengkap Scrim] --> K10([Selesai])
     end
 
-    subgraph Sistem ["💻 Sistem (Supabase DB)"]
-        K2 --> S1[Panggil Database Views v_leaderboard]
-        S1 --> S2[Render Halaman Pilihan Klasemen] --> K3
-        K4 --> S3[SELECT FROM v_leaderboard ORDER BY total_point DESC]
-        S3 --> S4[Tampilkan Urutan Skor Global]
-        K5 --> S5[SELECT FROM match_results WHERE scrim_id = X]
-        S5 --> S6[Tampilkan Detail Klasemen Event]
+    subgraph Sistem [Sistem Supabase DB]
+        K2 --> S1[Cek Session Auth Pengguna]
+        S1 --> S2[SELECT FROM registrations JOIN scrims WHERE user_id = current]
+        S1 --> S3[SELECT FROM scrims ORDER BY scheduled_at DESC]
+        S2 --> S4[Render Tab Scrim Saya] --> K3
+        S3 --> S5[Render Tab Scrim Umum] --> K3
+        K8 --> S6[SELECT FROM v_leaderboard WHERE scrim_id = X]
+        S6 --> S7[Tampilkan Podium Juara & Peringkat Tim] --> K9
     end
 ```
 
@@ -1230,32 +1235,51 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor Peserta
+    actor Pengguna
     participant App as App (Halaman Leaderboard)
     participant DB as Supabase DB
+    participant Realtime as Supabase Realtime
 
-    Peserta->>App: Buka Menu Leaderboard
+    Pengguna->>App: Buka Menu Leaderboard
     activate App
-    App-->>Peserta: Tampilkan opsi klasemen
+    App->>DB: SELECT id, title, scheduled_at, status, mode FROM scrims ORDER BY scheduled_at DESC
+    activate DB
+    DB-->>App: Daftar semua scrim umum
+    deactivate DB
+
+    opt Pengguna Terautentikasi
+        App->>DB: SELECT * FROM registrations JOIN scrims WHERE user_id = profile_id
+        activate DB
+        DB-->>App: Daftar scrim yang diikuti oleh user
+        deactivate DB
+    end
+
+    App-->>Pengguna: Render halaman daftar Scrim (Tab Scrim Saya & Scrim Umum)
     deactivate App
 
-    alt Klasemen Global
-        Peserta->>App: Pilih Papan Peringkat Global
+    Pengguna->>App: Pilih salah satu Scrim dari daftar
+    activate App
+    App->>DB: SELECT * FROM v_leaderboard WHERE scrim_id = X
+    activate DB
+    DB-->>App: Hasil klasemen lengkap scrim X
+    deactivate DB
+    
+    App->>Realtime: Subscribe ke channel match_results untuk scrim X
+    activate Realtime
+    Realtime-->>App: Channel aktif
+    deactivate Realtime
+
+    App-->>Pengguna: Tampilkan klasemen detail (Podium, Hadiah & Ranking)
+    deactivate App
+
+    opt Realtime Update Hasil Scrim
+        Realtime-->>App: Notifikasi data match_results berubah
         activate App
-        App->>DB: SELECT * FROM v_leaderboard ORDER BY total_point DESC LIMIT 50
+        App->>DB: SELECT * FROM v_leaderboard WHERE scrim_id = X
         activate DB
-        DB-->>App: Data peringkat global
+        DB-->>App: Hasil klasemen terbaru
         deactivate DB
-        App-->>Peserta: Tampilkan Top 50 tim secara global
-        deactivate App
-    else Klasemen Per Scrim
-        Peserta->>App: Pilih salah satu Scrim
-        activate App
-        App->>DB: SELECT * FROM match_results WHERE scrim_id = X ORDER BY rank ASC
-        activate DB
-        DB-->>App: Data klasemen scrim tersebut
-        deactivate DB
-        App-->>Peserta: Tampilkan klasemen tim per scrim
+        App-->>Pengguna: Perbarui tampilan ranking secara real-time
         deactivate App
     end
 ```
