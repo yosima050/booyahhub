@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../services/supabase_service.dart';
@@ -76,7 +77,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Color _getTypeColor(String type) {
     switch (type) {
-      case 'room_id':        return BooyahTheme.maroonGlow;
+      case 'room_id':
+      case 'room_info':      return BooyahTheme.maroonGlow;
       case 'payment':        return BooyahTheme.green;
       case 'result':         return BooyahTheme.gold;
       case 'claim':          return BooyahTheme.yellow;
@@ -89,7 +91,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   String _getIcon(String type) {
     switch (type) {
-      case 'room_id':      return '🔴';
+      case 'room_id':
+      case 'room_info':    return '🔴';
       case 'payment':      return '✅';
       case 'result':       return '🏆';
       case 'claim':        return '💰';
@@ -133,7 +136,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   final color = _getTypeColor(type);
                   final ico = _getIcon(type);
                   return GestureDetector(
-                    onTap: () => _markRead(i),
+                    onTap: () {
+                      _markRead(i);
+                      _showDetailDialog(context, n);
+                    },
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.only(bottom: 9),
@@ -175,5 +181,158 @@ class _NotificationScreenState extends State<NotificationScreen> {
     } catch (e) {
       return '';
     }
+  }
+
+  void _showDetailDialog(BuildContext context, Map<String, dynamic> notif) {
+    final title = notif['title'] as String? ?? 'Notifikasi';
+    final message = notif['message'] as String? ?? '';
+    final type = notif['type'] as String? ?? '';
+    final isRoomInfo = type == 'room_id' || type == 'room_info' || message.toLowerCase().contains('room');
+
+    String? roomId;
+    String? roomPass;
+
+    if (isRoomInfo) {
+      if (notif['data'] != null && notif['data'] is Map) {
+        final dataMap = notif['data'] as Map;
+        roomId = dataMap['room_id']?.toString();
+        roomPass = dataMap['room_password']?.toString();
+      }
+
+      if ((roomId == null || roomId.isEmpty) && message.isNotEmpty) {
+        final regRoom = RegExp(r'Room\s*ID\s*:\s*([^\s·\n,]+)', caseSensitive: false);
+        final matchRoom = regRoom.firstMatch(message);
+        if (matchRoom != null) {
+          roomId = matchRoom.group(1);
+        }
+      }
+
+      if ((roomPass == null || roomPass.isEmpty) && message.isNotEmpty) {
+        final regPass = RegExp(r'(?:Password|Pass)\s*:\s*([^\s·\n,]+)', caseSensitive: false);
+        final matchPass = regPass.firstMatch(message);
+        if (matchPass != null) {
+          roomPass = matchPass.group(1);
+        }
+      }
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: BooyahTheme.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.white10),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontFamily: 'Orbitron',
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message,
+              style: const TextStyle(fontSize: 12, color: BooyahTheme.textSec, height: 1.5),
+            ),
+            if (roomId != null && roomId.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('ROOM ID', style: TextStyle(fontSize: 8, color: BooyahTheme.textMuted, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(roomId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 18, color: BooyahTheme.gold),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: roomId!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('⚡ Room ID berhasil disalin!'),
+                            backgroundColor: BooyahTheme.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (roomPass != null && roomPass.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('ROOM PASSWORD', style: TextStyle(fontSize: 8, color: BooyahTheme.textMuted, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text(roomPass, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy_rounded, size: 18, color: BooyahTheme.gold),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: roomPass!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('⚡ Room Password berhasil disalin!'),
+                            backgroundColor: BooyahTheme.green,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'TUTUP',
+              style: TextStyle(color: BooyahTheme.textMuted, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
