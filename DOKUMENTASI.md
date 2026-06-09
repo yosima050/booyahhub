@@ -39,20 +39,25 @@
    - [SD-01 Registrasi Akun](#sd-01-registrasi-akun)
    - [SD-02 Login](#sd-02-login)
    - [SD-03 Browse & Cari Scrim](#sd-03-browse--cari-scrim)
-   - [SD-04 Daftar Scrim](#sd-04-daftar-scrim)
-   - [SD-05 Pembayaran via Midtrans](#sd-05-pembayaran-via-midtrans)
-   - [SD-06 Terima Room ID & Password](#sd-06-terima-room-id--password)
-   - [SD-07 Lihat Hasil & Klaim Hadiah](#sd-07-lihat-hasil--klaim-hadiah)
-   - [SD-08 Lihat Leaderboard](#sd-08-lihat-leaderboard)
-   - [SD-09 Kelola Profil & Rekening Bank](#sd-09-kelola-profil--rekening-bank)
-   - [SD-10 Buat & Kelola Scrim (Admin)](#sd-10-buat--kelola-scrim-admin)
-   - [SD-11 Kirim Room ID ke Peserta (Admin)](#sd-11-kirim-room-id-ke-peserta-admin)
-   - [SD-12 Input Hasil Pertandingan (Admin)](#sd-12-input-hasil-pertandingan-admin)
-   - [SD-13 Verifikasi Klaim Hadiah (Admin)](#sd-13-verifikasi-klaim-hadiah-admin)
-   - [SD-14 Berlangganan Premium (Admin)](#sd-14-berlangganan-premium-admin)
-   - [SD-15 Dashboard Keuangan (Platform)](#sd-15-dashboard-keuangan-platform)
-   - [SD-16 Kelola & Suspend Pengguna (Platform)](#sd-16-kelola--suspend-pengguna-platform)
-   - [SD-17 Approve/Reject Premium Request (Platform)](#sd-17-approvereject-premium-request-platform)
+   - [SD-04 Lihat Detail Scrim](#sd-04-lihat-detail-scrim)
+   - [SD-05 Daftar Scrim](#sd-05-daftar-scrim)
+   - [SD-06 Pembayaran via Midtrans](#sd-06-pembayaran-via-midtrans)
+   - [SD-07 Lihat Status Pendaftaran](#sd-07-lihat-status-pendaftaran)
+   - [SD-08 Terima Room ID & Password](#sd-08-terima-room-id--password)
+   - [SD-09 Lihat Hasil Pertandingan](#sd-09-lihat-hasil-pertandingan)
+   - [SD-10 Klaim Hadiah](#sd-10-klaim-hadiah)
+   - [SD-11 Lihat Leaderboard](#sd-11-lihat-leaderboard)
+   - [SD-12 Kelola Profil & Rekening Bank](#sd-12-kelola-profil--rekening-bank)
+   - [SD-13 Buat Scrim Baru (Admin)](#sd-13-buat-scrim-baru-admin)
+   - [SD-14 Simpan Draft (Admin)](#sd-14-simpan-draft-admin)
+   - [SD-15 Kelola Pendaftaran Peserta (Admin)](#sd-15-kelola-pendaftaran-peserta-admin)
+   - [SD-16 Kirim Room ID ke Peserta (Admin)](#sd-16-kirim-room-id-ke-peserta-admin)
+   - [SD-17 Input Hasil Pertandingan (Admin)](#sd-17-input-hasil-pertandingan-admin)
+   - [SD-18 Verifikasi Klaim Hadiah (Admin)](#sd-18-verifikasi-klaim-hadiah-admin)
+   - [SD-19 Berlangganan Premium (Admin)](#sd-19-berlangganan-premium-admin)
+   - [SD-20 Dashboard Keuangan (Platform)](#sd-20-dashboard-keuangan-platform)
+   - [SD-21 Kelola & Suspend Pengguna (Platform)](#sd-21-kelola--suspend-pengguna-platform)
+   - [SD-22 Approve/Reject Premium Request (Platform)](#sd-22-approvereject-premium-request-platform)
 6. [Class Diagram](#6-class-diagram)
 7. [Entity Relationship Diagram (ERD)](#7-entity-relationship-diagram-erd)
 8. [Arsitektur Sistem](#8-arsitektur-sistem)
@@ -788,7 +793,6 @@ flowchart TD
         S7 --> S8[Kirim FCM Notifikasi Permintaan Ditolak ke Admin]
         S6 & S8 --> S9[Perbarui Halaman Dashboard Platform] --> V7
     end
-```
 
 ---
 
@@ -801,35 +805,51 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor Pengguna
-    participant App as Flutter App
+    participant App as App (Halaman Registrasi)
     participant SupaAuth as Supabase Auth
     participant DB as Supabase DB
 
     Pengguna->>App: Buka halaman Registrasi
+    activate App
     App-->>Pengguna: Tampilkan form registrasi
+    deactivate App
 
     Pengguna->>App: Input nama, email, password
+    activate App
     App->>App: Validasi lokal (format email, min password)
+    activate App
+    deactivate App
 
     alt Validasi Gagal
         App-->>Pengguna: Tampilkan pesan error validasi
     else Validasi Berhasil
         App->>SupaAuth: signUp(email, password)
+        activate SupaAuth
         SupaAuth-->>App: User baru / Error email duplikat
+        deactivate SupaAuth
 
         alt Email sudah terdaftar
             App-->>Pengguna: "Email sudah digunakan"
         else Registrasi Berhasil
+            activate SupaAuth
             SupaAuth->>DB: Trigger: INSERT users (uuid, role=participant)
+            activate DB
             DB-->>SupaAuth: Record berhasil dibuat
+            deactivate DB
             SupaAuth->>Pengguna: Kirim email verifikasi
+            deactivate SupaAuth
             App-->>Pengguna: "Cek email Anda untuk verifikasi"
         end
     end
+    deactivate App
 
     Pengguna->>SupaAuth: Klik link verifikasi di email
+    activate SupaAuth
     SupaAuth-->>App: Email terverifikasi
+    activate App
     App-->>Pengguna: Redirect ke halaman Login
+    deactivate App
+    deactivate SupaAuth
 ```
 
 ---
@@ -839,29 +859,41 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Pengguna
-    participant App as Flutter App
+    participant App as App (Halaman Login)
     participant SupaAuth as Supabase Auth
     participant DB as Supabase DB
 
     Pengguna->>App: Buka halaman Login
+    activate App
     App-->>Pengguna: Tampilkan form login
+    deactivate App
 
     Pengguna->>App: Input email & password
+    activate App
     App->>SupaAuth: signInWithPassword(email, password)
+    activate SupaAuth
 
     alt Kredensial Salah
         SupaAuth-->>App: Error: invalid credentials
+        deactivate SupaAuth
         App-->>Pengguna: "Email atau password salah"
     else Login Berhasil
+        activate SupaAuth
         SupaAuth-->>App: Session (access_token, user.id)
+        deactivate SupaAuth
         App->>DB: SELECT * FROM users WHERE uuid = auth.uid()
+        activate DB
         DB-->>App: Data user (role, is_suspended)
+        deactivate DB
 
         alt Akun Tersuspend
             App->>SupaAuth: signOut()
+            activate SupaAuth
+            SupaAuth-->>App: OK
+            deactivate SupaAuth
             App-->>Pengguna: "Akun disuspend: [alasan]"
         else role = participant
-            App-->>Pengguna: Redirect → Home Screen
+            App-->>Pengguna: Redirect → Home Screen (Beranda)
         else role = admin
             App-->>Pengguna: Redirect → Admin Dashboard
         else role = platform
@@ -869,7 +901,11 @@ sequenceDiagram
         end
 
         App->>DB: UPDATE users SET last_login_at = now()
+        activate DB
+        DB-->>App: OK
+        deactivate DB
     end
+    deactivate App
 ```
 
 ---
@@ -879,672 +915,967 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Peserta
-    participant App as Flutter App
+    participant App as App (Halaman Beranda / Browse)
     participant DB as Supabase DB
 
     Peserta->>App: Buka halaman Home / Browse
-    App->>DB: SELECT * FROM v_scrim_list\nWHERE status='open'\nORDER BY scheduled_at ASC
+    activate App
+    App->>DB: SELECT * FROM v_scrim_list WHERE status='open' ORDER BY scheduled_at ASC
+    activate DB
     DB-->>App: Daftar scrim tersedia
+    deactivate DB
     App-->>Peserta: Tampilkan daftar scrim
+    deactivate App
 
     opt Pengguna Filter
         Peserta->>App: Pilih filter (mode/server/fee)
-        App->>DB: SELECT * FROM v_scrim_list\nWHERE mode=? AND server=? AND fee<=?
+        activate App
+        App->>DB: SELECT * FROM v_scrim_list WHERE mode=? AND server=? AND fee<=?
+        activate DB
         DB-->>App: Hasil terfilter
+        deactivate DB
         App-->>Peserta: Tampilkan scrim yang sesuai filter
+        deactivate App
     end
 
     opt Pengguna Mencari
         Peserta->>App: Ketik kata kunci di search bar
-        App->>DB: SELECT * FROM scrims\nWHERE title ILIKE '%keyword%'
+        activate App
+        App->>DB: SELECT * FROM scrims WHERE title ILIKE '%keyword%'
+        activate DB
         DB-->>App: Hasil pencarian
+        deactivate DB
         App-->>Peserta: Tampilkan hasil pencarian
+        deactivate App
     end
-
-    Peserta->>App: Klik salah satu scrim
-    App-->>Peserta: Navigasi ke halaman Detail Scrim
 ```
 
 ---
 
-### SD-04 Daftar Scrim
+### SD-04 Lihat Detail Scrim
 
 ```mermaid
 sequenceDiagram
     actor Peserta
-    participant App as Flutter App
+    participant App as App (Halaman Detail Scrim)
     participant DB as Supabase DB
-    participant EdgeFn as Edge Function
+
+    Peserta->>App: Klik salah satu Scrim dari list
+    activate App
+    App->>DB: SELECT detail scrim & JOIN admin_profiles WHERE id = scrim_id
+    activate DB
+    DB-->>App: Data detail scrim & admin
+    deactivate DB
+    App->>App: Periksa sisa slot & batas registrasi
+    activate App
+    deactivate App
+    App-->>Peserta: Render Halaman Detail Scrim & aktifkan/nonaktifkan tombol daftar
+    deactivate App
+```
+
+---
+
+### SD-05 Daftar Scrim
+
+```mermaid
+sequenceDiagram
+    actor Peserta
+    participant App as App (Halaman Pendaftaran Scrim)
+    participant DB as Supabase DB
 
     Peserta->>App: Klik "Daftar Sekarang"
+    activate App
     App-->>Peserta: Tampilkan form pendaftaran
+    deactivate App
 
-    Peserta->>App: Isi nama tim, FF ID kapten,\nnomor HP, anggota tim
-    Peserta->>App: Pilih metode pembayaran
+    Peserta->>App: Isi nama tim, HP kapten, & FF ID anggota
+    activate App
+    Peserta->>App: Klik tombol Lanjut Pembayaran
+    App->>DB: CHECK: slot_filled < slot_total & registration_closes_at > now()
+    activate DB
+    DB-->>App: Slot valid / penuh
+    deactivate DB
 
-    App->>DB: CHECK: slot_filled < slot_total\nDAN registration_closes_at > now()
-    DB-->>App: Slot valid / sudah penuh
-
-    alt Slot Penuh / Registrasi Ditutup
+    alt Slot Penuh
         App-->>Peserta: "Slot penuh atau pendaftaran ditutup"
     else Slot Tersedia
-        App->>DB: INSERT registrations\n(status='pending_payment', payment_method)
+        App->>DB: INSERT registrations (status='pending_payment')
+        activate DB
         DB-->>App: registration_id
+        deactivate DB
 
-        App->>DB: INSERT team_members\n(ff_id per anggota)
-        DB-->>App: Anggota tersimpan
-
-        App->>EdgeFn: POST /create-transaction\n{registration_id, payment_type}
-        Note over App,EdgeFn: Lanjut ke SD-05
+        App->>DB: INSERT team_members (ff_id anggota)
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+        App-->>Peserta: Alihkan ke Modul Pembayaran (SD-06)
     end
+    deactivate App
 ```
 
 ---
 
-### SD-05 Pembayaran via Midtrans
+### SD-06 Pembayaran via Midtrans
 
 ```mermaid
 sequenceDiagram
     actor Peserta
-    participant App as Flutter App
+    participant App as App (Midtrans Snap Webview)
     participant EdgeFn as Edge Function
-    participant MT as Midtrans API
     participant DB as Supabase DB
+    participant MT as Midtrans API
     participant WebhookFn as Edge Fn: payment-notification
     participant FCM as Firebase FCM
 
-    Note over App,FCM: Lanjutan dari SD-04
-
-    App->>EdgeFn: POST /create-transaction\n{registration_id, payment_type[]}
-    EdgeFn->>DB: GET registrations JOIN scrims\nWHERE id = registration_id
+    Peserta->>App: Buka Snap UI / Mulai Pembayaran
+    activate App
+    App->>EdgeFn: POST /create-transaction {registration_id, payment_type}
+    activate EdgeFn
+    EdgeFn->>DB: GET registrations JOIN scrims WHERE id = registration_id
+    activate DB
     DB-->>EdgeFn: Data lengkap (amount, user info)
+    deactivate DB
 
-    EdgeFn->>MT: POST /snap/v1/transactions\n{order_id: "reg-{uuid}",\namount: fee,\nenabled_payments: [...]}
+    EdgeFn->>MT: POST /snap/v1/transactions {order_id, amount}
+    activate MT
     MT-->>EdgeFn: {token, redirect_url}
+    deactivate MT
 
-    EdgeFn->>DB: UPDATE registrations\nSET midtrans_snap_token = token
+    EdgeFn->>DB: UPDATE registrations SET midtrans_snap_token = token
+    activate DB
+    DB-->>EdgeFn: OK
+    deactivate DB
     EdgeFn-->>App: {snap_token, redirect_url}
+    deactivate EdgeFn
 
-    App->>Peserta: Buka Midtrans Snap UI
+    App->>Peserta: Render Midtrans Snap UI
+    deactivate App
 
     alt Peserta Membatalkan
         Peserta->>App: Tutup UI Midtrans
+        activate App
         App->>DB: UPDATE registrations SET status='failed'
+        activate DB
+        DB-->>App: OK
+        deactivate DB
         App-->>Peserta: Kembali ke Browse
+        deactivate App
     else Peserta Membayar
         Peserta->>MT: Selesaikan pembayaran
-        MT-->>Peserta: Konfirmasi pembayaran
+        activate MT
+        MT-->>Peserta: Pembayaran Sukses
+        deactivate MT
 
-        MT->>WebhookFn: POST /payment-notification\n{order_id, transaction_status, signature_key}
+        MT->>WebhookFn: POST /payment-notification {order_id, transaction_status}
+        activate WebhookFn
         WebhookFn->>WebhookFn: Verifikasi HMAC-SHA512
+        activate WebhookFn
+        deactivate WebhookFn
 
         alt Signature Valid & Status settlement
-            WebhookFn->>DB: UPDATE registrations\nSET status='verified',\nmidtrans_status='settlement',\npayment_type=actual_type
-            WebhookFn->>DB: UPDATE scrims\nSET slot_filled = slot_filled + 1
-            WebhookFn->>DB: INSERT transactions\n(type='registration_fee', amount=+fee)
-            WebhookFn->>FCM: Send notification\nke FCM token peserta
+            WebhookFn->>DB: UPDATE registrations SET status='verified', midtrans_status='settlement'
+            activate DB
+            DB-->>WebhookFn: OK
+            deactivate DB
+
+            WebhookFn->>DB: UPDATE scrims SET slot_filled = slot_filled + 1
+            activate DB
+            DB-->>WebhookFn: OK
+            deactivate DB
+
+            WebhookFn->>DB: INSERT transactions (type='registration_fee')
+            activate DB
+            DB-->>WebhookFn: OK
+            deactivate DB
+
+            WebhookFn->>FCM: Send notification ke token peserta
+            activate FCM
             FCM-->>Peserta: 🔔 "Pembayaran Berhasil!"
+            deactivate FCM
         else Signature Tidak Valid
             WebhookFn-->>MT: HTTP 401 Unauthorized
         end
+        deactivate WebhookFn
 
         App->>DB: Realtime subscription (registrations)
+        activate App
+        activate DB
         DB-->>App: Status update: 'verified'
+        deactivate DB
         App-->>Peserta: "Pendaftaran Berhasil!"
+        deactivate App
     end
 ```
 
 ---
 
-### SD-06 Terima Room ID & Password
+### SD-07 Lihat Status Pendaftaran
 
 ```mermaid
 sequenceDiagram
-    actor Admin
     actor Peserta
-    participant AdminApp as Flutter App (Admin)
+    participant App as App (Halaman Status Pendaftaran)
     participant DB as Supabase DB
-    participant FCM as Firebase FCM
-    participant PesertaApp as Flutter App (Peserta)
 
-    Admin->>AdminApp: Buka halaman Kirim Room ID
-    AdminApp-->>Admin: Form Room ID & Password
+    Peserta->>App: Buka menu Riwayat Scrim / Status
+    activate App
+    App->>DB: SELECT FROM registrations JOIN scrims WHERE user_id = current_user
+    activate DB
+    DB-->>App: Daftar riwayat pendaftaran
+    deactivate DB
+    App-->>Peserta: Render list riwayat & status (pending_payment, verified, dll)
+    deactivate App
 
-    Admin->>AdminApp: Isi Room ID dan Room Password
-    Admin->>AdminApp: Klik "Kirim ke Peserta"
-
-    AdminApp->>DB: UPDATE scrims SET\nroom_id=?,\nroom_password=?,\nroom_sent_at=now()
-    DB-->>AdminApp: Update berhasil
-
-    AdminApp->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='verified'
-    DB-->>AdminApp: List user_id peserta
-
-    loop Setiap Peserta
-        AdminApp->>DB: INSERT notifications\n(user_id, type='room_info',\ntitle='Room ID Telah Dikirim')
-        DB-->>AdminApp: Notifikasi tersimpan
+    opt Klik Detail & Status = pending_payment
+        Peserta->>App: Klik "Bayar Sekarang"
+        activate App
+        App-->>Peserta: Alihkan ke Snap UI (SD-06)
+        deactivate App
     end
-
-    AdminApp->>FCM: Send multicast notification\nke semua FCM token peserta
-    FCM-->>PesertaApp: 🔔 Push notification masuk
-
-    Peserta->>PesertaApp: Buka notifikasi / halaman Status
-    PesertaApp->>DB: SELECT room_id, room_password\nFROM scrims WHERE id=?
-    DB-->>PesertaApp: Room ID & Password
-    PesertaApp-->>Peserta: Tampilkan Room ID & Password
 ```
 
 ---
 
-### SD-07 Lihat Hasil & Klaim Hadiah
+### SD-08 Terima Room ID & Password
 
 ```mermaid
 sequenceDiagram
-    actor Admin
     actor Peserta
-    participant AdminApp as Flutter App (Admin)
-    participant PesertaApp as Flutter App (Peserta)
+    participant App as App (Halaman Status Scrim / Dialog Notifikasi)
     participant DB as Supabase DB
     participant FCM as Firebase FCM
 
-    Note over Admin,DB: FASE 1 — Input Hasil
-    Admin->>AdminApp: Buka "Input Hasil Pertandingan"
-    AdminApp->>DB: GET registrations\nWHERE scrim_id=? AND status='verified'
-    DB-->>AdminApp: Daftar tim peserta
-
-    loop Setiap Tim
-        Admin->>AdminApp: Input placement, kills
-        AdminApp->>AdminApp: Hitung total_point\n= placement_point + kills
-    end
-
-    Admin->>AdminApp: Klik Simpan Hasil
-    AdminApp->>DB: UPSERT match_results\n(placement, kills, total_point, rank, prize_amount)
-    DB-->>AdminApp: Data tersimpan
-
-    AdminApp->>DB: UPDATE scrims SET status='finished'
-    AdminApp->>FCM: Broadcast ke semua peserta\n"Hasil Scrim Tersedia"
-    FCM-->>PesertaApp: 🔔 "Hasil Diumumkan!"
-
-    Note over Peserta,DB: FASE 2 — Lihat Hasil
-    Peserta->>PesertaApp: Buka Hasil Pertandingan
-    PesertaApp->>DB: SELECT * FROM match_results\nWHERE scrim_id=? ORDER BY rank ASC
-    DB-->>PesertaApp: Data ranking & prize
-    PesertaApp-->>Peserta: Tampilkan leaderboard scrim
-
-    Note over Peserta,DB: FASE 3 — Klaim Hadiah (jika menang)
-    Peserta->>PesertaApp: Klik "Klaim Hadiah"
-    PesertaApp->>DB: GET bank_accounts\nWHERE user_id = current_user
-    DB-->>PesertaApp: Daftar rekening bank
-
-    Peserta->>PesertaApp: Pilih rekening & submit klaim
-    PesertaApp->>DB: INSERT prize_claims\n(status='pending', amount, bank_info)
-    DB-->>PesertaApp: claim_id
-
-    PesertaApp->>FCM: Notifikasi ke Admin:\n"Ada Klaim Hadiah Baru"
-    FCM-->>AdminApp: 🔔 Notifikasi masuk
-
-    Note over Admin,DB: FASE 4 — Verifikasi & Transfer
-    Admin->>AdminApp: Buka daftar klaim hadiah
-    AdminApp->>DB: GET prize_claims WHERE status='pending'
-    DB-->>AdminApp: Daftar klaim
-
-    Admin->>AdminApp: Verifikasi & approve klaim
-    AdminApp->>DB: UPDATE prize_claims SET status='paid'
-    AdminApp->>DB: INSERT transactions\n(type='prize_payout', amount=-prize)
-    AdminApp->>FCM: Notifikasi ke Peserta:\n"Hadiah Telah Dikirim!"
-    FCM-->>PesertaApp: 🔔 "Hadiah kamu sudah dikirim!"
+    FCM-->>Peserta: 🔔 Push notification "Room ID Telah Dikirim"
+    Peserta->>App: Buka Notifikasi / Klik Detail Status Scrim
+    activate App
+    App->>DB: SELECT room_id, room_password FROM scrims WHERE id = scrim_id
+    activate DB
+    DB-->>App: Data Room ID & Password
+    deactivate DB
+    App-->>Peserta: Tampilkan Room ID & Password (dan dialog pop-up dengan tombol Copy terpisah)
+    deactivate App
 ```
 
 ---
 
-### SD-08 Lihat Leaderboard
+### SD-09 Lihat Hasil Pertandingan
 
 ```mermaid
 sequenceDiagram
     actor Peserta
-    participant App as Flutter App
+    participant App as App (Halaman Hasil Pertandingan)
     participant DB as Supabase DB
 
-    Peserta->>App: Buka menu Leaderboard
-    App-->>Peserta: Tampilkan halaman Leaderboard
+    Peserta->>App: Buka Detail Scrim / Tab Hasil Pertandingan
+    activate App
+    App->>DB: SELECT * FROM match_results WHERE scrim_id = X ORDER BY rank ASC
+    activate DB
+    DB-->>App: Hasil klasemen per tim
+    deactivate DB
+    App->>App: Periksa jika user menang (prize_amount > 0)
+    activate App
+    deactivate App
+    App-->>Peserta: Tampilkan Leaderboard Scrim & aktifkan tombol "Klaim Hadiah" (jika menang)
+    deactivate App
+```
 
-    opt Leaderboard Global
-        App->>DB: SELECT * FROM v_leaderboard\nORDER BY total_point DESC\nLIMIT 50
+---
+
+### SD-10 Klaim Hadiah
+
+```mermaid
+sequenceDiagram
+    actor Peserta
+    participant App as App (Form Klaim Hadiah)
+    participant DB as Supabase DB
+    participant FCM as Firebase FCM
+
+    Peserta->>App: Klik "Klaim Hadiah" di Hasil Scrim
+    activate App
+    App->>DB: SELECT * FROM bank_accounts WHERE user_id = current_user
+    activate DB
+    DB-->>App: Daftar rekening bank
+    deactivate DB
+    App-->>Peserta: Render Form Pengajuan Klaim Hadiah
+    deactivate App
+
+    alt Rekening Belum Terdaftar
+        Peserta->>App: Input bank, no rekening, nama pemilik
+        activate App
+        App->>DB: INSERT INTO bank_accounts
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+        App-->>Peserta: Rekening ditambahkan ke pilihan
+        deactivate App
+    end
+
+    Peserta->>App: Pilih Rekening & Klik Kirim Klaim
+    activate App
+    App->>DB: INSERT INTO prize_claims (scrim_id, amount, bank_info, status='pending')
+    activate DB
+    DB-->>App: claim_id
+    deactivate DB
+    App->>FCM: Kirim FCM notifikasi ke Admin
+    activate FCM
+    FCM-->>App: OK
+    deactivate FCM
+    App-->>Peserta: "Pengajuan klaim berhasil dikirim!"
+    deactivate App
+```
+
+---
+
+### SD-11 Lihat Leaderboard
+
+```mermaid
+sequenceDiagram
+    actor Peserta
+    participant App as App (Halaman Leaderboard)
+    participant DB as Supabase DB
+
+    Peserta->>App: Buka Menu Leaderboard
+    activate App
+    App-->>Peserta: Tampilkan opsi klasemen
+    deactivate App
+
+    alt Klasemen Global
+        Peserta->>App: Pilih Papan Peringkat Global
+        activate App
+        App->>DB: SELECT * FROM v_leaderboard ORDER BY total_point DESC LIMIT 50
+        activate DB
         DB-->>App: Data peringkat global
-        App-->>Peserta: Tampilkan Top 50 pemain
+        deactivate DB
+        App-->>Peserta: Tampilkan Top 50 tim secara global
+        deactivate App
+    else Klasemen Per Scrim
+        Peserta->>App: Pilih salah satu Scrim
+        activate App
+        App->>DB: SELECT * FROM match_results WHERE scrim_id = X ORDER BY rank ASC
+        activate DB
+        DB-->>App: Data klasemen scrim tersebut
+        deactivate DB
+        App-->>Peserta: Tampilkan klasemen tim per scrim
+        deactivate App
     end
-
-    opt Leaderboard Per Scrim
-        Peserta->>App: Pilih scrim tertentu
-        App->>DB: SELECT * FROM match_results\nWHERE scrim_id=?\nORDER BY rank ASC
-        DB-->>App: Hasil scrim
-        App-->>Peserta: Tampilkan ranking scrim tersebut
-    end
-
-    Peserta->>App: Klik nama tim / pengguna
-    App->>DB: SELECT * FROM registrations JOIN match_results\nWHERE user_id=?
-    DB-->>App: Histori pertandingan
-    App-->>Peserta: Tampilkan profil & histori tim
 ```
 
 ---
 
-### SD-09 Kelola Profil & Rekening Bank
+### SD-12 Kelola Profil & Rekening Bank
 
 ```mermaid
 sequenceDiagram
     actor Pengguna
-    participant App as Flutter App
+    participant App as App (Halaman Pengaturan Profil)
     participant DB as Supabase DB
     participant Storage as Supabase Storage
     participant SupaAuth as Supabase Auth
 
-    Pengguna->>App: Buka halaman Profil
-    App->>DB: SELECT * FROM users WHERE id = current_user
-    DB-->>App: Data profil
-    App-->>Pengguna: Tampilkan profil lengkap
+    Pengguna->>App: Buka menu Akun / Profil
+    activate App
+    App->>DB: SELECT * FROM users WHERE uuid = auth.uid()
+    activate DB
+    DB-->>App: Data profil lengkap
+    deactivate DB
+    App-->>Pengguna: Render halaman profil
+    deactivate App
 
-    opt Edit Profil
-        Pengguna->>App: Edit nama, FF ID, username, dll
-        App->>DB: UPDATE users SET\nname=?, ff_id=?, username=?, team_name=?
-        DB-->>App: Update berhasil
-        App-->>Pengguna: "Profil diperbarui"
+    opt Edit Info Profil
+        Pengguna->>App: Edit nama, username, atau FF ID
+        activate App
+        App->>DB: UPDATE users SET name=?, username=?, ff_id=?
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+        App-->>Pengguna: "Profil berhasil diperbarui"
+        deactivate App
     end
 
     opt Ganti Foto Profil
-        Pengguna->>App: Pilih foto baru
-        App->>Storage: PUT /avatars/{userId}/{filename}
-        Storage-->>App: avatar_url baru
-        App->>DB: UPDATE users SET avatar_url=?
+        Pengguna->>App: Pilih foto dari galeri
+        activate App
+        App->>Storage: upload avatar file ke bucket 'avatars'
+        activate Storage
+        Storage-->>App: avatar public url
+        deactivate Storage
+        App->>DB: UPDATE users SET avatar_url = url
+        activate DB
+        DB-->>App: OK
+        deactivate DB
         App-->>Pengguna: Foto profil diperbarui
+        deactivate App
     end
 
-    opt Tambah Rekening Bank
-        Pengguna->>App: Klik "Tambah Rekening"
-        App-->>Pengguna: Form tambah rekening
-        Pengguna->>App: Isi bank_name, account_number, account_name
-        App->>DB: INSERT bank_accounts\n(user_id, bank_name, account_number, account_name)
-        DB-->>App: Rekening tersimpan
+    opt Kelola Rekening Bank
+        Pengguna->>App: Masukkan bank, no_rek, nama & Klik Tambah
+        activate App
+        App->>DB: INSERT INTO bank_accounts
+        activate DB
+        DB-->>App: OK
+        deactivate DB
         App-->>Pengguna: "Rekening berhasil ditambahkan"
+        deactivate App
     end
 
     opt Ganti Password
-        Pengguna->>App: Isi password lama & baru
+        Pengguna->>App: Input password lama & baru
+        activate App
         App->>SupaAuth: updateUser(password: newPassword)
+        activate SupaAuth
         SupaAuth-->>App: Berhasil
-        App-->>Pengguna: "Password berhasil diganti"
+        deactivate SupaAuth
+        App-->>Pengguna: "Password berhasil diubah"
+        deactivate App
     end
 ```
 
 ---
 
-### SD-10 Buat & Kelola Scrim (Admin)
+### SD-13 Buat Scrim Baru (Admin)
 
 ```mermaid
 sequenceDiagram
     actor Admin
-    participant App as Flutter App (Admin)
+    participant App as AdminApp (Halaman Buat Scrim)
     participant DB as Supabase DB
 
-    Admin->>App: Buka "Buat Scrim Baru"
-    App-->>Admin: Tampilkan form buat scrim
+    Admin->>App: Buka halaman "Buat Scrim Baru"
+    activate App
+    App-->>Admin: Tampilkan form scrim kosong
+    deactivate App
 
-    Admin->>App: Isi semua data scrim\n(judul, mode, server, jadwal, slot, fee, prize)
-    App->>App: Validasi lokal\n(jadwal > sekarang, slot > 0, fee >= 0)
+    Admin->>App: Isi data scrim (judul, mode, server, jadwal, slot, fee, prize) & klik "Publikasikan"
+    activate App
+    App->>App: Validasi input (jadwal > sekarang, slot > 0, fee >= 0)
+    activate App
+    deactivate App
 
     alt Validasi Gagal
         App-->>Admin: Tampilkan error validasi
-    else Validasi Berhasil
-        App->>DB: INSERT scrims\n(admin_id, title, mode, server,\nscheduled_at, slot_total, fee, prize_pool,\nstatus='open', slot_filled=0)
+    else Validasi Sukses
+        App->>DB: INSERT INTO scrims (admin_id, title, mode, server, scheduled_at, slot_total, fee, status='open')
+        activate DB
         DB-->>App: scrim_id baru
-        App-->>Admin: "Scrim berhasil dibuat!"
+        deactivate DB
+        App-->>Admin: "Scrim berhasil dipublikasikan!"
     end
-
-    Note over Admin,DB: Edit Scrim
-    Admin->>App: Buka scrim & klik Edit
-    App->>DB: SELECT * FROM scrims WHERE id=? AND admin_id=current
-    DB-->>App: Data scrim
-    App-->>Admin: Form edit dengan data saat ini
-
-    Admin->>App: Ubah field yang diinginkan
-    App->>DB: UPDATE scrims SET ?\nWHERE id=? AND status='open'
-    DB-->>App: Update berhasil
-    App-->>Admin: "Scrim diperbarui"
-
-    Note over Admin,DB: Batalkan Scrim
-    Admin->>App: Klik "Batalkan Scrim"
-    App-->>Admin: Konfirmasi & form alasan
-    Admin->>App: Isi alasan pembatalan
-    App->>DB: UPDATE scrims SET\nstatus='cancelled',\ncancel_reason=?,\ncancelled_at=now()
-    DB-->>App: Berhasil
-    App-->>Admin: "Scrim dibatalkan"
+    deactivate App
 ```
 
 ---
 
-### SD-11 Kirim Room ID ke Peserta (Admin)
+### SD-14 Simpan Draft (Admin)
 
 ```mermaid
 sequenceDiagram
     actor Admin
-    participant AdminApp as Flutter App (Admin)
+    participant App as AdminApp (Halaman Buat Scrim / Beranda Admin)
+    participant DB as Supabase DB
+
+    Admin->>App: Buka form Scrim & Isi sebagian data
+    activate App
+    Admin->>App: Klik "Simpan Sebagai Draft"
+    App->>DB: INSERT/UPDATE scrims SET status='draft', admin_id=current_user
+    activate DB
+    DB-->>App: OK
+    deactivate DB
+    App-->>Admin: "Draft berhasil disimpan"
+    deactivate App
+
+    Admin->>App: Klik filter Chips 'Draft' di Beranda Admin
+    activate App
+    App->>DB: SELECT * FROM scrims WHERE admin_id = current_user AND status = 'draft'
+    activate DB
+    DB-->>App: List scrim draft
+    deactivate DB
+    App-->>Admin: Tampilkan daftar draft
+    deactivate App
+```
+
+---
+
+### SD-15 Kelola Pendaftaran Peserta (Admin)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant App as AdminApp (Halaman Kelola Pendaftaran)
     participant DB as Supabase DB
     participant FCM as Firebase FCM
     participant PesertaApp as Flutter App (Peserta)
-    actor Peserta
 
-    Admin->>AdminApp: Buka halaman Scrim
-    Admin->>AdminApp: Klik "Kirim Room ID"
-    AdminApp-->>Admin: Form Room ID & Password
+    Admin->>App: Buka detail scrim & lihat daftar pendaftar
+    activate App
+    App->>DB: SELECT * FROM registrations JOIN team_members WHERE scrim_id = X
+    activate DB
+    DB-->>App: List pendaftaran peserta
+    deactivate DB
+    App-->>Admin: Tampilkan daftar peserta terfilter status
+    deactivate App
 
-    Admin->>AdminApp: Input Room ID & Room Password
-    Admin->>AdminApp: Klik Kirim
+    opt Diskualifikasi / Reject Pendaftaran
+        Admin->>App: Klik reject pendaftaran & isi alasan
+        activate App
+        App->>DB: UPDATE registrations SET status='rejected' WHERE id = reg_id
+        activate DB
+        DB-->>App: OK
+        deactivate DB
 
-    AdminApp->>DB: UPDATE scrims SET room_id=?, room_password=?,\nroom_sent_at=now()\nWHERE id=? AND admin_id=current
-    DB-->>AdminApp: Update sukses
+        App->>DB: UPDATE scrims SET slot_filled = slot_filled - 1 WHERE id = scrim_id
+        activate DB
+        DB-->>App: OK
+        deactivate DB
 
-    AdminApp->>DB: SELECT users.fcm_token, registrations.user_id\nFROM registrations JOIN users\nWHERE scrim_id=? AND status='verified'
-    DB-->>AdminApp: List peserta & FCM token
-
-    loop Batch Insert Notifikasi
-        AdminApp->>DB: INSERT notifications\n(user_id, type='room_info', scrim_id=?)
+        App->>FCM: Kirim push notif pembatalan pendaftaran
+        activate FCM
+        FCM-->>PesertaApp: 🔔 "Pendaftaran Anda dibatalkan"
+        deactivate FCM
+        App-->>Admin: "Pendaftaran berhasil direject"
+        deactivate App
     end
-
-    AdminApp->>FCM: sendMulticast(\n  tokens: [...],\n  title: "Room ID Telah Dikirim",\n  body: "Buka aplikasi untuk lihat Room ID"\n)
-    FCM-->>PesertaApp: Push notification diterima
-
-    Peserta->>PesertaApp: Buka notifikasi
-    PesertaApp->>DB: SELECT room_id, room_password\nFROM scrims WHERE id=?
-    DB-->>PesertaApp: Room ID & Password
-    PesertaApp-->>Peserta: Tampilkan Room ID & Password
 ```
 
 ---
 
-### SD-12 Input Hasil Pertandingan (Admin)
+### SD-16 Kirim Room ID ke Peserta (Admin)
 
 ```mermaid
 sequenceDiagram
     actor Admin
-    participant App as Flutter App (Admin)
+    participant AdminApp as AdminApp (Halaman Kirim Room ID)
     participant DB as Supabase DB
     participant FCM as Firebase FCM
+    participant PesertaApp as PesertaApp (Halaman Status Scrim)
+    actor Peserta
 
-    Admin->>App: Buka "Input Hasil" untuk scrim tertentu
-    App->>DB: SELECT registrations\nWHERE scrim_id=? AND status='verified'
+    Admin->>AdminApp: Buka menu "Kirim Room ID" di scrim aktif
+    activate AdminApp
+    AdminApp-->>Admin: Tampilkan Form Room ID & Password
+    deactivate AdminApp
+
+    Admin->>AdminApp: Input Room ID & Password & klik "Kirim"
+    activate AdminApp
+    AdminApp->>DB: UPDATE scrims SET room_id, room_password, room_sent_at=now() WHERE id=scrim_id
+    activate DB
+    DB-->>AdminApp: OK
+    deactivate DB
+
+    AdminApp->>DB: SELECT users.fcm_token, registrations.user_id FROM registrations JOIN users WHERE scrim_id=? AND status='verified'
+    activate DB
+    DB-->>AdminApp: List token FCM peserta
+    deactivate DB
+
+    loop Batch Insert Notifikasi
+        AdminApp->>DB: INSERT INTO notifications (user_id, type='room_info')
+        activate DB
+        DB-->>AdminApp: OK
+        deactivate DB
+    end
+
+    AdminApp->>FCM: sendMulticast(tokens, title="Room ID Telah Dikirim", body)
+    activate FCM
+    FCM-->>PesertaApp: Push notification diterima
+    deactivate FCM
+    AdminApp-->>Admin: "Room ID berhasil dikirim!"
+    deactivate AdminApp
+
+    Peserta->>PesertaApp: Klik notifikasi / buka status
+    activate PesertaApp
+    PesertaApp->>DB: SELECT room_id, room_password FROM scrims WHERE id=scrim_id
+    activate DB
+    DB-->>PesertaApp: Room ID & Password
+    deactivate DB
+    PesertaApp-->>Peserta: Tampilkan Room ID & Password (dialog pop-up dengan tombol Copy terpisah)
+    deactivate PesertaApp
+```
+
+---
+
+### SD-17 Input Hasil Pertandingan (Admin)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant App as AdminApp (Halaman Input Hasil)
+    participant DB as Supabase DB
+    participant FCM as Firebase FCM
+    participant PesertaApp as PesertaApp (Halaman Hasil Pertandingan)
+
+    Admin->>App: Buka menu "Input Hasil" scrim
+    activate App
+    App->>DB: SELECT FROM registrations WHERE scrim_id=X AND status='verified'
+    activate DB
     DB-->>App: Daftar tim peserta
-    App-->>Admin: Form input hasil per tim
+    deactivate DB
+    App-->>Admin: Render Form Input per Tim
+    deactivate App
 
     loop Setiap Tim
         Admin->>App: Input placement & kills
-        App->>App: Hitung placement_point\nberdasarkan tabel poin Free Fire
-        App->>App: Hitung total_point\n= placement_point + kills
+        activate App
+        App->>App: Hitung total_point = placement_point + kills
+        deactivate App
     end
-
-    App->>App: Sort semua tim\nberdasarkan total_point DESC
-    App->>App: Assign rank 1, 2, 3, ...
-    App->>App: Hitung prize_amount\nuntuk rank yang menang
 
     Admin->>App: Klik "Simpan Hasil"
+    activate App
+    App->>App: Sort tim by total_point DESC & tentukan rank & prize_amount
+    activate App
+    deactivate App
 
-    App->>DB: UPSERT match_results\nFOR EACH tim:\n(scrim_id, registration_id, team_name,\nplacement, kills, placement_point,\ntotal_point, rank, prize_amount,\ninputted_by=admin_id)
-    DB-->>App: Semua hasil tersimpan
+    App->>DB: UPSERT INTO match_results (scrim_id, placement, kills, total_point, rank, prize_amount)
+    activate DB
+    DB-->>App: OK
+    deactivate DB
 
-    App->>DB: UPDATE scrims\nSET status='finished'
-    DB-->>App: Status updated
+    App->>DB: UPDATE scrims SET status='finished' WHERE id=scrim_id
+    activate DB
+    DB-->>App: OK
+    deactivate DB
 
-    App->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='verified'
-    DB-->>App: List peserta
+    App->>DB: SELECT user_id FROM registrations WHERE scrim_id=scrim_id AND status='verified'
+    activate DB
+    DB-->>App: List user_id peserta
+    deactivate DB
 
-    App->>FCM: Broadcast ke semua peserta:\n"Hasil Scrim [nama] Telah Diumumkan!"
-    FCM-->>App: Delivered
-
+    App->>FCM: sendMulticast ke semua peserta "Hasil Scrim Telah Diumumkan"
+    activate FCM
+    FCM-->>PesertaApp: 🔔 "Hasil Scrim Diumumkan!"
+    deactivate FCM
     App-->>Admin: "Hasil berhasil disimpan!"
+    deactivate App
 ```
 
 ---
 
-### SD-13 Verifikasi Klaim Hadiah (Admin)
+### SD-18 Verifikasi Klaim Hadiah (Admin)
 
 ```mermaid
 sequenceDiagram
     actor Admin
-    actor Peserta
-    participant AdminApp as Flutter App (Admin)
-    participant PesertaApp as Flutter App (Peserta)
+    participant AdminApp as AdminApp (Halaman Verifikasi Klaim)
     participant DB as Supabase DB
     participant FCM as Firebase FCM
+    participant PesertaApp as PesertaApp (Halaman Status / Hasil)
 
-    Note over Peserta,DB: Peserta mengajukan klaim
-    Peserta->>PesertaApp: Klik "Klaim Hadiah"
-    PesertaApp->>DB: INSERT prize_claims\n(user_id, scrim_id, match_result_id,\namount, bank_info, status='pending')
-    DB-->>PesertaApp: claim_id
-    PesertaApp->>FCM: Notifikasi ke admin:\n"Ada klaim hadiah baru"
-    FCM-->>AdminApp: 🔔 Notifikasi
-
-    Note over Admin,DB: Admin verifikasi
-    Admin->>AdminApp: Buka daftar klaim
-    AdminApp->>DB: SELECT prize_claims JOIN users JOIN match_results\nWHERE status='pending'\nAND scrim_id IN (admin_scrims)
+    Admin->>AdminApp: Buka menu daftar klaim pending
+    activate AdminApp
+    AdminApp->>DB: SELECT FROM prize_claims WHERE status='pending' AND scrim_id IN (admin_scrims)
+    activate DB
     DB-->>AdminApp: Daftar klaim pending
+    deactivate DB
+    AdminApp-->>Admin: Tampilkan daftar antrean klaim
+    deactivate AdminApp
 
-    Admin->>AdminApp: Pilih klaim untuk diverifikasi
-    AdminApp-->>Admin: Detail: nama, jumlah, rekening bank
+    Admin->>AdminApp: Pilih salah satu klaim untuk diverifikasi
+    activate AdminApp
+    AdminApp-->>Admin: Tampilkan detail rekening bank & jumlah transfer
+    deactivate AdminApp
 
-    alt Admin Approve
+    alt Admin Menyetujui (Approve)
         Admin->>AdminApp: Transfer manual via bank
-        Admin->>AdminApp: Klik "Approve Klaim"
-        AdminApp->>DB: UPDATE prize_claims SET\nstatus='paid',\nverified_at=now(),\nverified_by=admin_id
-        AdminApp->>DB: INSERT transactions\n(type='prize_payout',\namount=-prize_amount,\nscrim_id=?, user_id=?)
-        AdminApp->>FCM: Notif ke peserta:\n"Hadiah Telah Dikirim!"
+        Admin->>AdminApp: Klik "Approve"
+        activate AdminApp
+        AdminApp->>DB: UPDATE prize_claims SET status='paid', verified_at=now()
+        activate DB
+        DB-->>AdminApp: OK
+        deactivate DB
+
+        AdminApp->>DB: INSERT INTO transactions (type='prize_payout', amount=-prize)
+        activate DB
+        DB-->>AdminApp: OK
+        deactivate DB
+
+        AdminApp->>FCM: Kirim push notif ke peserta
+        activate FCM
         FCM-->>PesertaApp: 🔔 "Hadiah kamu sudah dikirim!"
-    else Admin Reject
-        Admin->>AdminApp: Isi alasan penolakan
-        Admin->>AdminApp: Klik "Reject"
-        AdminApp->>DB: UPDATE prize_claims SET\nstatus='rejected',\nreject_reason=?
-        AdminApp->>FCM: Notif ke peserta:\n"Klaim Ditolak: [alasan]"
-        FCM-->>PesertaApp: 🔔 Notifikasi penolakan
+        deactivate FCM
+        AdminApp-->>Admin: "Klaim disetujui & tercatat"
+        deactivate AdminApp
+    else Admin Menolak (Reject)
+        Admin->>AdminApp: Input alasan reject & Klik "Reject"
+        activate AdminApp
+        AdminApp->>DB: UPDATE prize_claims SET status='rejected', reject_reason=alasan
+        activate DB
+        DB-->>AdminApp: OK
+        deactivate DB
+
+        AdminApp->>FCM: Kirim push notif penolakan
+        activate FCM
+        FCM-->>PesertaApp: 🔔 "Klaim hadiah ditolak: [alasan]"
+        deactivate FCM
+        AdminApp-->>Admin: "Klaim berhasil ditolak"
+        deactivate AdminApp
     end
 ```
 
 ---
 
-### SD-14 Berlangganan Premium (Admin)
+### SD-19 Berlangganan Premium (Admin)
 
 ```mermaid
 sequenceDiagram
     actor Admin
-    participant App as Flutter App (Admin)
-    participant DB as Supabase DB
+    participant App as AdminApp (Halaman Premium Admin)
     participant EdgeFn as Edge Function
+    participant DB as Supabase DB
     participant MT as Midtrans
     participant WebhookFn as Edge Fn: payment-notification
     participant PlatformApp as Flutter App (Platform)
-    actor Platform
 
     Admin->>App: Buka menu Langganan Premium
+    activate App
     App->>DB: GET paket premium & harga
+    activate DB
     DB-->>App: Daftar paket
+    deactivate DB
     App-->>Admin: Tampilkan pilihan paket
+    deactivate App
 
-    Admin->>App: Pilih paket & metode bayar
-    Admin->>App: Klik "Berlangganan"
-
-    App->>DB: INSERT premium_requests\n(admin_user_id, package_type,\namount, status='pending')
+    Admin->>App: Pilih paket & Klik "Berlangganan"
+    activate App
+    App->>DB: INSERT INTO premium_requests (amount, status='pending')
+    activate DB
     DB-->>App: request_id
+    deactivate DB
 
-    App->>EdgeFn: POST /create-transaction\n{type:'premium', id: request_id}
-    EdgeFn->>MT: POST /snap/v1/transactions\n{order_id: "sub-{uuid}", amount}
+    App->>EdgeFn: POST /create-transaction {type:'premium', request_id}
+    activate EdgeFn
+    EdgeFn->>MT: POST /snap/v1/transactions {order_id: "sub-..."}
+    activate MT
     MT-->>EdgeFn: snap_token
-    EdgeFn->>DB: UPDATE premium_requests\nSET midtrans_snap_token=?
+    deactivate MT
+
+    EdgeFn->>DB: UPDATE premium_requests SET midtrans_snap_token=token
+    activate DB
+    DB-->>EdgeFn: OK
+    deactivate DB
     EdgeFn-->>App: snap_token
+    deactivate EdgeFn
 
     App-->>Admin: Buka Midtrans Snap UI
-    Admin->>MT: Selesaikan pembayaran
+    deactivate App
 
-    MT->>WebhookFn: POST /payment-notification\n{order_id, status:'settlement'}
+    Admin->>MT: Lakukan pembayaran
+    activate MT
+    MT-->>Admin: Pembayaran Berhasil
+    deactivate MT
+
+    MT->>WebhookFn: POST /payment-notification {order_id, transaction_status='settlement'}
+    activate WebhookFn
     WebhookFn->>DB: UPDATE premium_requests SET status='paid'
-    WebhookFn->>DB: SELECT platform user_id
-    WebhookFn->>PlatformApp: FCM: "Ada Request Premium Baru"
-
-    Platform->>PlatformApp: Buka & review request
-    PlatformApp->>DB: GET premium_requests WHERE status='paid'
-    DB-->>PlatformApp: Data request
-
-    alt Platform Approve
-        Platform->>PlatformApp: Klik Approve
-        PlatformApp->>DB: UPDATE premium_requests SET status='approved'
-        PlatformApp->>DB: UPDATE admin_profiles SET\nis_premium=true,\npremium_started_at=now(),\npremium_expired_at=+30/365 hari
-        PlatformApp->>DB: INSERT transactions\n(type='subscription', amount=+nominal)
-        PlatformApp->>App: FCM: "Akun Premium Aktif!"
-        App-->>Admin: 🔔 "Selamat! Fitur premium terbuka"
-    else Platform Reject
-        Platform->>PlatformApp: Isi alasan & klik Reject
-        PlatformApp->>DB: UPDATE premium_requests SET\nstatus='rejected', reject_reason=?
-        PlatformApp->>App: FCM: "Request Premium Ditolak"
-        App-->>Admin: 🔔 Notifikasi penolakan
-    end
+    activate DB
+    DB-->>WebhookFn: OK
+    deactivate DB
+    WebhookFn->>DB: SELECT platform user token
+    activate DB
+    DB-->>WebhookFn: platform token
+    deactivate DB
+    WebhookFn-->>PlatformApp: 🔔 FCM: "Ada Request Premium Baru"
+    deactivate WebhookFn
 ```
 
 ---
 
-### SD-15 Dashboard Keuangan (Platform)
+### SD-20 Dashboard Keuangan (Platform)
 
 ```mermaid
 sequenceDiagram
     actor Platform
-    participant App as Flutter App (Platform)
+    participant App as PlatformApp (Halaman Dashboard Keuangan)
     participant DB as Supabase DB
 
     Platform->>App: Buka menu Dashboard Keuangan
+    activate App
     App->>DB: SELECT * FROM v_platform_finance
-    DB-->>App: Ringkasan: total pendapatan, pengeluaran, saldo
+    activate DB
+    DB-->>App: Summary: total income, payout, & net balance
+    deactivate DB
+    App->>DB: SELECT * FROM transactions ORDER BY created_at DESC
+    activate DB
+    DB-->>App: Riwayat transaksi lengkap
+    deactivate DB
+    App-->>Platform: Render chart grafik & tabel arus kas
+    deactivate App
 
-    App-->>Platform: Tampilkan kartu ringkasan keuangan
-
-    App->>DB: SELECT * FROM transactions\nWHERE created_at >= awal_bulan\nORDER BY created_at DESC
-    DB-->>App: Daftar transaksi bulan ini
-    App-->>Platform: Tampilkan grafik & tabel transaksi
-
-    opt Filter Rentang Waktu
-        Platform->>App: Pilih filter tanggal (hari/minggu/bulan/custom)
-        App->>DB: SELECT * FROM transactions\nWHERE created_at BETWEEN start AND end
-        DB-->>App: Transaksi sesuai filter
-        App-->>Platform: Perbarui tampilan grafik & tabel
-    end
-
-    opt Filter Jenis Transaksi
-        Platform->>App: Filter: Pendapatan / Pengeluaran / Semua
-        App->>DB: SELECT * FROM transactions\nWHERE type IN ('registration_fee','subscription')\nOR type = 'prize_payout'
+    opt Filter Waktu / Tipe
+        Platform->>App: Terapkan filter tanggal atau jenis transaksi
+        activate App
+        App->>DB: SELECT * FROM transactions WHERE ?
+        activate DB
         DB-->>App: Transaksi terfilter
-        App-->>Platform: Tampilkan sesuai filter
+        deactivate DB
+        App-->>Platform: Perbarui visualisasi chart & tabel
+        deactivate App
     end
 ```
 
 ---
 
-### SD-16 Kelola & Suspend Pengguna (Platform)
+### SD-21 Kelola & Suspend Pengguna (Platform)
 
 ```mermaid
 sequenceDiagram
     actor Platform
-    participant App as Flutter App (Platform)
+    participant App as PlatformApp (Halaman Kelola Pengguna)
     participant DB as Supabase DB
     participant FCM as Firebase FCM
-    participant TargetApp as Flutter App (Target User)
+    participant TargetApp as TargetApp (Flutter App)
 
     Platform->>App: Buka menu Kelola Pengguna
-    App->>DB: SELECT * FROM users\nORDER BY created_at DESC
-    DB-->>App: Daftar semua pengguna
-    App-->>Platform: Tampilkan daftar pengguna
+    activate App
+    App->>DB: SELECT * FROM users ORDER BY created_at DESC
+    activate DB
+    DB-->>App: Daftar pengguna
+    deactivate DB
+    App-->>Platform: Render daftar pengguna
+    deactivate App
 
-    opt Filter / Cari
-        Platform->>App: Filter by role / status / cari nama/email
-        App->>DB: SELECT * FROM users\nWHERE role=? AND is_suspended=?\nAND name ILIKE '%keyword%'
-        DB-->>App: Hasil filter
-        App-->>Platform: Tampilkan hasil
+    opt Cari / Filter
+        Platform->>App: Cari nama/email atau filter role
+        activate App
+        App->>DB: SELECT * FROM users WHERE ...
+        activate DB
+        DB-->>App: Hasil pencarian/filter
+        deactivate DB
+        App-->>Platform: Tampilkan hasil pencarian
+        deactivate App
     end
 
-    Platform->>App: Pilih pengguna yang akan dikelola
-    App->>DB: SELECT users.*, admin_profiles.*\nWHERE users.id=?
-    DB-->>App: Detail pengguna
-    App-->>Platform: Tampilkan detail profil
+    Platform->>App: Pilih salah satu pengguna
+    activate App
+    App->>DB: SELECT users.*, admin_profiles.* WHERE id=user_id
+    activate DB
+    DB-->>App: Detail profile & metadata
+    deactivate DB
+    App-->>Platform: Tampilkan detail profil pengguna
+    deactivate App
 
     alt Suspend Pengguna
-        Platform->>App: Klik "Suspend"
-        App-->>Platform: Form alasan suspend
-        Platform->>App: Isi alasan & konfirmasi
-        App->>DB: UPDATE users SET\nis_suspended=true,\nsuspension_reason=?,\nsuspended_at=now(),\nsuspended_by=platform_id
-        DB-->>App: Update berhasil
-        App->>DB: INSERT audit_logs\n(action='suspend', entity_type='users',\nentity_id=user_id)
-        App->>FCM: Kirim notifikasi ke target user
+        Platform->>App: Klik "Suspend" & Isi Alasan
+        activate App
+        App->>DB: UPDATE users SET is_suspended=true, suspension_reason=alasan WHERE id=user_id
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+
+        App->>DB: INSERT INTO audit_logs (action='suspend')
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+
+        App->>FCM: Kirim push notif suspend ke device user
+        activate FCM
         FCM-->>TargetApp: 🔔 "Akun Anda telah disuspend"
+        deactivate FCM
         App-->>Platform: "Pengguna berhasil disuspend"
+        deactivate App
     else Unsuspend Pengguna
         Platform->>App: Klik "Unsuspend"
-        App->>DB: UPDATE users SET\nis_suspended=false,\nsuspension_reason=null
-        App->>DB: INSERT audit_logs\n(action='unsuspend')
-        App->>FCM: Notifikasi ke target user
+        activate App
+        App->>DB: UPDATE users SET is_suspended=false, suspension_reason=null WHERE id=user_id
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+
+        App->>DB: INSERT INTO audit_logs (action='unsuspend')
+        activate DB
+        DB-->>App: OK
+        deactivate DB
+
+        App->>FCM: Kirim push notif unsuspend
+        activate FCM
         FCM-->>TargetApp: 🔔 "Akun Anda telah diaktifkan kembali"
-        App-->>Platform: "Pengguna berhasil diaktifkan"
+        deactivate FCM
+        App-->>Platform: "Pengguna diaktifkan kembali"
+        deactivate App
     end
 ```
 
 ---
 
-### SD-17 Approve/Reject Premium Request (Platform)
+### SD-22 Approve/Reject Premium Request (Platform)
 
 ```mermaid
 sequenceDiagram
     actor Platform
-    participant PlatformApp as Flutter App (Platform)
+    participant PlatformApp as PlatformApp (Halaman Kelola Premium)
     participant DB as Supabase DB
     participant MT as Midtrans Dashboard
     participant FCM as Firebase FCM
-    participant AdminApp as Flutter App (Admin)
+    participant AdminApp as AdminApp (Halaman Dashboard Admin)
+    actor Admin
 
-    Note over Platform,AdminApp: Platform menerima notifikasi request baru
-    PlatformApp->>Platform: 🔔 "Ada Request Premium Baru"
+    PlatformApp-->>Platform: 🔔 FCM: "Ada Request Premium Baru"
     Platform->>PlatformApp: Buka menu Kelola Premium
+    activate PlatformApp
+    PlatformApp->>DB: SELECT * FROM premium_requests WHERE status='paid'
+    activate DB
+    DB-->>PlatformApp: List request premium pending approval
+    deactivate DB
+    PlatformApp-->>Platform: Tampilkan antrean request premium
+    deactivate PlatformApp
 
-    PlatformApp->>DB: SELECT premium_requests\nJOIN users ON admin_user_id\nWHERE status='paid'\nORDER BY created_at ASC
-    DB-->>PlatformApp: Daftar request menunggu
+    Platform->>PlatformApp: Pilih salah satu request
+    activate PlatformApp
+    PlatformApp-->>Platform: Detail: nama admin, nominal, snap token
+    deactivate PlatformApp
 
-    Platform->>PlatformApp: Pilih request untuk ditinjau
-    PlatformApp-->>Platform: Detail: nama admin, paket,\nnominal, tanggal request
+    Platform->>MT: Verifikasi pembayaran di Dashboard Midtrans
+    activate MT
+    MT-->>Platform: Status settlement terkonfirmasi
+    deactivate MT
 
-    Platform->>MT: Verifikasi pembayaran\ndi Midtrans Dashboard
-    MT-->>Platform: Status pembayaran confirmed
-
-    alt Platform Menyetujui
+    alt Platform Menyetujui (Approve)
         Platform->>PlatformApp: Klik "Approve"
-
-        PlatformApp->>DB: UPDATE premium_requests SET\nstatus='approved',\napproved_by=platform_id,\napproved_at=now()
+        activate PlatformApp
+        PlatformApp->>DB: UPDATE premium_requests SET status='approved' WHERE id=request_id
+        activate DB
         DB-->>PlatformApp: OK
+        deactivate DB
 
-        PlatformApp->>DB: UPDATE admin_profiles SET\nis_premium=true,\npremium_started_at=now(),\npremium_expired_at=now()+interval
+        PlatformApp->>DB: UPDATE admin_profiles SET is_premium=true, premium_expired_at = now() + 30 days WHERE user_id=admin_user_id
+        activate DB
+        DB-->>PlatformApp: OK
+        deactivate DB
 
-        PlatformApp->>DB: INSERT transactions\n(type='subscription',\namount=+nominal,\nuser_id=admin_user_id)
+        PlatformApp->>DB: INSERT INTO transactions (type='subscription')
+        activate DB
+        DB-->>PlatformApp: OK
+        deactivate DB
 
-        PlatformApp->>DB: INSERT audit_logs\n(action='approve_premium')
+        PlatformApp->>DB: INSERT INTO audit_logs (action='approve_premium')
+        activate DB
+        DB-->>PlatformApp: OK
+        deactivate DB
 
-        PlatformApp->>FCM: Kirim notifikasi ke admin:\n"Selamat! Akun Premium Aktif"
-        FCM-->>AdminApp: 🔔 Notifikasi diterima
-        AdminApp-->>AdminApp: Refresh status premium\nFitur premium terbuka
+        PlatformApp->>FCM: Kirim push notif premium aktif
+        activate FCM
+        FCM-->>AdminApp: 🔔 "Selamat! Akun Premium Aktif"
+        deactivate FCM
+        AdminApp-->>AdminApp: Refresh & buka fitur premium
+        PlatformApp-->>Platform: "Request Premium disetujui"
+        deactivate PlatformApp
+    else Platform Menolak (Reject)
+        Platform->>PlatformApp: Klik "Reject" & Isi Alasan
+        activate PlatformApp
+        PlatformApp->>DB: UPDATE premium_requests SET status='rejected', reject_reason=alasan WHERE id=request_id
+        activate DB
+        DB-->>PlatformApp: OK
+        deactivate DB
 
-        PlatformApp-->>Platform: "Request disetujui"
+        PlatformApp->>DB: INSERT INTO audit_logs (action='reject_premium')
+        activate DB
+        DB-->>PlatformApp: OK
+        deactivate DB
 
-    else Platform Menolak
-        Platform->>PlatformApp: Klik "Reject"
-        PlatformApp-->>Platform: Form alasan penolakan
-        Platform->>PlatformApp: Isi alasan & konfirmasi
-
-        PlatformApp->>DB: UPDATE premium_requests SET\nstatus='rejected',\nreject_reason=?
-
-        PlatformApp->>DB: INSERT audit_logs\n(action='reject_premium')
-
-        PlatformApp->>FCM: Notifikasi ke admin:\n"Request Premium Ditolak: [alasan]"
-        FCM-->>AdminApp: 🔔 Notifikasi penolakan
-
-        PlatformApp-->>Platform: "Request ditolak"
+        PlatformApp->>FCM: Kirim push notif premium ditolak
+        activate FCM
+        FCM-->>AdminApp: 🔔 "Request Premium Ditolak"
+        deactivate FCM
+        PlatformApp-->>Platform: "Request Premium ditolak"
+        deactivate PlatformApp
     end
 ```
 
