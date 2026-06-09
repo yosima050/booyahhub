@@ -249,8 +249,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     const SizedBox(height: 16),
                     Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                       _stat('${adminProfile?['total_scrims_created'] ?? 0}', 'SCRIM\nDIBUAT'),
-                      Container(width: 1, height: 32, color: BooyahTheme.maroon.withValues(alpha: 0.4)),
-                      _stat('${adminProfile?['total_participants'] ?? 0}', 'TIM\nDIDAFTAR'),
                     ]),
                   ]),
                 ),

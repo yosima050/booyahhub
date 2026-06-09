@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
 import '../../services/supabase_service.dart';
@@ -34,7 +35,22 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
     try {
       final data = await ClaimService.getMyClaims();
       if (mounted) {
-        setState(() => _rawClaims = data);
+        setState(() {
+          _rawClaims = data;
+          // Jika tidak ada data klaim di database, kita tambahkan satu data mock agar UI dapat dites
+          if (data.isEmpty && kDebugMode) {
+            _rawClaims = [
+              {
+                'id': -999,
+                'amount': 75000,
+                'status': 'available',
+                'scrims': {'title': 'Scrim Mock (Mode Debug)'},
+                'match_results': {'rank': 1, 'total_point': 45},
+                'created_at': DateTime.now().toIso8601String().substring(0, 10),
+              }
+            ];
+          }
+        });
       }
     } catch (e) {
       debugPrint('Error claims: $e');
@@ -71,9 +87,9 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
   }
 
   void _ajukan() async {
-    if (_bankCtrl.text.isEmpty) {
+    if (_bankCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('⚠️ Nomor rekening tidak boleh kosong!'),
+        content: Text('Nomor rekening tidak boleh kosong'),
         backgroundColor: Color(0xFFFF1744)));
       return;
     }
@@ -85,8 +101,26 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
       final available = _rawClaims.where((c) => c['status'] == 'available').firstOrNull;
       if (available == null) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('❌ Tidak ada hadiah yang tersedia untuk diklaim!'),
+          content: Text('Tidak ada hadiah yang tersedia untuk diklaim'),
           backgroundColor: Color(0xFFFF1744)));
+        return;
+      }
+
+      // Jika ID adalah dummy (-999), simulasikan pengajuan sukses di memori saja untuk pengetesan UI
+      if (available['id'] == -999) {
+        setState(() {
+          available['status'] = 'processing';
+          available['bank_type'] = _method.contains('Bank') ? 'bank' : 'ewallet';
+          available['bank_name'] = _method.split('–').last.trim();
+          available['account_number'] = _bankCtrl.text.trim();
+          available['account_name'] = Supabase.instance.client.auth.currentUser?.userMetadata?['name'] ?? 'Tester';
+        });
+        _bankCtrl.clear();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Klaim berhasil diajukan (Simulasi Debug)'),
+            backgroundColor: Color(0xFF00C853)));
+        }
         return;
       }
 
@@ -101,13 +135,13 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
       _bankCtrl.clear();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('✅ Klaim diajukan!'),
+          content: Text('Klaim berhasil diajukan'),
           backgroundColor: Color(0xFF00C853)));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('❌ $e'), backgroundColor: const Color(0xFFFF1744)));
+          content: Text('Gagal mengajukan klaim: $e'), backgroundColor: const Color(0xFFFF1744)));
       }
     } finally {
       if (mounted) {
@@ -146,69 +180,101 @@ class _KlaimHadiahScreenState extends State<KlaimHadiahScreen> {
               const SizedBox(height: 20),
 
               // Submit claim section
-              if (_rawClaims.any((c) => c['status'] == 'available'))
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('AJUKAN KLAIM', style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
-                  const SizedBox(height: 12),
-                  
-                  // Claim amount display
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('AJUKAN KLAIM', style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                const SizedBox(height: 12),
+                
+                // Show warning banner if there are no available claims
+                if (!_rawClaims.any((c) => c['status'] == 'available')) ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: BooyahTheme.card,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(children: [
-                      const Icon(Icons.monetization_on_outlined, color: BooyahTheme.gold, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        const Text('Nominal Hadiah', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
-                        Text(_fmtRupiah((_rawClaims.firstWhere((c) => c['status'] == 'available')['amount'] as int?) ?? 0),
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: BooyahTheme.gold)),
-                      ])),
-                    ]),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Bank selection dropdown
-                  DropdownButton<String>(
-                    value: _method,
-                    isExpanded: true,
-                    items: ['Bank – BCA', 'Bank – BRI', 'Bank – Mandiri', 'E-Wallet – OVO', 'E-Wallet – Dana']
-                        .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                        .toList(),
-                    onChanged: (v) => setState(() => _method = v ?? _method),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Account number input
-                  TextField(
-                    controller: _bankCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'Nomor rekening / e-wallet',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Submit button
-                  SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _ajukan,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: BooyahTheme.maroon,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: const Text('AJUKAN KLAIM', style: TextStyle(
-                        fontWeight: FontWeight.w700, letterSpacing: 1.5, color: Colors.white)),
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: BooyahTheme.yellow.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: BooyahTheme.yellow.withValues(alpha: 0.3)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, color: BooyahTheme.yellow, size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Tidak ada hadiah yang dapat diklaim saat ini. Anda harus masuk dalam peringkat 3 besar di scrim untuk mendapatkan hadiah.',
+                            style: TextStyle(fontSize: 11, color: BooyahTheme.textSec),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                ]),
+                ],
+
+                // Claim amount display
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: BooyahTheme.card,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: BooyahTheme.gold.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.monetization_on_outlined, color: BooyahTheme.gold, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Text('Nominal Hadiah', style: TextStyle(fontSize: 10, color: BooyahTheme.textMuted)),
+                      Text(
+                        _fmtRupiah((_rawClaims.where((c) => c['status'] == 'available').firstOrNull?['amount'] as int?) ?? 0),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: BooyahTheme.gold),
+                      ),
+                    ])),
+                  ]),
+                ),
+                const SizedBox(height: 12),
+
+                // Bank selection dropdown
+                DropdownButton<String>(
+                  value: _method,
+                  isExpanded: true,
+                  items: ['Bank – BCA', 'Bank – BRI', 'Bank – Mandiri', 'E-Wallet – OVO', 'E-Wallet – Dana']
+                      .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                      .toList(),
+                  onChanged: _rawClaims.any((c) => c['status'] == 'available')
+                      ? (v) => setState(() => _method = v ?? _method)
+                      : null,
+                ),
+                const SizedBox(height: 12),
+
+                // Account number input
+                TextField(
+                  controller: _bankCtrl,
+                  enabled: _rawClaims.any((c) => c['status'] == 'available'),
+                  decoration: InputDecoration(
+                    hintText: 'Nomor rekening / e-wallet',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Submit button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _rawClaims.any((c) => c['status'] == 'available') ? _ajukan : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _rawClaims.any((c) => c['status'] == 'available')
+                          ? BooyahTheme.maroon
+                          : Colors.grey.withValues(alpha: 0.3),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text('AJUKAN KLAIM', style: TextStyle(
+                      fontWeight: FontWeight.w700, letterSpacing: 1.5, color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ]),
 
               // Claim history
               if (_rawClaims.isNotEmpty)

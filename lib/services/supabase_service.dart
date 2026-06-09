@@ -665,20 +665,49 @@ class ClaimService {
     required bool approve,
     String? reason,
   }) async {
-    // Resolve UUID to bigint ID
-    final userProfile = await _db
-        .from('users')
-        .select('id')
-        .eq('uuid', AuthService.currentUser!.id)
-        .single();
-    final int platformBigId = userProfile['id'];
+    try {
+      final response = await _db.functions.invoke(
+        'disburse-claim',
+        body: {
+          'claim_id': claimId,
+          'approve': approve,
+          'reason': reason,
+        },
+      );
 
-    await _db.rpc('sp_verify_claim', params: {
-      'p_claim_id': claimId,
-      'p_platform_id': platformBigId,
-      'p_approve': approve,
-      'p_reason': ?reason,
-    });
+      if (response.data == null) {
+        throw Exception('Tidak ada respons dari server verifikasi');
+      }
+
+      final data = Map<String, dynamic>.from(response.data as Map);
+      if (data.containsKey('error')) {
+        throw Exception(data['error']);
+      }
+    } catch (e) {
+      debugPrint('ClaimService.verifyClaim error: $e');
+      
+      // Fallback jika Edge Function belum dideploy (404)
+      if (e is FunctionException && e.status == 404) {
+        debugPrint('disburse-claim Edge Function tidak ditemukan (404). Menjalankan database RPC sp_verify_claim secara langsung...');
+        
+        final userProfile = await _db
+            .from('users')
+            .select('id')
+            .eq('uuid', AuthService.currentUser!.id)
+            .single();
+        final int platformBigId = userProfile['id'];
+
+        await _db.rpc('sp_verify_claim', params: {
+          'p_claim_id': claimId,
+          'p_platform_id': platformBigId,
+          'p_approve': approve,
+          'p_reason': reason,
+        });
+        return;
+      }
+      
+      rethrow;
+    }
   }
 
   // Platform: Antrian klaim pending
@@ -1119,7 +1148,16 @@ class AdminService {
   }
   // UC-18: Get scrim report with aggregated stats
   static Future<Map<String, dynamic>> getScrimReport({int days = 30}) async {
-    final uid = AuthService.currentUser!.id;
+    final user = AuthService.currentUser;
+    if (user == null) throw Exception('Pengguna tidak terotentikasi');
+
+    final userProfile = await _db
+        .from('users')
+        .select('id')
+        .eq('uuid', user.id)
+        .single();
+    final int adminBigId = userProfile['id'];
+
     final since = days == 0
         ? DateTime(2000)
         : DateTime.now().subtract(Duration(days: days));
@@ -1131,7 +1169,7 @@ class AdminService {
           fee, prize_pool, status,
           registrations(count)
         ''')
-        .eq('admin_id', uid)
+        .eq('admin_id', adminBigId)
         .filter('scheduled_at', 'gte', since.toIso8601String())
         .order('scheduled_at', ascending: false);
 
@@ -1171,6 +1209,16 @@ class AdminService {
         'chart_data': List.filled(12, 0.5), // Placeholder
       }
     };
+  }
+
+  // UC-18: Get report for a single scrim by ID
+  static Future<Map<String, dynamic>> getSingleScrimReport(int scrimId) async {
+    final res = await _db
+        .from('v_admin_scrim_report')
+        .select()
+        .eq('scrim_id', scrimId)
+        .single();
+    return Map<String, dynamic>.from(res);
   }
 }
 

@@ -20,36 +20,95 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
   List<Map<String, dynamic>> _scrimData = [];
   Map<String, dynamic> _stats = {};
   bool _loading = true;
+  int? _scrimId;
+  bool _initialized = false;
 
   @override
-  void initState() {
-    super.initState();
-    _loadData();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is int) {
+        _scrimId = args;
+      }
+      _loadData();
+      _initialized = true;
+    }
   }
 
   Future<void> _loadData() async {
     try {
       setState(() => _loading = true);
-      final days = [7, 30, 90, 0][_periodIdx]; // 0 = all time
-      final report = await AdminService.getScrimReport(days: days);
-      setState(() {
-        _scrimData = (report['scrims'] as List? ?? []).map((s) {
-          final title = s['title'] as String? ?? '';
-          final sched = s['scheduled_at'] as String? ?? '';
-          final filled = (s['slot_filled'] as num? ?? 0).toInt();
-          final total = (s['slot_total'] as num? ?? 0).toInt();
-          final fee = (s['fee'] as num? ?? 0).toInt();
-          final pct = total > 0 ? (filled / total) : 0.0;
-          return {
+      
+      if (_scrimId != null) {
+        // Ambil laporan scrim spesifik dari database
+        final s = await AdminService.getSingleScrimReport(_scrimId!);
+        
+        final title = s['title'] as String? ?? '';
+        final sched = s['scheduled_at'] as String? ?? '';
+        final filled = (s['slot_filled'] as num? ?? 0).toInt();
+        final total = (s['slot_total'] as num? ?? 0).toInt();
+        final pct = total > 0 ? (filled / total) : 0.0;
+        
+        final registered = (s['registered_count'] as num? ?? 0).toInt();
+        final verified = (s['verified_count'] as num? ?? 0).toInt();
+        final pending = (s['pending_count'] as num? ?? 0).toInt();
+        final rejected = (s['rejected_count'] as num? ?? 0).toInt();
+        final gross = (s['actual_gross'] as num? ?? 0).toInt();
+        final net = (s['actual_fee_admin'] as num? ?? 0).toInt();
+        
+        final double verifRate = registered > 0 ? (verified / registered) * 100 : 0.0;
+        final fillRate = total > 0 ? (filled / total) * 100 : 0.0;
+        final double remainingSlotsPct = total > 0 ? ((total - filled) / total) : 1.0;
+
+        setState(() {
+          _scrimData = [{
             'name': title,
             'date': sched.length > 10 ? sched.substring(0, 10) : sched,
             'slot': '$filled/$total',
-            'rev': fee * filled,
+            'rev': gross,
             'pct': pct,
+          }];
+          _stats = {
+            'total_scrims': 1,
+            'total_teams': filled,
+            'total_revenue': gross,
+            'net_revenue': net,
+            'new_scrims': s['status'] == 'open' ? 1 : 0,
+            'new_teams': verified,
+            'revenue_change': fillRate.toInt(),
+            'verification_rate': verifRate.toInt(),
+            'chart_data': [
+              registered > 0 ? (verified / registered).toDouble() : 0.0,
+              registered > 0 ? (pending / registered).toDouble() : 0.0,
+              registered > 0 ? (rejected / registered).toDouble() : 0.0,
+              remainingSlotsPct,
+            ],
           };
-        }).toList();
-        _stats = report['stats'] as Map<String, dynamic>? ?? {};
-      });
+        });
+      } else {
+        // Fallback: muat laporan agregat semua scrim buatan admin
+        final days = [7, 30, 90, 0][_periodIdx]; // 0 = all time
+        final report = await AdminService.getScrimReport(days: days);
+        setState(() {
+          _scrimData = (report['scrims'] as List? ?? []).map((s) {
+            final title = s['title'] as String? ?? '';
+            final sched = s['scheduled_at'] as String? ?? '';
+            final filled = (s['slot_filled'] as num? ?? 0).toInt();
+            final total = (s['slot_total'] as num? ?? 0).toInt();
+            final fee = (s['fee'] as num? ?? 0).toInt();
+            final pct = total > 0 ? (filled / total) : 0.0;
+            return {
+              'name': title,
+              'date': sched.length > 10 ? sched.substring(0, 10) : sched,
+              'slot': '$filled/$total',
+              'rev': fee * filled,
+              'pct': pct,
+            };
+          }).toList();
+          _stats = report['stats'] as Map<String, dynamic>? ?? {};
+        });
+      }
     } catch (e) {
       debugPrint('Error loading report: $e');
     } finally {
@@ -74,39 +133,41 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
             : SingleChildScrollView(
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              // Period filter
-              Row(children: _periods.asMap().entries.map((e) => Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _periodIdx = e.key);
-                    _loadData();
-                  },
-                  child: Container(
-                    margin: EdgeInsets.only(right: e.key < 3 ? 5 : 0),
-                    padding: const EdgeInsets.symmetric(vertical: 7),
-                    decoration: BoxDecoration(
-                      color: _periodIdx == e.key ? BooyahTheme.maroon : BooyahTheme.surface,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: BooyahTheme.maroon.withValues(alpha: _periodIdx == e.key ? 0.8 : 0.2)),
+              // Period filter (hanya tampil jika memuat agregat semua scrim)
+              if (_scrimId == null) ...[
+                Row(children: _periods.asMap().entries.map((e) => Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _periodIdx = e.key);
+                      _loadData();
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: e.key < 3 ? 5 : 0),
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      decoration: BoxDecoration(
+                        color: _periodIdx == e.key ? BooyahTheme.maroon : BooyahTheme.surface,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: BooyahTheme.maroon.withValues(alpha: _periodIdx == e.key ? 0.8 : 0.2)),
+                      ),
+                      child: Text(e.value, textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
+                          color: _periodIdx == e.key ? Colors.white : BooyahTheme.textMuted)),
                     ),
-                    child: Text(e.value, textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700,
-                        color: _periodIdx == e.key ? Colors.white : BooyahTheme.textMuted)),
                   ),
-                ),
-              )).toList()),
-              const SizedBox(height: 12),
+                )).toList()),
+                const SizedBox(height: 12),
+              ],
 
-              // KPI Grid
+              // KPI Grid (menggunakan Icons untuk menggantikan emoji)
               GridView.count(
                 shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8,
                 childAspectRatio: 2.0,
                 children: [
-                  _kpiCard('🏆', 'TOTAL SCRIM', '${_stats['total_scrims'] ?? 0}', '+${_stats['new_scrims'] ?? 0}', true),
-                  _kpiCard('👥', 'TOTAL TIM', '${_stats['total_teams'] ?? 0}', '+${_stats['new_teams'] ?? 0}', true),
-                  _kpiCard('💰', 'PENDAPATAN', _fmt(_stats['total_revenue'] ?? 0), '↑${_stats['revenue_change'] ?? 0}%', true),
-                  _kpiCard('✅', 'VERIF RATE', '${_stats['verification_rate'] ?? 0}%', '${_stats['verification_rate'] ?? 0}%', true),
+                  _kpiCard(Icons.emoji_events_rounded, _scrimId != null ? 'STATUS SCRIM' : 'TOTAL SCRIM', _scrimId != null ? 'AKTIF' : '${_stats['total_scrims'] ?? 0}', _scrimId != null ? '1' : '+${_stats['new_scrims'] ?? 0}', true),
+                  _kpiCard(Icons.groups_rounded, 'TOTAL TIM', '${_stats['total_teams'] ?? 0}', _scrimId != null ? 'TERVERIF' : '+${_stats['new_teams'] ?? 0}', true),
+                  _kpiCard(Icons.monetization_on_rounded, 'PENDAPATAN', _fmt(_stats['total_revenue'] ?? 0), '${_stats['revenue_change'] ?? 0}%', true),
+                  _kpiCard(Icons.check_circle_rounded, 'VERIF RATE', '${_stats['verification_rate'] ?? 0}%', '${_stats['verification_rate'] ?? 0}%', true),
                 ],
               ),
               const SizedBox(height: 12),
@@ -128,10 +189,10 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
                       const Text('PENDAPATAN BERSIH', style: TextStyle(fontSize: 10, color: Colors.white38, letterSpacing: 1.5)),
                       Text(_fmt(_stats['net_revenue'] ?? 0), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: BooyahTheme.gold)),
                     ]),
-                    Text('↑ ${_stats['revenue_change'] ?? 0}%', style: const TextStyle(fontSize: 11, color: BooyahTheme.green, fontWeight: FontWeight.w700)),
+                    Text('${_stats['revenue_change'] ?? 0}%', style: const TextStyle(fontSize: 11, color: BooyahTheme.green, fontWeight: FontWeight.w700)),
                   ]),
                   const SizedBox(height: 10),
-                  MiniBarChart(values: _stats['chart_data'] ?? List.filled(12, 0.5)),
+                  MiniBarChart(values: List<double>.from((_stats['chart_data'] as List?)?.map((x) => (x as num).toDouble()) ?? List.filled(12, 0.5))),
                   const SizedBox(height: 4),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     Text(_getChartStartDate(), style: const TextStyle(fontSize: 9, color: Colors.white24)),
@@ -142,7 +203,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
               const SizedBox(height: 14),
 
               // Per-scrim performance
-              const SectionHeader(title: 'PERFORMA PER SCRIM'),
+              SectionHeader(title: _scrimId != null ? 'DETAIL SCRIM' : 'PERFORMA PER SCRIM'),
               ..._scrimData.map((s) => Container(
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(12),
@@ -175,7 +236,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
           ),
   );
 
-  Widget _kpiCard(String ico, String label, String val, String trend, bool isUp) =>
+  Widget _kpiCard(IconData icon, String label, String val, String trend, bool isUp) =>
       Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -185,7 +246,7 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(ico, style: const TextStyle(fontSize: 18)),
+            Icon(icon, size: 20, color: BooyahTheme.yellow),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
