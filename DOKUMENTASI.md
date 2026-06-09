@@ -1,9 +1,9 @@
 # 📱 DOKUMENTASI SISTEM — BOOYAHHUB
 ### Platform Scrim & Tournament E-Sports (Free Fire)
 
-> **Versi Dokumen:** 2.0  
+> **Versi Dokumen:** 2.0 (Edisi SKPL Resmi)  
 > **Tanggal:** Juni 2026  
-> **Teknologi:** Flutter · Dart · Supabase · Midtrans · Firebase FCM  
+> **Teknologi:** Flutter · Dart · Supabase · Midtrans Sandbox · Firebase FCM  
 
 ---
 
@@ -26,7 +26,7 @@
    - [UC-11 Lihat Leaderboard](#uc-11-lihat-leaderboard)
    - [UC-12 Kelola Profil & Rekening Bank](#uc-12-kelola-profil--rekening-bank)
    - [UC-13 Buat Scrim Baru (Admin)](#uc-13-buat-scrim-baru-admin)
-   - [UC-14 Edit & Hapus Scrim (Admin)](#uc-14-edit--hapus-scrim-admin)
+   - [UC-14 Simpan Draft (Admin)](#uc-14-simpan-draft-admin)
    - [UC-15 Kelola Pendaftaran Peserta (Admin)](#uc-15-kelola-pendaftaran-peserta-admin)
    - [UC-16 Kirim Room ID ke Peserta (Admin)](#uc-16-kirim-room-id-ke-peserta-admin)
    - [UC-17 Input Hasil Pertandingan (Admin)](#uc-17-input-hasil-pertandingan-admin)
@@ -62,30 +62,30 @@
 
 ## 1. Gambaran Umum Sistem
 
-**BooyahHub** adalah platform mobile berbasis Flutter yang dirancang khusus untuk komunitas e-sports Free Fire di Indonesia. Platform ini memfasilitasi penyelenggaraan **scrim** (pertandingan latihan) dan **turnamen** dengan sistem pembayaran online terintegrasi melalui Midtrans.
+**BooyahHub** adalah platform mobile berbasis Flutter yang dirancang khusus untuk komunitas e-sports Free Fire di Indonesia. Platform ini memfasilitasi penyelenggaraan **scrim** (pertandingan latihan) dan **turnamen** dengan sistem pembayaran online terintegrasi melalui Midtrans Sandbox, meminimalisasi verifikasi manual dan mengamankan status transaksi secara otomatis.
 
 ### Fitur Utama
 
 | Fitur | Deskripsi |
 |-------|-----------|
-| 🎮 Browse & Daftar Scrim | Peserta dapat mencari dan mendaftar scrim yang tersedia |
-| 💳 Pembayaran Online | Integrasi Midtrans (GoPay, OVO, DANA, Transfer Bank, Kartu Kredit) |
-| 🏆 Leaderboard | Papan peringkat real-time berdasarkan poin pertandingan |
-| 📊 Manajemen Scrim | Admin dapat membuat, mengelola, dan memasukkan hasil pertandingan |
-| 🏅 Klaim Hadiah | Pemenang dapat mengklaim prize pool melalui transfer bank |
-| 💰 Dashboard Keuangan |  memantau seluruh arus kas platform |
-| 🔔 Notifikasi Push | Notifikasi real-time via Firebase Cloud Messaging |
-| ⭐ Sistem Premium | Admin dapat berlangganan premium untuk fitur unggulan |
+| 🎮 Browse & Daftar Scrim | Peserta dapat mencari dan mendaftarkan tim mereka pada scrim aktif |
+| 💳 Pembayaran Terintegrasi | Pembayaran instan via Midtrans Snap API (GoPay, Virtual Account, dll.) |
+| 🏆 Leaderboard Terpadu | Papan peringkat akumulatif berdasarkan poin performa tim |
+| 📊 Manajemen Scrim | Admin dapat membuat scrim (draft & open), memodifikasi, dan memantau slot |
+| 🏅 Sistem Klaim Hadiah | Pemenang mengajukan klaim prize pool langsung ke rekening terverifikasi |
+| 💰 Dashboard Keuangan | Pemantauan arus kas platform secara komprehensif bagi Platform |
+| 🔔 Notifikasi Push | Broadcast status pertandingan & Room ID via Firebase Cloud Messaging |
+| ⭐ Akun Premium Admin | Hak istimewa untuk menampilkan scrim unggulan (featured) di Beranda |
 
 ---
 
 ## 2. Aktor & Peran
 
-| Aktor | Role di DB | Deskripsi |
-|-------|-----------|-----------|
-| **Peserta** | `participant` | Pengguna umum yang mendaftar dan mengikuti scrim/turnamen |
-| **Admin** | `admin` | Penyelenggara scrim yang memiliki akun terverifikasi; dapat berlangganan premium |
-| **** | `platform` | Pemilik platform dengan akses penuh ke semua data dan konfigurasi |
+| Aktor | Role Database | Deskripsi |
+|-------|---------------|-----------|
+| **Peserta** | `participant` | Pengguna akhir yang mencari event, mendaftar tim, membayar, dan bermain |
+| **Admin** | `admin` | Penyelenggara scrim; mengelola event, membagikan Room ID, dan menginput hasil |
+| **Platform** | `platform` | Pengelola ekosistem; memantau keuangan, memoderasi user, dan memproses premium |
 
 ---
 
@@ -94,61 +94,49 @@
 ```mermaid
 graph TB
     subgraph PESERTA["👤 PESERTA"]
-        UC1([UC-01: Registrasi Akun])
-        UC2([UC-02: Login])
-        UC3([UC-03: Browse & Cari Scrim])
-        UC4([UC-04: Lihat Detail Scrim])
-        UC5([UC-05: Daftar Scrim])
-        UC6([UC-06: Bayar via Midtrans])
-        UC7([UC-07: Lihat Status Pendaftaran])
-        UC8([UC-08: Terima Room ID & Password])
-        UC9([UC-09: Lihat Hasil Pertandingan])
+        UC01([UC-01: Registrasi Akun])
+        UC02([UC-02: Login])
+        UC03([UC-03: Browse & Cari Scrim])
+        UC04([UC-04: Lihat Detail Scrim])
+        UC05([UC-05: Daftar Scrim])
+        UC06([UC-06: Pembayaran via Midtrans])
+        UC07([UC-07: Lihat Status Pendaftaran])
+        UC08([UC-08: Terima Room ID & Password])
+        UC09([UC-09: Lihat Hasil Pertandingan])
         UC10([UC-10: Klaim Hadiah])
         UC11([UC-11: Lihat Leaderboard])
         UC12([UC-12: Kelola Profil & Rekening Bank])
-        UC13([UC-13: Lihat Riwayat Scrim])
     end
 
     subgraph ADMIN["🎮 ADMIN"]
-        UC14([UC-14: Buat Scrim Baru])
-        UC15([UC-15: Edit & Hapus Scrim])
-        UC16([UC-16: Kelola Pendaftaran Peserta])
-        UC17([UC-17: Kirim Room ID ke Peserta])
-        UC18([UC-18: Input Hasil Pertandingan])
-        UC19([UC-19: Distribusi Prize Pool])
-        UC20([UC-20: Verifikasi Klaim Hadiah])
-        UC21([UC-21: Kirim Notifikasi Broadcast])
-        UC22([UC-22: Berlangganan Premium])
-        UC23([UC-23: Lihat Laporan Scrim])
+        UC13([UC-13: Buat Scrim Baru])
+        UC14([UC-14: Simpan Draft])
+        UC15([UC-15: Kelola Pendaftaran Peserta])
+        UC16([UC-16: Kirim Room ID ke Peserta])
+        UC17([UC-17: Input Hasil Pertandingan])
+        UC18([UC-18: Verifikasi Klaim Hadiah])
+        UC19([UC-19: Berlangganan Premium])
     end
 
     subgraph PLATFORM["👑 PLATFORM"]
-        UC24([UC-24: Dashboard Keuangan])
-        UC25([UC-25: Monitor Semua Scrim])
-        UC26([UC-26: Kelola Pengguna])
-        UC27([UC-27: Suspend/Unsuspend Pengguna])
-        UC28([UC-28: Approve/Reject Premium Request])
-        UC29([UC-29: Kelola Pengaturan Platform])
-        UC30([UC-30: Lihat Audit Log])
+        UC20([UC-20: Dashboard Keuangan])
+        UC21([UC-21: Kelola & Suspend Pengguna])
+        UC22([UC-22: Approve/Reject Premium Request])
     end
 
     subgraph EXT["⚙️ SISTEM EKSTERNAL"]
-        UC31([UC-31: Generate Midtrans Token])
-        UC32([UC-32: Webhook Payment Notification])
-        UC33([UC-33: Kirim Push Notification FCM])
+        UC_MT([Midtrans Sandbox API])
+        UC_FCM([Firebase FCM Service])
     end
 
-    A(👤 Peserta) --> UC1 & UC2 & UC3 & UC4 & UC5 & UC7 & UC8 & UC9 & UC10 & UC11 & UC12 & UC13
-    B(🎮 Admin) --> UC14 & UC15 & UC16 & UC17 & UC18 & UC19 & UC20 & UC21 & UC22 & UC23
-    C(👑 Platform) --> UC24 & UC25 & UC26 & UC27 & UC28 & UC29 & UC30
+    A(👤 Peserta) --> UC01 & UC02 & UC03 & UC04 & UC05 & UC07 & UC08 & UC09 & UC10 & UC11 & UC12
+    B(🎮 Admin) --> UC13 & UC14 & UC15 & UC16 & UC17 & UC18 & UC19
+    C(👑 Platform) --> UC20 & UC21 & UC22
 
-    UC5 -.->|include| UC6
-    UC6 -.->|include| UC31
-    UC31 -.->|include| UC32
-    UC32 -.->|include| UC33
-    UC10 -.->|include| UC20
-    UC22 -.->|include| UC28
-    UC18 -.->|include| UC19
+    UC05 -.->|include| UC06
+    UC06 -.->|interaksi| UC_MT
+    UC19 -.->|interaksi| UC_MT
+    UC16 & UC17 & UC18 & UC21 & UC22 -.->|notifikasi| UC_FCM
 ```
 
 ---
@@ -159,50 +147,30 @@ graph TB
 
 ### UC-01 Registrasi Akun
 
-**Aktor:** Peserta baru  
-**Tujuan:** Membuat akun baru di platform BooyahHub  
-**Prasyarat:** Pengguna belum memiliki akun  
+**Aktor:** Peserta Baru / Pengguna  
+**Tujuan:** Membuat kredensial akun baru dan profil pengguna di Supabase DB  
+**Prasyarat:** Pengguna belum terdaftar di sistem  
 
-```mermaid
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Aplikasi BooyahHub]
-        B --> C[Tekan Tombol 'Daftar Sekarang']
-        E[Pengguna Mengisi:<br/>Nama Lengkap<br/>Email<br/>Password<br/>Konfirmasi Password] --> F
-        G --> E
-        I --> E
-        K --> E
-        M --> E
-        N[Klik Tombol 'Daftar'] --> O
-        Q --> E
-        U[Pengguna Buka Email] --> V
+    subgraph Aktor ["👤 Aktor (Pengguna)"]
+        A1([🟢 Mulai]) --> A2[Buka Halaman Registrasi]
+        A2 --> A3[Input Nama, Email, Password & Konfirmasi]
+        A3 --> A4[Klik Tombol Daftar]
+        A5[Terima Email & Klik Link Verifikasi] --> A6([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        C --> D[Tampilkan Form Registrasi]
-        D --> E
-        F{Semua Field<br/>Terisi?} -->|Tidak| G[Tampilkan Pesan<br/>'Field wajib diisi']
-        F -->|Ya| H{Format Email<br/>Valid?}
-        H -->|Tidak| I[Tampilkan 'Format email tidak valid']
-        H -->|Ya| J{Password Min<br/>8 Karakter?}
-        J -->|Tidak| K[Tampilkan 'Password min. 8 karakter']
-        J -->|Ya| L{Password &<br/>Konfirmasi Cocok?}
-        L -->|Tidak| M[Tampilkan 'Konfirmasi password tidak cocok']
-        L -->|Ya| N
-        O[Panggil Supabase Auth<br/>signUp email & password] --> P{Email Sudah<br/>Terdaftar?}
-        P -->|Ya| Q[Tampilkan 'Email sudah digunakan']
-        P -->|Tidak| R[Buat Record di Tabel users<br/>role = participant]
-        R --> S[Kirim Email Verifikasi<br/>ke Pengguna]
-        S --> T[Tampilkan Pesan<br/>'Cek email untuk verifikasi']
-        T --> U
-        V{Klik Link<br/>Verifikasi?} -->|Tidak / Kadaluarsa| W[Tampilkan Opsi<br/>'Kirim Ulang Email']
-        W --> S
-        V -->|Ya| X[Email Terverifikasi<br/>di Supabase Auth]
-        X --> Y[Redirect ke Halaman Login]
-        Y --> Z([🔴 Selesai — Akun Berhasil Dibuat])
+    subgraph Sistem ["💻 Sistem (Supabase Auth & DB)"]
+        A4 --> S1{Validasi Format & Password?}
+        S1 -->|Tidak Valid| S2[Tampilkan Pesan Kesalahan] --> A2
+        S1 -->|Valid| S3[Panggil Supabase Auth signUp]
+        S3 --> S4{Email Sudah Terdaftar?}
+        S4 -->|Ya| S5[Tampilkan Email Sudah Digunakan] --> A2
+        S4 -->|Tidak| S6[INSERT ke users role='participant']
+        S6 --> S7[Kirim Email Konfirmasi Verifikasi]
+        S7 --> S8[Tampilkan Pesan Cek Email] --> A5
+        A5 --> S9[Verifikasi Token & Aktifkan Status Auth]
+        S9 --> S10[Redirect ke Halaman Login] --> A6
     end
 ```
 
@@ -210,45 +178,30 @@ flowchart TD
 
 ### UC-02 Login
 
-**Aktor:** Peserta, Admin,   
-**Tujuan:** Masuk ke platform menggunakan akun yang sudah terdaftar  
-**Prasyarat:** Pengguna sudah memiliki akun dan email terverifikasi  
+**Aktor:** Peserta, Admin, Platform  
+**Tujuan:** Mendapatkan token JWT aktif untuk otorisasi akses menu aplikasi  
+**Prasyarat:** Akun telah terdaftar dan email telah diverifikasi  
 
 ```mermaid
 flowchart TD
-    subgraph Pengguna ["Peserta / Admin / Platform"]
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Halaman Login]
-        B --> C[Masukkan Email & Password]
-        C --> D
-        E --> C
-        H --> C
-        K --> L
-        N --> L
-        P --> S
-        Q --> S
-        R --> S
+    subgraph Aktor ["👤 Aktor (Pengguna)"]
+        B1([🟢 Mulai]) --> B2[Buka Halaman Login]
+        B2 --> B3[Masukkan Kredensial Email & Password]
+        B3 --> B4[Klik Tombol Login]
+        B5([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        D{Field Tidak<br/>Kosong?} -->|Tidak| E[Tampilkan Pesan<br/>'Email dan password wajib diisi']
-        D -->|Ya| F[Panggil Supabase Auth<br/>signInWithPassword]
-        F --> G{Autentikasi<br/>Berhasil?}
-        G -->|Tidak| H[Tampilkan 'Email atau password salah']
-        G -->|Ya| I[Ambil Data User<br/>dari Tabel users WHERE uuid = auth.uid]
-        I --> J{Akun<br/>Ditemukan?}
-        J -->|Tidak| K[Tampilkan Error<br/>'Akun tidak terdaftar']
-        K --> L[Logout Supabase Auth]
-        L --> B
-        J -->|Ya| M{is_suspended<br/>= true?}
-        M -->|Ya| N[Tampilkan 'Akun disuspend'<br/>Serta alasan suspend]
-        N --> L
-        M -->|Tidak| O{Cek role<br/>Pengguna}
-        O -->|participant| P[Redirect ke Home Screen<br/>Tampilan Peserta]
-        O -->|admin| Q[Redirect ke Admin Dashboard<br/>Tampilan Admin]
-        O -->|platform| R[Redirect ke Platform Dashboard<br/>Tampilan ]
-        S[Update last_login_at<br/>di Tabel users] --> T([🔴 Selesai — Login Berhasil])
+    subgraph Sistem ["💻 Sistem (Supabase Auth & DB)"]
+        B4 --> S1{Validasi Kredensial?}
+        S1 -->|Kosong| S2[Tampilkan Kredensial Wajib Diisi] --> B2
+        S1 -->|Terisi| S3[Panggil Supabase Auth signInWithPassword]
+        S3 --> S4{Kredensial Cocok?}
+        S4 -->|Salah| S5[Tampilkan Email/Password Salah] --> B2
+        S4 -->|Benar| S6[SELECT users WHERE uuid = auth.uid]
+        S6 --> S7{Status is_suspended = true?}
+        S7 -->|Ya| S8[Tampilkan Akun Disuspend & Logout] --> B2
+        S7 -->|Tidak| S9[UPDATE users SET last_login_at = now]
+        S9 --> S10[Render Dashboard Sesuai Role] --> B5
     end
 ```
 
@@ -257,39 +210,28 @@ flowchart TD
 ### UC-03 Browse & Cari Scrim
 
 **Aktor:** Peserta  
-**Tujuan:** Menemukan scrim yang sesuai untuk diikuti  
-**Prasyarat:** Pengguna sudah login  
+**Tujuan:** Menemukan event scrim aktif berdasarkan filter atau pencarian kata kunci  
+**Prasyarat:** Peserta telah login ke aplikasi  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Halaman Home / Browse]
-        C --> D{Pengguna<br/>Memfilter?}
-        D -->|Ya| E{Jenis Filter}
-        E -->|Mode| F[Filter by: solo / duo / squad]
-        E -->|Server| G[Filter by: server]
-        E -->|Fee| H[Filter by: range harga fee]
-        E -->|Featured| I[Tampilkan Scrim Premium Saja]
-        F & G & H & I --> J
-        D -->|Tidak| J
-        K --> L{Pengguna<br/>Mencari?}
-        L -->|Ya| M[Masukkan Kata Kunci<br/>di Search Bar]
-        M --> N
-        L -->|Tidak| O
-        O --> P{Ada Hasil<br/>Ditemukan?}
-        Q --> B
-        P -->|Ya| R[Pengguna Pilih Scrim<br/>yang Diminati]
-        R --> S[Lanjut ke UC-04<br/>Lihat Detail Scrim]
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        C1([🟢 Mulai]) --> C2[Buka Menu Utama / Beranda]
+        C2 --> C3{Ingin Cari / Filter?}
+        C3 -->|Filter| C4[Pilih Kategori Mode/Server/Harga]
+        C3 -->|Search| C5[Ketik Nama Event di Kolom Cari]
+        C3 -->|Default| C6[Lihat Daftar Event Default]
+        C4 & C5 --> C7[Kirim Query Pencarian/Filter]
+        C6 --> C8([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Tampilkan Daftar Scrim<br/>Status: open<br/>Urut: scheduled_at ASC]
-        J[Kirim Query ke Supabase<br/>dengan parameter filter] --> K[Tampilkan Hasil Scrim<br/>yang Sesuai Filter]
-        N[Query Supabase:<br/>title ILIKE '%keyword%'] --> O[Tampilkan Hasil Pencarian]
-        P -->|Tidak| Q[Tampilkan 'Scrim tidak ditemukan']
-        S --> T([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        C2 --> S1[Query scrims WHERE status='open' ORDER BY is_featured DESC]
+        S1 --> S2[Tampilkan List Event Scrim] --> C3
+        C7 --> S3[SELECT FROM scrims Berdasarkan Parameter]
+        S3 --> S4{Data Ditemukan?}
+        S4 -->|Ya| S5[Render List Hasil Pencarian] --> C6
+        S4 -->|Tidak| S6[Tampilkan Info Tidak Ditemukan] --> C6
     end
 ```
 
@@ -298,38 +240,26 @@ flowchart TD
 ### UC-04 Lihat Detail Scrim
 
 **Aktor:** Peserta  
-**Tujuan:** Melihat informasi lengkap scrim sebelum memutuskan untuk daftar  
-**Prasyarat:** Pengguna sudah memilih scrim dari daftar  
+**Tujuan:** Memeriksa prasyarat, jadwal, slot kosong, dan hadiah event scrim sebelum mendaftar  
+**Prasyarat:** Peserta memilih salah satu scrim dari menu browse  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Pengguna Klik Scrim<br/>dari Halaman Browse]
-        E --> F
-        G & H & I & K & M & O & P --> Q{Aksi<br/>Pengguna}
-        Q -->|Klik Daftar| R[Lanjut ke UC-05<br/>Daftar Scrim]
-        Q -->|Lihat Peserta Terdaftar| S
-        Q -->|Kembali| T[Kembali ke Browse]
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        D1([🟢 Mulai]) --> D2[Pilih & Klik Scrim dari List]
+        D2 --> D3[Lihat Informasi Event & Profil Admin Pembuat]
+        D3 --> D4{Pilih Aksi?}
+        D4 -->|Kembali| D5[Klik Kembali ke Beranda] --> D6([🔴 Selesai])
+        D4 -->|Daftar| D7[Klik Tombol Daftar Sekarang] --> D6
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Load Data Scrim dari Supabase<br/>Judul, Mode, Server, Fee,<br/>Slot, Prize Pool, Jadwal, Rules]
-        C --> D[Load Data Admin Penyelenggara<br/>Nama, Rating, is_trusted, is_premium]
-        D --> E[Tampilkan Halaman Detail Scrim]
-        F{Cek Status Scrim} -->|status = cancelled| G[Tampilkan Banner<br/>'Scrim Dibatalkan' + Alasan]
-        F -->|status = finished| H[Tampilkan Banner<br/>'Scrim Selesai']
-        F -->|status = ongoing| I[Tampilkan Banner<br/>'Sedang Berlangsung']
-        F -->|status = open| J{Cek Slot<br/>Tersedia}
-        J -->|slot_filled >= slot_total| K[Tampilkan 'Slot Penuh'<br/>Tombol Daftar Disabled]
-        J -->|slot_filled < slot_total| L{Cek Waktu<br/>Registrasi}
-        L -->|registration_closes_at < now| M[Tampilkan 'Pendaftaran Ditutup'<br/>Tombol Daftar Disabled]
-        L -->|Masih Buka| N{Pengguna<br/>Sudah Daftar?}
-        N -->|Ya| O[Tampilkan 'Sudah Terdaftar'<br/>Tampilkan Status Registrasi]
-        N -->|Tidak| P[Tampilkan Tombol<br/>'Daftar Sekarang' Aktif]
-        S[Tampilkan Daftar Tim<br/>yang Sudah Terdaftar] --> U
-        R & T --> U([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        D2 --> S1[SELECT detail scrim & JOIN admin_profiles]
+        S1 --> S2[Periksa Sisa Slot & Batas Waktu Registrasi]
+        S2 --> S3{Validasi Pendaftaran?}
+        S3 -->|Penuh/Tutup| S4[Nonaktifkan Tombol Daftar & Tampilkan Status]
+        S3 -->|Tersedia| S5[Aktifkan Tombol Daftar Sekarang]
+        S4 & S5 --> S6[Render Halaman Detail Scrim] --> D3
     end
 ```
 
@@ -338,37 +268,26 @@ flowchart TD
 ### UC-05 Daftar Scrim
 
 **Aktor:** Peserta  
-**Tujuan:** Mendaftarkan tim untuk mengikuti scrim  
-**Prasyarat:** Pengguna login, scrim masih buka, slot tersedia  
+**Tujuan:** Mengunci slot pendaftaran tim sementara dengan status pending payment  
+**Prasyarat:** Event berstatus open, slot tersedia, dan pendaftaran belum ditutup  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Klik 'Daftar Sekarang'<br/>di Halaman Detail Scrim]
-        C --> D[Isi Nama Tim]
-        D --> E[Isi FF ID Kapten]
-        E --> F[Isi Nomor HP]
-        F --> G{Mode Scrim}
-        G -->|squad| H[Isi FF ID Anggota 2, 3, 4]
-        G -->|duo| I[Isi FF ID Anggota 2]
-        G -->|solo| J[Tidak Ada Anggota Tambahan]
-        H & I & J --> K[Pilih Metode Pembayaran<br/>GoPay / OVO / DANA /<br/>Bank Transfer / dll]
-        K --> L
-        M --> D
-        N[Klik 'Lanjut Bayar'] --> O
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        E1([🟢 Mulai]) --> E2[Klik Daftar Sekarang]
+        E2 --> E3[Input Nama Tim & Nomor HP Kapten]
+        E3 --> E4[Input FF ID Anggota Tim]
+        E4 --> E5[Klik Tombol Lanjut Pembayaran]
+        E6([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Tampilkan Form Pendaftaran]
-        L{Semua Data<br/>Terisi Valid?} -->|Tidak| M[Highlight Field<br/>yang Belum Terisi]
-        L -->|Ya| N
-        O{Slot Masih<br/>Tersedia? Re-check} -->|Tidak - Race Condition| P[Tampilkan 'Slot baru saja penuh'<br/>Tolak pendaftaran]
-        P --> Q[Kembali ke Detail Scrim]
-        O -->|Ya| R[INSERT ke Tabel registrations<br/>status = 'pending'<br/>Simpan data anggota ke team_members]
-        R --> S[Lanjut ke UC-06<br/>Pembayaran via Midtrans]
-        Q & S --> T([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        E2 --> S1[Tampilkan Form Input Anggota Tim] --> E3
+        E5 --> S2{Re-evaluasi Sisa Slot Event?}
+        S2 -->|Penuh| S3[Tampilkan Maaf Slot Baru Saja Penuh] --> E6
+        S2 -->|Tersedia| S4[INSERT ke registrations status='pending_payment']
+        S4 --> S5[INSERT ke team_members]
+        S5 --> S6[Alihkan ke Modul Pembayaran UC-06] --> E6
     end
 ```
 
@@ -377,46 +296,30 @@ flowchart TD
 ### UC-06 Pembayaran via Midtrans
 
 **Aktor:** Peserta  
-**Tujuan:** Menyelesaikan pembayaran biaya pendaftaran scrim  
-**Prasyarat:** Data registrasi tersimpan dengan status `pending`  
+**Tujuan:** Menyelesaikan kewajiban pembayaran secara instan menggunakan Midtrans Sandbox  
+**Prasyarat:** Registrasi berhasil dibuat dengan status `pending_payment`  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B
-        K --> L{Pengguna Aksi}
-        L -->|Bayar| M[Pengguna Selesaikan<br/>Pembayaran]
-        L -->|Batalkan| N[Tutup Midtrans UI]
-        M --> Q
-        N --> O
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        F1([🟢 Mulai]) --> F2[Terima snap_token & Buka Snap UI]
+        F2 --> F3[Pilih Metode Pembayaran & Selesaikan Transaksi]
+        F4[Terima Push Notifikasi Sukses] --> F5([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B[Panggil Edge Function<br/>create-transaction] --> C[Edge Function Ambil<br/>Data Registrasi & Scrim]
-        C --> D[Buat Payload Midtrans:<br/>order_id = reg-UUID<br/>amount = fee<br/>enabled_payments = sesuai pilihan]
-        D --> E[POST ke Midtrans Snap API<br/>/snap/v1/transactions]
-        E --> F{Midtrans<br/>Merespons}
-        F -->|Error| G[Tampilkan 'Gagal inisiasi pembayaran'<br/>Coba Lagi]
-        G --> B
-        F -->|Berhasil| H[Terima snap_token<br/>dari Midtrans]
-        H --> I[Simpan snap_token<br/>ke Tabel registrations]
-        I --> J[Buka Midtrans Snap UI<br/>di dalam Aplikasi]
-        J --> K[Tampilkan Metode Pembayaran<br/>sesuai Pilihan Pengguna]
-        O[Update status registrasi<br/>→ 'cancelled' / biarkan pending] --> P[Kembali ke Halaman Browse]
-        Q[Midtrans Proses Pembayaran] --> R{Status<br/>Pembayaran}
-        R -->|Pending - VA/Transfer| S[Tampilkan Instruksi<br/>Pembayaran VA]
-        S --> T[Tunggu Konfirmasi<br/>Pembayaran dari Bank]
-        T --> U[Midtrans Kirim Webhook]
-        R -->|Langsung Settlement| U
-        U --> V[Edge Function<br/>payment-notification<br/>Menerima & Memverifikasi]
-        V --> W[Update registrations<br/>status = 'confirmed']
-        W --> X[Update scrims<br/>slot_filled = slot_filled + 1]
-        X --> Y[INSERT transactions<br/>type = registration_fee]
-        Y --> Z[Kirim FCM Notifikasi<br/>ke Peserta]
-        Z --> AA[Tampilkan 'Pembayaran Berhasil'<br/>di Aplikasi via Realtime]
-        P & AA --> AB([🔴 Selesai — Terdaftar!])
+    subgraph Sistem ["💻 Sistem (Edge Fn & Midtrans Sandbox)"]
+        F1 --> S1[Panggil Edge Function create-transaction]
+        S1 --> S2[POST Payload ke Midtrans Snap API]
+        S2 --> S3[Dapatkan snap_token & Simpan ke Registrasi]
+        S3 --> S4[Render Midtrans Snap Webview/UI] --> F2
+        F3 --> S5[Proses Pembayaran di Midtrans Sandbox Gateway]
+        S5 --> S6[Midtrans Kirim Webhook Callback ke payment-notification]
+        S6 --> S7{Status Pembayaran Settlement?}
+        S7 -->|Ya| S8[UPDATE registrations SET status='verified']
+        S8 --> S9[UPDATE scrims SET slot_filled = slot_filled + 1]
+        S9 --> S10[INSERT ke transactions type='registration_fee']
+        S10 --> S11[Kirim Notifikasi Push FCM ke Device Peserta] --> F4
+        S7 -->|Gagal/Kadaluarsa| S12[UPDATE registrations SET status='failed'] --> F5
     end
 ```
 
@@ -425,31 +328,26 @@ flowchart TD
 ### UC-07 Lihat Status Pendaftaran
 
 **Aktor:** Peserta  
-**Tujuan:** Memantau status registrasi yang telah dilakukan  
-**Prasyarat:** Peserta sudah pernah mendaftar minimal satu scrim  
+**Tujuan:** Memeriksa berkas registrasi, status pembayaran, serta rincian Room ID jika tersedia  
+**Prasyarat:** Peserta telah melakukan proses pendaftaran minimal satu kali  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Riwayat Scrim'<br/>atau 'Pendaftaran Saya']
-        D --> E
-        F --> J{Pengguna<br/>Klik Bayar}
-        J -->|Ya| K[Lanjut ke UC-06<br/>Pembayaran]
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        G1([🟢 Mulai]) --> G2[Buka Menu Riwayat Scrim]
+        G2 --> G3[Pilih & Klik Salah Satu Registrasi]
+        G3 --> G4{Evaluasi Status Tampil}
+        G4 -->|Status: pending_payment| G5[Klik Bayar Sekarang]
+        G4 -->|Status: verified| G6[Lihat Informasi Room ID]
+        G4 -->|Status: failed/expired| G7[Tinjau Riwayat Selesai]
+        G5 & G6 & G7 --> G8([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Query Supabase:<br/>SELECT * FROM registrations<br/>WHERE user_id = current_user<br/>ORDER BY created_at DESC]
-        C --> D[Tampilkan Daftar<br/>Pendaftaran Saya]
-        E{Status<br/>Registrasi} -->|pending| F[Tampilkan Badge 'Menunggu'<br/>Ada Tombol 'Bayar Sekarang']
-        E -->|confirmed| G[Tampilkan Badge 'Terkonfirmasi'<br/>Info: Menunggu Room ID]
-        E -->|rejected| H[Tampilkan Badge 'Ditolak'<br/>Tampilkan Alasan Penolakan]
-        E -->|cancelled| I[Tampilkan Badge 'Dibatalkan']
-        G --> L{Room ID<br/>Sudah Dikirim?}
-        L -->|Ya| M[Tampilkan Room ID<br/>& Password]
-        L -->|Tidak| N[Tampilkan 'Menunggu<br/>Room ID dari Admin']
-        H & I & K & M & N --> O([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        G2 --> S1[SELECT FROM registrations WHERE user_id = current]
+        S1 --> S2[Tampilkan Daftar Riwayat Pendaftaran] --> G3
+        G3 --> S3[Periksa Status Registrasi & Kolom Room ID]
+        S3 --> S4[Render Detail & Badge Status] --> G4
     end
 ```
 
@@ -458,31 +356,22 @@ flowchart TD
 ### UC-08 Terima Room ID & Password
 
 **Aktor:** Peserta  
-**Tujuan:** Mendapatkan informasi Room ID dan Password untuk masuk ke game  
-**Prasyarat:** Registrasi berstatus `confirmed`, Admin sudah mengirim Room ID  
+**Tujuan:** Mendapatkan kredensial Room Game Free Fire untuk berpartisipasi dalam pertandingan  
+**Prasyarat:** Registrasi berstatus `verified` dan Admin telah mengirimkan detail Room  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Cara Mendapat<br/>Room ID]
-        B -->|Via Notifikasi Push| C[Peserta Terima<br/>Push Notification FCM<br/>'Room ID Telah Dikirim']
-        B -->|Via Aplikasi| D[Peserta Buka<br/>Halaman Status Pendaftaran]
-        C --> E[Klik Notifikasi]
-        D --> F[Pilih Scrim yang Diikuti]
-        E & F --> G
-        K --> L[Peserta Catat / Salin<br/>Room ID & Password]
-        L --> M[Masuk ke Game Free Fire<br/>Menggunakan Room ID tersebut]
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        H1([🟢 Mulai]) --> H2[Terima FCM Push Notif / Buka Halaman Status]
+        H2 --> H3[Salin Room ID & Room Password]
+        H3 --> H4[Masuk ke Custom Room Free Fire] --> H5([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        G[Tampilkan Detail Registrasi] --> H{Room ID<br/>Tersedia?}
-        H -->|Tidak| I[Tampilkan 'Room ID Belum<br/>Dikirim oleh Admin']
-        I --> J[Refresh / Tunggu Notifikasi]
-        J --> G
-        H -->|Ya| K[Tampilkan Room ID<br/>& Room Password]
-        M --> N([🔴 Selesai — Siap Bermain])
+    subgraph Sistem ["💻 Sistem (FCM & Supabase DB)"]
+        H1 --> S1[Admin Mengirimkan Room ID Melalui Menu Kelola]
+        S1 --> S2[UPDATE scrims SET room_id & room_password]
+        S2 --> S3[Kirim Multicast Notifikasi FCM ke Semua Peserta Verified] --> H2
+        H2 --> S4[Render Room ID & Password di Halaman Status] --> H3
     end
 ```
 
@@ -491,34 +380,25 @@ flowchart TD
 ### UC-09 Lihat Hasil Pertandingan
 
 **Aktor:** Peserta  
-**Tujuan:** Melihat hasil akhir scrim termasuk ranking dan poin  
-**Prasyarat:** Scrim telah selesai dan Admin sudah menginput hasil  
+**Tujuan:** Memeriksa klasemen akhir, statistik poin, placement, dan jumlah hadiah yang didapatkan  
+**Prasyarat:** Scrim telah berstatus `finished` dan Admin telah mengunggah hasil pertandingan  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B{Cara Akses<br/>Hasil}
-        B -->|Via Notifikasi| C[Terima Notifikasi FCM<br/>'Hasil Scrim Telah Diumumkan']
-        B -->|Via Aplikasi| D[Buka Riwayat Scrim<br/>Pilih Scrim yang Diikuti]
-        C --> E[Klik Notifikasi]
-        D --> F[Klik Tab 'Hasil Pertandingan']
-        E & F --> G
-        K --> L
-        N --> O{Pengguna Klik<br/>Klaim Hadiah}
-        O -->|Ya| P[Lanjut ke UC-10<br/>Klaim Hadiah]
-        O -->|Nanti| M
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        I1([🟢 Mulai]) --> I2[Klik Notifikasi Hasil / Buka Detail Scrim Terkait]
+        I2 --> I3[Pilih Tab Hasil Pertandingan]
+        I3 --> I4[Tinjau Poin, Kills, & Peringkat Tim]
+        I4 --> I5{Menang Hadiah?}
+        I5 -->|Ya| I6[Klik Tombol Klaim Hadiah] --> I7([🔴 Selesai])
+        I5 -->|Tidak| I7
     end
 
-    subgraph Sistem
-        direction TB
-        G[Query Supabase:<br/>SELECT * FROM match_results<br/>WHERE scrim_id = X<br/>ORDER BY rank ASC] --> H{Data Hasil<br/>Tersedia?}
-        H -->|Tidak| I[Tampilkan 'Hasil Belum<br/>Diumumkan']
-        H -->|Ya| K[Tampilkan Tabel Hasil:<br/>Rank, Nama Tim, Placement,<br/>Kills, Poin, Hadiah]
-        L{Tim Pengguna<br/>Menang Hadiah?} -->|Tidak| M[Tampilkan Hasil Akhir]
-        L -->|Ya| N[Tampilkan Banner<br/>'Selamat! Anda Menang Hadiah'<br/>Tampilkan Tombol 'Klaim Hadiah']
-        I --> J([🔴 Selesai])
-        M & P --> Q([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        I2 --> S1[SELECT FROM match_results WHERE scrim_id = X ORDER BY rank ASC]
+        S1 --> S2[Tampilkan Hasil Pertandingan & Urutan Ranking] --> I3
+        I4 --> S3[Periksa Hasil Pemenang & Nilai Hadiah]
+        S3 --> S4[Tampilkan Banner Selamat & Aktifkan Tombol Klaim] --> I5
     end
 ```
 
@@ -527,37 +407,26 @@ flowchart TD
 ### UC-10 Klaim Hadiah
 
 **Aktor:** Peserta (Pemenang)  
-**Tujuan:** Mengajukan klaim prize pool yang telah diraih  
-**Prasyarat:** Tim menempati posisi pemenang, prize_amount > 0, belum pernah klaim  
+**Tujuan:** Mengajukan permohonan pencairan dana prize pool dari match_results ke rekening bank  
+**Prasyarat:** Tim terdaftar sebagai pemenang dengan prize_amount > 0 pada match_results  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Klik Tombol 'Klaim Hadiah'<br/>di Halaman Hasil Pertandingan]
-        B --> C
-        I[Pengguna Tambah Rekening Bank<br/>Nama Bank, No Rekening, Nama Pemilik] --> G
-        J[Pilih Rekening Tujuan<br/>Penerimaan Hadiah] --> K
-        L[Klik 'Ajukan Klaim'] --> M
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        J1([🟢 Mulai]) --> J2[Klik Klaim Hadiah di Detail Pemenang]
+        J2 --> J3{Apakah Rekening Terdaftar?}
+        J3 -->|Tidak| J4[Masukkan Nama Bank & No Rekening Baru]
+        J3 -->|Ya| J5[Pilih Rekening Utama & Klik Kirim Klaim]
+        J5 --> J6[Tampilkan Status Permintaan Diajukan] --> J7([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        C{Sudah Pernah<br/>Klaim?} -->|Ya| D[Tampilkan Status<br/>Klaim Sebelumnya]
-        D --> Z([🔴 Selesai])
-        C -->|Tidak| E[Tampilkan Form Klaim Hadiah]
-        E --> F{Rekening Bank<br/>Sudah Terdaftar?}
-        F -->|Ya| G[Tampilkan Daftar<br/>Rekening Bank Tersimpan]
-        F -->|Tidak| H[Arahkan ke Tambah Rekening<br/>di Halaman Profil]
-        H --> I
-        G --> J
-        K[Tampilkan Ringkasan:<br/>Jumlah Hadiah, Rekening Tujuan] --> L
-        M[INSERT ke prize_claims:<br/>status = 'pending'<br/>amount, bank_info] --> N[Kirim Notifikasi ke Admin<br/>'Ada Klaim Hadiah Baru']
-        N --> O[Tampilkan 'Klaim Diajukan'<br/>Menunggu Verifikasi Admin]
-        O --> P{Notifikasi<br/>Update Status}
-        P -->|Approved| Q[Tampilkan 'Hadiah Sedang<br/>Diproses / Dikirim']
-        P -->|Rejected| R[Tampilkan Alasan<br/>Penolakan & Opsi Ajukan Ulang]
-        Q & R --> Z
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        J2 --> S1[SELECT FROM bank_accounts WHERE user_id = current]
+        S1 --> S2[Render Form Pengajuan Klaim] --> J3
+        J4 --> S3[INSERT ke bank_accounts] --> J5
+        J5 --> S4[INSERT ke prize_claims status='pending' & amount=prize]
+        S4 --> S5[Kirim Notifikasi Alur ke Admin Penyelenggara]
+        S5 --> S6[Tampilkan Status Pengajuan Berhasil] --> J6
     end
 ```
 
@@ -566,30 +435,26 @@ flowchart TD
 ### UC-11 Lihat Leaderboard
 
 **Aktor:** Peserta  
-**Tujuan:** Melihat ranking pemain terbaik di platform  
-**Prasyarat:** Pengguna sudah login  
+**Tujuan:** Memantau akumulasi skor performa tim terbaik secara global maupun regional  
+**Prasyarat:** Peserta telah login ke sistem  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Leaderboard'<br/>di Navigasi Bawah]
-        B --> C{Jenis<br/>Leaderboard}
-        C -->|Global| D
-        C -->|Per Scrim| E[Pilih Scrim Tertentu]
-        E --> F
-        I --> J{Pengguna Klik<br/>Nama Tim}
-        J -->|Ya| K
-        J -->|Tidak| L
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        K1([🟢 Mulai]) --> K2[Buka Menu Peringkat / Leaderboard]
+        K2 --> K3{Pilih Tipe Klasemen?}
+        K3 -->|Global| K4[Tinjau Top 50 Akumulasi Poin Tim]
+        K3 -->|Per Scrim| K5[Pilih Event Tertentu]
+        K4 & K5 --> K6[Lihat Statistik Skor & Kills] --> K7([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        D[Query VIEW v_leaderboard:<br/>SEMUA pemain diurutkan<br/>berdasarkan total poin] --> G[Tampilkan Top 10<br/>Global Leaderboard]
-        F[Query match_results<br/>WHERE scrim_id = X<br/>ORDER BY rank ASC] --> H[Tampilkan Hasil Scrim<br/>Terpilih]
-        G & H --> I[Tampilkan Data:<br/>Rank, Nama Tim, Total Poin,<br/>Kills, Placement Terbaik]
-        K[Tampilkan Detail<br/>Histori Tim / Pengguna] --> M([🔴 Selesai])
-        L[Scroll / Refresh Data] --> M
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        K2 --> S1[Panggil Database Views v_leaderboard]
+        S1 --> S2[Render Halaman Pilihan Klasemen] --> K3
+        K4 --> S3[SELECT FROM v_leaderboard ORDER BY total_point DESC]
+        S3 --> S4[Tampilkan Urutan Skor Global]
+        K5 --> S5[SELECT FROM match_results WHERE scrim_id = X]
+        S5 --> S6[Tampilkan Detail Klasemen Event]
     end
 ```
 
@@ -598,45 +463,30 @@ flowchart TD
 ### UC-12 Kelola Profil & Rekening Bank
 
 **Aktor:** Peserta  
-**Tujuan:** Memperbarui informasi profil dan mengelola rekening bank untuk klaim hadiah  
-**Prasyarat:** Pengguna sudah login  
+**Tujuan:** Memperbarui data pengguna, mengganti avatar, dan mengelola rekening klaim hadiah  
+**Prasyarat:** Pengguna berada di menu pengaturan profil  
 
 ```mermaid
 flowchart TD
-    subgraph Peserta
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Profil'<br/>di Navigasi Bawah]
-        D{Aksi Pengguna}
-        F[Ubah: Nama, FF ID,<br/>Nama Tim, Nomor HP, Username] --> G
-        K[Buka Galeri / Kamera] --> L[Pilih / Ambil Foto]
-        R[Form Tambah Rekening:<br/>Jenis Bank, Nama Bank,<br/>No Rekening, Nama Pemilik] --> S
-        X[Form: Password Lama,<br/>Password Baru, Konfirmasi] --> Y
+    subgraph Aktor ["👤 Aktor (Peserta)"]
+        L1([🟢 Mulai]) --> L2[Buka Halaman Akun / Profil]
+        L2 --> L3{Pilih Menu Kelola?}
+        L3 -->|Ubah Info| L4[Ketik Username Baru / FF ID & Simpan]
+        L3 -->|Ganti Foto| L5[Pilih Gambar dari Galeri]
+        L3 -->|Rekening| L6[Masukkan Info Bank Baru]
+        L4 & L5 & L6 --> L7([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Tampilkan Data Profil:<br/>Nama, Email, FF ID, Nama Tim,<br/>Foto Profil, Nomor HP]
-        C --> D
-        D -->|Edit Profil| E[Tampilkan Form Edit Profil]
-        E --> F
-        G{Validasi<br/>Data} -->|Tidak Valid| H[Tampilkan Pesan Error]
-        H --> F
-        G -->|Valid| I[UPDATE users<br/>di Supabase DB]
-        I --> J[Tampilkan 'Profil Berhasil Diperbarui']
-        L --> M[Upload ke Supabase Storage<br/>/avatars/userId]
-        M --> N[UPDATE users SET avatar_url]
-        N --> O[Tampilkan Foto Baru]
-        D -->|Kelola Rekening Bank| P[Tampilkan Daftar<br/>Rekening Bank Tersimpan]
-        P --> Q{Aksi}
-        Q -->|Tambah| R
-        S --> T[Tampilkan Rekening Baru]
-        Q -->|Set Utama| U[UPDATE bank_accounts<br/>SET is_primary = true]
-        Q -->|Hapus| V[DELETE FROM bank_accounts]
-        T & U & V --> W[Refresh Daftar Rekening]
-        W --> P
-        Y --> Z[Panggil Supabase Auth<br/>updateUser password]
-        Z --> AA[Tampilkan 'Password Berhasil Diganti']
-        J & O & AA --> AB([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB & Storage)"]
+        L2 --> S1[SELECT detail profile & bank_accounts]
+        S1 --> S2[Render Form Kelola Akun] --> L3
+        L4 --> S3[UPDATE users SET name, username, ff_id]
+        S3 --> S4[Tampilkan Informasi Profil Diperbarui] --> L7
+        L5 --> S5[Upload Gambar ke Storage Bucket avatars]
+        S5 --> S6[UPDATE users SET avatar_url = public_url]
+        S6 --> S7[Tampilkan Gambar Baru di Aplikasi] --> L7
+        L6 --> S8[INSERT ke bank_accounts]
+        S8 --> S9[Render Rekening Baru di Daftar] --> L7
     end
 ```
 
@@ -645,79 +495,53 @@ flowchart TD
 ### UC-13 Buat Scrim Baru (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Membuat event scrim baru yang bisa diikuti peserta  
-**Prasyarat:** Pengguna login sebagai Admin  
+**Tujuan:** Membuat turnamen/scrim baru yang terikat secara relasi database pada admin bersangkutan  
+**Prasyarat:** Pengguna memiliki role `admin` dan berstatus aktif  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Buat Scrim'<br/>di Admin Dashboard]
-        D[Isi Informasi Dasar:<br/>Judul Scrim, Deskripsi, Peraturan] --> E[Pilih Mode:<br/>solo / duo / squad]
-        E --> F[Pilih Server Game]
-        F --> G[Atur Jadwal:<br/>Tanggal & Waktu Pertandingan<br/>Batas Waktu Pendaftaran]
-        G --> H[Atur Slot:<br/>Total Kapasitas Tim]
-        H --> I[Atur Biaya:<br/>Fee Pendaftaran<br/>Prize Pool]
-        P{Konfirmasi<br/>Simpan?}
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        M1([🟢 Mulai]) --> M2[Buka Form Pembuatan Scrim Baru]
+        M2 --> M3[Input Judul, Jadwal, Slot Maksimum, Biaya & Prize Pool]
+        M3 --> M4[Klik Publikasikan Event]
+        M5([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Tampilkan Form Buat Scrim]
-        C --> D
-        I --> J{Akun Admin<br/>Premium?}
-        J -->|Ya| K[Opsi Tambahan:<br/>Tandai sebagai Featured<br/>Tampil di Halaman Utama]
-        J -->|Tidak| L[Scrim Standar<br/>Tidak bisa Featured]
-        K & L --> M{Semua Data<br/>Valid?}
-        M -->|Tidak| N[Tampilkan Validasi Error<br/>Field wajib belum terisi]
-        N --> D
-        M -->|Ya| O[Preview Scrim<br/>Sebelum Disimpan]
-        O --> P
-        P -->|Batal| C
-        P -->|Simpan| Q[INSERT ke Tabel scrims<br/>status = 'open'<br/>slot_filled = 0]
-        Q --> R[Tampilkan 'Scrim Berhasil Dibuat']
-        R --> S[Scrim Muncul<br/>di Halaman Browse Peserta]
-        S --> T([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        M2 --> S1[Tampilkan Form Scrim Kosong] --> M3
+        M4 --> S2{Validasi Input Jadwal & Slot?}
+        S2 -->|Tidak Valid| S3[Tampilkan Pesan Validasi Error] --> M2
+        S2 -->|Valid| S4[Ambil admin_id dari Session Auth Aktif]
+        S4 --> S5[INSERT ke scrims Mengunci parameter admin_id sebagai FK]
+        S5 --> S6[Set status='open' & slot_filled=0]
+        S6 --> S7[Tampilkan Scrim Berhasil Dipublikasikan] --> M5
     end
 ```
 
 ---
 
-### UC-14 Edit & Hapus Scrim (Admin)
+### UC-14 Simpan Draft (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Memodifikasi atau menghapus scrim yang telah dibuat  
-**Prasyarat:** Admin adalah pembuat scrim, scrim belum dimulai/selesai  
+**Tujuan:** Menyimpan konfigurasi scrim setengah jalan tanpa langsung membukanya untuk pendaftaran  
+**Prasyarat:** Pengguna memiliki role `admin`  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Daftar Scrim Saya<br/>di Admin Dashboard]
-        B --> C[Pilih Scrim yang Ingin<br/>Diedit / Dihapus]
-        C --> D{Aksi Admin}
-        G[Ubah Data yang Perlu<br/>Diperbarui] --> H
-        P[Tampilkan Konfirmasi:<br/>'Batalkan dan refund peserta?'] --> Q[Isi Alasan Pembatalan]
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        N1([🟢 Mulai]) --> N2[Buka Halaman Pembuatan Scrim]
+        N2 --> N3[Input Sebagian Informasi Scrim]
+        N3 --> N4[Klik Tombol Simpan Sebagai Draft]
+        N5[Akses Beranda Admin] --> N6[Klik Filter Chips 'Draft']
+        N6 --> N7[Lihat Daftar Scrim Draft & Lanjutkan Konfigurasi] --> N8([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        D -->|Edit Scrim| E{Status<br/>Scrim}
-        E -->|open - Boleh Edit| F[Tampilkan Form Edit<br/>dengan Data Saat Ini]
-        F --> G
-        H{Ada Peserta<br/>Sudah Bayar?} -->|Ya| I[Batasi Edit:<br/>Tidak Bisa Ubah Fee<br/>Hanya Bisa Ubah Deskripsi/Jadwal]
-        H -->|Tidak| J[Bebas Edit Semua Field]
-        I & J --> K[UPDATE scrims<br/>di Supabase DB]
-        K --> L[Kirim Notifikasi ke<br/>Peserta Terdaftar<br/>'Info Scrim Diperbarui']
-        E -->|ongoing/finished - Tidak Bisa Edit| M[Tampilkan Pesan<br/>'Scrim tidak bisa diedit']
-        D -->|Batalkan Scrim| N{Ada Peserta<br/>Terdaftar?}
-        N -->|Tidak| O[UPDATE scrims<br/>status = 'cancelled']
-        N -->|Ya| P
-        Q --> R[UPDATE scrims<br/>status = 'cancelled'<br/>cancelled_at = now<br/>cancel_reason = alasan]
-        R --> S[Proses Refund ke<br/>Setiap Peserta yang Bayar]
-        S --> T[Kirim Notifikasi Pembatalan<br/>ke Semua Peserta]
-        O & T --> U[Tampilkan 'Scrim Dibatalkan']
-        L & M & U --> V([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        N2 --> S1[Tampilkan Form Scrim] --> N3
+        N4 --> S2[INSERT/UPDATE ke scrims status='draft' & Mengunci admin_id]
+        S2 --> S3[Tampilkan Notifikasi Draft Disimpan] --> N5
+        N6 --> S4[SELECT FROM scrims WHERE admin_id = current AND status = 'draft']
+        S4 --> S5[Tampilkan Antrean Scrim Berstatus Draft Saja] --> N7
     end
 ```
 
@@ -726,36 +550,28 @@ flowchart TD
 ### UC-15 Kelola Pendaftaran Peserta (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Meninjau dan mengelola daftar peserta yang mendaftar scrim  
-**Prasyarat:** Scrim sudah ada peserta yang mendaftar  
+**Tujuan:** Memantau daftar tim terverifikasi yang mengikuti event scrim miliknya  
+**Prasyarat:** Memiliki scrim aktif dengan peserta terdaftar  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Halaman 'Kelola Peserta'<br/>di Admin Dashboard]
-        J{Admin<br/>Pilih Peserta} --> K
-        L{Aksi Admin} -->|Approve Manual| M
-        L -->|Reject Peserta| N[Tampilkan Form<br/>Alasan Penolakan]
-        L -->|Tidak Ada Aksi| R
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        O1([🟢 Mulai]) --> O2[Buka Dashboard Kelola Scrim]
+        O2 --> O3[Pilih Scrim & Lihat Daftar Pendaftar]
+        O3 --> O4[Pilih Filter Status Pendaftaran]
+        O4 --> O5[Tinjau Anggota Tim & Data Valid]
+        O5 --> O6{Ambil Tindakan Modifikasi?}
+        O6 -->|Diskualifikasi| O7[Klik Reject/Batalkan Registrasi & Berikan Alasan]
+        O6 -->|Kembali| O8[Kembali ke Menu Utama]
+        O7 & O8 --> O9([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Query Supabase:<br/>SELECT registrations JOIN team_members<br/>WHERE scrim_id = X]
-        C --> D[Tampilkan Daftar Peserta<br/>dengan Status Masing-masing]
-        D --> E{Filter<br/>Tampilkan}
-        E -->|Semua| F[Tampilkan Semua Registrasi]
-        E -->|Pending| G[Filter status = 'pending']
-        E -->|Confirmed| H[Filter status = 'confirmed']
-        E -->|Rejected| I[Filter status = 'rejected']
-        F & G & H & I --> J
-        K[Lihat Detail:<br/>Nama Tim, Kapten FF ID,<br/>Anggota Tim, Waktu Daftar] --> L
-        M[UPDATE registrations<br/>status = 'confirmed'] --> Q[Kirim Notifikasi ke Peserta<br/>'Pendaftaran Dikonfirmasi']
-        N --> O[UPDATE registrations<br/>status = 'rejected'<br/>reject_reason = alasan]
-        O --> P[Kirim Notifikasi ke Peserta<br/>'Pendaftaran Ditolak: alasan']
-        R[Kembali ke Daftar] --> S([🔴 Selesai])
-        P & Q --> S
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        O2 --> S1[SELECT registrations JOIN team_members WHERE scrim_id = X]
+        S1 --> S2[Tampilkan Daftar Pendaftar Terorganisir] --> O3
+        O7 --> S3[UPDATE registrations SET status='rejected' / 'cancelled']
+        S3 --> S4[Kurangi Nilai slot_filled di Tabel scrims]
+        S4 --> S5[Kirim Notifikasi Pembatalan/Pemberitahuan FCM] --> O9
     end
 ```
 
@@ -764,35 +580,26 @@ flowchart TD
 ### UC-16 Kirim Room ID ke Peserta (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Mengirimkan Room ID dan Password game kepada peserta yang terdaftar  
-**Prasyarat:** Semua peserta confirmed, mendekati waktu pertandingan  
+**Tujuan:** Mengirimkan detail akses pertandingan secara massal ke device seluruh peserta terverifikasi  
+**Prasyarat:** Scrim telah terisi penuh atau waktu registrasi ditutup, berstatus `open`  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Halaman Scrim<br/>di Admin Dashboard]
-        B --> C[Klik Tombol 'Kirim Room ID']
-        C --> D[Tampilkan Form:<br/>Room ID & Room Password]
-        H{Admin<br/>Konfirmasi} -->|Batal| B
-        H -->|Ya, Kirim| I
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        P1([🟢 Mulai]) --> P2[Pilih Scrim Aktif di Dashboard Admin]
+        P2 --> P3[Pilih Menu Distribusi Room ID]
+        P3 --> P4[Masukkan Kunci Room ID & Password Game]
+        P4 --> P5[Klik Tombol Kirim]
+        P6([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        D --> E{Field Terisi?}
-        E -->|Tidak| F[Tampilkan Error Validasi]
-        F --> D
-        E -->|Ya| G[Konfirmasi:<br/>'Kirim ke X peserta?']
-        G --> H
-        I[UPDATE scrims:<br/>room_id = ...<br/>room_password = ...<br/>room_sent_at = now()] --> J[Ambil Daftar User ID<br/>Semua Peserta Confirmed]
-        J --> K[INSERT ke Tabel notifications<br/>per Peserta:<br/>type = room_info<br/>title = 'Room ID Telah Dikirim']
-        K --> L[Kirim Push Notification<br/>FCM ke Semua Peserta]
-        L --> M{FCM<br/>Berhasil?}
-        M -->|Sebagian Gagal| N[Log FCM Token<br/>yang Invalid]
-        M -->|Berhasil Semua| O[Tampilkan 'Room ID Berhasil Dikirim']
-        N & O --> P[Peserta Terima Notifikasi<br/>& Bisa Lihat Room ID di App]
-        P --> Q([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB & FCM)"]
+        P2 --> S1[Ambil Detail Event Scrim] --> P3
+        P3 --> S2[Tampilkan Form Input Room] --> P4
+        P5 --> S3[UPDATE scrims SET room_id, room_password, room_sent_at]
+        S3 --> S4[Query Seluruh Token FCM Peserta status='verified']
+        S4 --> S5[Kirim Push Notifikasi Room ID & Password via FCM]
+        S5 --> S6[Tampilkan Pengiriman Room ID Berhasil] --> P6
     end
 ```
 
@@ -801,42 +608,28 @@ flowchart TD
 ### UC-17 Input Hasil Pertandingan (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Memasukkan hasil akhir pertandingan dan menetapkan ranking tim  
-**Prasyarat:** Pertandingan telah selesai dilaksanakan  
+**Tujuan:** Menyimpan hasil akhir peringkat tim di game Free Fire untuk kalkulasi leaderboard  
+**Prasyarat:** Status scrim adalah ongoing/open, dan pertandingan kustom room telah usai  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Input Hasil'<br/>di Admin Dashboard]
-        F[Masukkan Placement<br/>posisi akhir di game] --> G[Masukkan Kills<br/>jumlah kill tim]
-        G --> H
-        M[Atur Distribusi Prize:<br/>Rank 1: X%<br/>Rank 2: Y%<br/>Rank 3: Z%] --> N
-        Q{Konfirmasi<br/>Simpan?} -->|Revisi| D
-        Q -->|Simpan| R
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        Q1([🟢 Mulai]) --> Q2[Pilih Menu Input Hasil Pertandingan]
+        Q2 --> Q3[Input Placement Rank & Jumlah Kills Masing-Masing Tim]
+        Q3 --> Q4[Tentukan Distribusi Hadiah Hadir]
+        Q4 --> Q5[Klik Tombol Simpan & Selesaikan Event]
+        Q6([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Query: Daftar Tim Confirmed<br/>untuk Scrim ini]
-        C --> D[Tampilkan Form Input Hasil<br/>per Tim]
-        D --> E{Loop: Setiap Tim}
-        E --> F
-        H[Sistem Hitung Otomatis:<br/>Placement Point berdasarkan tabel poin<br/>Total Point = Placement Point + Kills] --> I{Masih Ada<br/>Tim Lagi?}
-        I -->|Ya| E
-        I -->|Tidak| J[Sistem Urutkan Semua Tim<br/>Berdasarkan Total Point]
-        J --> K[Tentukan Rank 1, 2, 3, dst]
-        K --> L{Ada Prize Pool<br/>untuk Pemenang?}
-        L -->|Ya| M
-        L -->|Tidak| O[Semua prize_amount = 0]
-        N[Set prize_amount<br/>untuk Tim Pemenang] --> P
-        O --> P[Preview Hasil<br/>Sebelum Disimpan]
-        P --> Q
-        R[UPSERT ke match_results<br/>Semua Tim] --> S[UPDATE scrims<br/>status = 'finished']
-        S --> T[INSERT notifikasi ke<br/>Semua Peserta Scrim]
-        T --> U[Kirim FCM Broadcast:<br/>'Hasil Scrim Telah Diumumkan']
-        U --> V[Peserta Pemenang Bisa<br/>Ajukan Klaim Hadiah]
-        V --> W([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB & RPC)"]
+        Q2 --> S1[SELECT registrations WHERE status='verified' AND scrim_id = X]
+        S1 --> S2[Render Form Input Klasemen Tim] --> Q3
+        Q5 --> S3[UPSERT match_results (scrim_id, registration_id, placement, kills)]
+        S3 --> S4[Panggil Database RPC sp_finalize_leaderboard]
+        S4 --> S5[Auto-calculate Poin & Set Urutan Rank & Hadiah]
+        S5 --> S6[UPDATE scrims SET status='finished']
+        S6 --> S7[Kirim Notifikasi Hasil via FCM ke Seluruh Peserta]
+        S7 --> S8[Tampilkan Status Hasil Scrim Dipublikasikan] --> Q6
     end
 ```
 
@@ -845,36 +638,29 @@ flowchart TD
 ### UC-18 Verifikasi Klaim Hadiah (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Memverifikasi klaim hadiah yang diajukan pemenang dan memproses transfer  
-**Prasyarat:** Ada prize_claims dengan status `pending`  
+**Tujuan:** Memvalidasi klaim hadiah pemenang dan memperbarui status pencairan dana  
+**Prasyarat:** Terdapat prize_claims masuk berstatus `pending` pada event scrim admin terkait  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        B[Terima Notifikasi<br/>'Ada Klaim Hadiah Baru'] --> C[Buka Halaman 'Klaim Hadiah'<br/>di Admin Dashboard]
-        F[Pilih Klaim untuk Diverifikasi] --> G
-        K[Admin Transfer via<br/>Mobile Banking / ATM] --> L
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        R1([🟢 Mulai]) --> R2[Pilih Menu Verifikasi Klaim Hadiah]
+        R2 --> R3[Tinjau Nominal, Data Rekening, & Nama Pemilik]
+        R3 --> R4{Putuskan Hasil Transfer?}
+        R4 -->|Transfer Sukses| R5[Lakukan Transfer ke Rekening & Klik Approve]
+        R4 -->|Tolak Klaim| R6[Input Alasan Penolakan Rekening & Klik Reject]
+        R5 & R6 --> R7([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        A([🟢 Mulai]) --> B
-        C --> D[Query: prize_claims<br/>WHERE scrim_id IN admin_scrims<br/>AND status = 'pending']
-        D --> E[Tampilkan Daftar<br/>Klaim Masuk]
-        E --> F
-        G[Lihat Detail:<br/>Nama Pemenang, Jumlah Hadiah,<br/>Nama Bank, No Rekening, Nama Pemilik] --> H{Verifikasi<br/>Data Rekening}
-        H -->|Data Tidak Lengkap| I[Reject Sementara:<br/>Minta Peserta Lengkapi Data]
-        H -->|Data Valid| J{Transfer<br/>Manual ke Rekening}
-        J --> K
-        L{Transfer<br/>Berhasil?} -->|Gagal| M[Tampilkan Error<br/>Coba Transfer Ulang]
-        M --> K
-        L -->|Berhasil| N[UPDATE prize_claims:<br/>status = 'approved'<br/>verified_at = now<br/>verified_by = admin_id]
-        N --> O[INSERT ke Tabel transactions:<br/>type = 'prize_payout'<br/>amount = -prize_amount]
-        O --> P[Kirim Notifikasi FCM<br/>ke Pemenang]
-        I --> Q[UPDATE prize_claims:<br/>status = 'rejected'<br/>reject_reason = alasan]
-        Q --> R[Kirim Notifikasi Penolakan<br/>ke Peserta]
-        P & R --> S([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB & FCM)"]
+        R2 --> S1[SELECT FROM prize_claims WHERE status='pending' AND admin_id = current]
+        S1 --> S2[Tampilkan List Antrean Klaim Hadiah] --> R3
+        R5 --> S3[UPDATE prize_claims SET status='paid', verified_at = now]
+        S3 --> S4[INSERT ke transactions type='prize_payout']
+        S4 --> S5[Kirim Notifikasi FCM Sukses Mentransfer ke Pemenang]
+        R6 --> S6[UPDATE prize_claims SET status='rejected', reject_reason = R6]
+        S6 --> S7[Kirim Notifikasi FCM Penolakan Klaim ke Pemenang]
+        S5 & S7 --> S8[Render Perubahan Status Klaim Terkini] --> R7
     end
 ```
 
@@ -883,46 +669,31 @@ flowchart TD
 ### UC-19 Berlangganan Premium (Admin)
 
 **Aktor:** Admin  
-**Tujuan:** Membeli paket premium untuk mengakses fitur unggulan  
-**Prasyarat:** Admin login, belum memiliki paket premium aktif  
+**Tujuan:** Membayar dan mengaktifkan fitur premium agar dapat menyematkan scrim unggulan (featured)  
+**Prasyarat:** Admin login ke aplikasi dan memilih menu berlangganan  
 
 ```mermaid
 flowchart TD
-    subgraph Admin
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Langganan Premium'<br/>di Profil Admin]
-        D[Admin Pilih Paket] --> E
-        F[Pilih Metode Pembayaran] --> G[Klik 'Berlangganan Sekarang']
-        L{Admin Bayar?} -->|Tidak - Batalkan| M[UPDATE premium_requests<br/>status = 'cancelled']
-        M --> B
-        L -->|Ya| N
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        S1([🟢 Mulai]) --> S2[Buka Halaman Langganan Premium]
+        S2 --> S3[Pilih Paket Premium & Klik Bayar]
+        S3 --> S4[Selesaikan Transaksi pada Snap Pembayaran UI]
+        S5[Terima Notifikasi Fitur Premium Terbuka] --> S6([🔴 Selesai])
     end
 
-    subgraph Platform
-        direction TB
-        R{Platform Aksi} -->|Approve| S
-        R -->|Reject| W
-    end
-
-    subgraph Sistem
-        direction TB
-        B --> C[Tampilkan Paket:<br/>Bulanan & Tahunan<br/>beserta Fitur & Harga]
-        C --> D
-        E[Tampilkan Ringkasan<br/>Paket yang Dipilih] --> F
-        G --> H[INSERT premium_requests:<br/>status = 'pending'<br/>package_type, amount]
-        H --> I[Panggil Edge Function<br/>create-transaction untuk premium]
-        I --> J[Midtrans Generate<br/>Snap Token]
-        J --> K[Buka Midtrans Snap UI]
-        K --> L
-        N[Midtrans Webhook<br/>ke payment-notification] --> O[UPDATE premium_requests<br/>status = 'paid']
-        O --> P[Kirim Notifikasi ke Platform:<br/>'Ada Request Premium Baru']
-        P --> Q[Menunggu Approve Platform]
-        Q --> R
-        S[UPDATE admin_profiles:<br/>is_premium = true<br/>premium_started_at = now<br/>premium_expired_at = +30/365 hari] --> T[INSERT transactions<br/>type = 'subscription']
-        T --> U[Kirim Notifikasi ke Admin:<br/>'Selamat! Akun Premium Aktif']
-        U --> V[Fitur Premium Terbuka]
-        W[UPDATE premium_requests<br/>status = 'rejected'] --> X[Kirim Notifikasi Penolakan<br/>ke Admin]
-        V & X --> Y([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB, Edge Fn & Midtrans)"]
+        S2 --> SS1[Tampilkan Informasi Paket Premium] --> S3
+        S3 --> SS2[INSERT ke premium_requests status='pending']
+        SS2 --> SS3[Panggil Edge Fn & Minta snap_token Premium]
+        SS3 --> SS4[Buka Midtrans Snap Gateway Screen] --> S4
+        S4 --> SS5[Midtrans Callback Mengirim Webhook Settlement]
+        SS5 --> SS6{Status Valid?}
+        SS6 -->|Ya| SS7[UPDATE premium_requests SET status='paid']
+        SS7 --> SS8[Kirim Push Notifikasi ke Platform untuk Konfirmasi]
+        SS8 --> SS9[Platform Menyetujui: UPDATE admin_profiles is_premium=true]
+        SS9 --> SS10[INSERT ke transactions type='subscription']
+        SS10 --> SS11[Kirim FCM Notifikasi Premium Aktif ke Admin] --> S5
+        SS6 -->|Gagal| SS12[UPDATE premium_requests SET status='failed'] --> S6
     end
 ```
 
@@ -930,37 +701,29 @@ flowchart TD
 
 ### UC-20 Dashboard Keuangan (Platform)
 
-**Aktor:**   
-**Tujuan:** Memantau seluruh arus kas dan kesehatan keuangan platform  
-**Prasyarat:** Login sebagai Platform  
+**Aktor:** Platform  
+**Tujuan:** Mengaudit arus kas masuk (pembayaran scrim, langganan) dan arus kas keluar (pencairan prize pool)  
+**Prasyarat:** Pengguna login dengan role `platform`  
 
 ```mermaid
 flowchart TD
-    subgraph Platform
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Keuangan'<br/>di Platform Dashboard]
-        E{Pilih Rentang<br/>Waktu} -->|Hari Ini| F[Filter: created_at = today]
-        E -->|Minggu Ini| G[Filter: created_at >= 7 hari lalu]
-        E -->|Bulan Ini| H[Filter: created_at BETWEEN<br/>awal & akhir bulan]
-        E -->|Custom| I[Pilih Tanggal<br/>Mulai & Selesai]
-        F & G & H & I --> J
-        L --> M{Filter<br/>Jenis Transaksi}
-        M -->|Pendapatan| N[Tampilkan registration_fee<br/>& subscription saja]
-        M -->|Pengeluaran| O[Tampilkan prize_payout saja]
-        M -->|Semua| P[Tampilkan Semua Transaksi]
-        N & O & P --> Q{Export<br/>Data?}
+    subgraph Aktor ["👤 Aktor (Platform)"]
+        T1([🟢 Mulai]) --> T2[Buka Dashboard Keuangan Platform]
+        T2 --> T3{Gunakan Filter?}
+        T3 -->|Filter Waktu| T4[Pilih Rentang Tanggal / Bulan]
+        T3 -->|Filter Jenis| T5[Pilih Jenis Pendapatan / Pengeluaran]
+        T3 -->|Tidak| T6[Lihat Total Pendapatan, Pengeluaran & Saldo Bersih]
+        T4 & T5 --> T6
+        T6 --> T7[Klik Unduh Laporan CSV] --> T8([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Query VIEW v_platform_finance<br/>Ringkasan Keuangan Platform]
-        C --> D[Tampilkan Kartu Ringkasan:<br/>Total Pendapatan<br/>Total Pengeluaran<br/>Saldo Bersih]
-        D --> E
-        J[Query transactions<br/>dengan Filter Waktu] --> K[Tampilkan Grafik:<br/>Grafik Bar / Line<br/>Pendapatan vs Pengeluaran]
-        K --> L[Tampilkan Tabel Transaksi:<br/>Tanggal, Jenis, Keterangan, Nominal]
-        Q -->|Ya| R[Export ke CSV / Excel]
-        Q -->|Tidak| S[Selesai Melihat]
-        R & S --> T([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        T2 --> S1[Panggil Database Views v_platform_finance]
+        S1 --> S2[Render Grafik & Tabel Ringkasan Keuangan] --> T3
+        T4 & T5 --> S3[Query transactions Sesuai Parameter Filter]
+        S3 --> S4[Render Ulang Chart & Tabel Arus Kas] --> T6
+        T7 --> S5[Generate Laporan CSV Berdasarkan Data Aktif]
+        S5 --> S6[Kirim File CSV ke Penyimpanan Device Platform] --> T8
     end
 ```
 
@@ -968,44 +731,32 @@ flowchart TD
 
 ### UC-21 Kelola & Suspend Pengguna (Platform)
 
-**Aktor:**   
-**Tujuan:** Mengelola akun pengguna dan melakukan tindakan suspend jika diperlukan  
-**Prasyarat:** Login sebagai Platform  
+**Aktor:** Platform  
+**Tujuan:** Memoderasi komunitas dengan mensuspend pengguna bermasalah / pelanggar aturan  
+**Prasyarat:** Login dengan akun role `platform`  
 
 ```mermaid
 flowchart TD
-    subgraph Platform
-        direction TB
-        A([🟢 Mulai]) --> B[Buka Menu 'Kelola Pengguna'<br/>di Platform Dashboard]
-        E{Filter<br/>Pengguna} -->|Role| F[Filter by: participant / admin / platform]
-        E -->|Status| G[Filter by: aktif / tersuspend]
-        E -->|Pencarian| H[Search by: nama / email]
-        F & G & H --> I
-        J[Platform Pilih Pengguna] --> K
-        L{Aksi Platform} -->|Suspend Pengguna| M
-        L -->|Unsuspend Pengguna| T
-        L -->|Lihat Riwayat Aktivitas| Y
-        O[Tampilkan Form Suspend:<br/>Alasan Suspend] --> P
+    subgraph Aktor ["👤 Aktor (Platform)"]
+        U1([🟢 Mulai]) --> U2[Buka Daftar Pengguna di Admin Platform]
+        U2 --> U3[Cari Akun Menggunakan Username / Email]
+        U3 --> U4[Tinjau Riwayat Scrim & Pelanggaran Akun]
+        U4 --> U5{Tentukan Tindakan?}
+        U5 -->|Suspend| U6[Klik Suspend Akun & Masukkan Alasan Pelanggaran]
+        U5 -->|Unsuspend| U7[Klik Unsuspend Akun Pengguna]
+        U6 & U7 --> U8([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        B --> C[Query: SELECT * FROM users<br/>ORDER BY created_at DESC]
-        C --> D[Tampilkan Daftar Pengguna:<br/>Nama, Email, Role, Status]
-        D --> E
-        I[Refresh Daftar] --> J
-        K[Lihat Detail Profil:<br/>Info Lengkap, Riwayat Aktivitas] --> L
-        M{Pengguna<br/>Sudah Tersuspend?} -->|Ya| N[Tampilkan Info<br/>'Sudah Tersuspend']
-        M -->|Tidak| O
-        P[UPDATE users:<br/>is_suspended = true<br/>suspension_reason = alasan<br/>suspended_at = now<br/>suspended_by = platform_id] --> Q[Paksa Logout Pengguna<br/>dari Sesi Aktif]
-        Q --> R[INSERT audit_logs:<br/>action = 'suspend']
-        R --> S[Kirim Notifikasi ke Pengguna:<br/>'Akun Anda Telah Disuspend']
-        T{Pengguna<br/>Tersuspend?} -->|Tidak| U[Tampilkan 'Pengguna Aktif']
-        T -->|Ya| V[UPDATE users:<br/>is_suspended = false<br/>suspension_reason = null]
-        V --> W[INSERT audit_logs:<br/>action = 'unsuspend']
-        W --> X[Kirim Notifikasi:<br/>'Akun Anda Telah Diaktifkan']
-        Y[Tampilkan Audit Log<br/>untuk Pengguna Ini] --> Z([🔴 Selesai])
-        N & S & U & X --> Z
+    subgraph Sistem ["💻 Sistem (Supabase DB & FCM)"]
+        U2 --> S1[SELECT FROM users ORDER BY created_at DESC]
+        S1 --> S2[Render Daftar Pengguna Lengkap] --> U3
+        U6 --> S3[UPDATE users SET is_suspended=true & suspension_reason = U6]
+        S3 --> S4[INSERT ke audit_logs action='suspend']
+        S4 --> S5[Paksa Putus Sesi Auth JWT & Kirim Notif FCM Suspend]
+        U7 --> S6[UPDATE users SET is_suspended=false, suspension_reason=null]
+        S6 --> S7[INSERT ke audit_logs action='unsuspend']
+        S7 --> S8[Kirim FCM Notifikasi Akun Aktif Kembali]
+        S5 & S8 --> S9[Render Perubahan Informasi di Dashboard] --> U8
     end
 ```
 
@@ -1013,40 +764,31 @@ flowchart TD
 
 ### UC-22 Approve/Reject Premium Request (Platform)
 
-**Aktor:**   
-**Tujuan:** Meninjau dan menyetujui atau menolak permintaan premium dari admin  
-**Prasyarat:** Ada premium_requests dengan status `paid`  
+**Aktor:** Platform  
+**Tujuan:** Memvalidasi pengajuan berbayar akun premium dari Admin yang telah settlement di Midtrans  
+**Prasyarat:** Admin telah melakukan checkout paket premium (premium_requests status `paid`)  
 
 ```mermaid
 flowchart TD
-    subgraph Platform
-        direction TB
-        A([🟢 Mulai]) --> B{Cara Mengetahui<br/>Ada Request}
-        B -->|Via Notifikasi| C[Terima Push Notification<br/>'Ada Request Premium Baru']
-        B -->|Via Dashboard| D[Buka 'Kelola Premium'<br/>di Platform Dashboard]
-        C --> E[Klik Notifikasi]
-        D --> F[Query: premium_requests<br/>WHERE status = 'paid'<br/>ORDER BY created_at ASC]
-        E & F --> G
-        H[Pilih Request untuk Ditinjau] --> I
-        J{Verifikasi<br/>Pembayaran} --> K
-        L{Pembayaran<br/>Terkonfirmasi?} -->|Tidak| M
-        L -->|Ya| N{Platform<br/>Memutuskan}
-        N -->|Approve| O
-        N -->|Reject| M
+    subgraph Aktor ["👤 Aktor (Platform)"]
+        V1([🟢 Mulai]) --> V2[Terima FCM / Buka Menu Request Premium]
+        V2 --> V3[Pilih Antrean Request Premium Admin]
+        V3 --> V4{Verifikasi Keabsahan Transfer?}
+        V4 -->|Setujui| V5[Klik Setujui & Aktifkan Paket]
+        V4 -->|Tolak| V6[Klik Tolak & Masukkan Alasan Penolakan]
+        V5 & V6 --> V7([🔴 Selesai])
     end
 
-    subgraph Sistem
-        direction TB
-        G[Tampilkan Daftar<br/>Request Premium Menunggu] --> H
-        I[Lihat Detail:<br/>Nama Admin, Paket, Nominal,<br/>Tanggal Request, Bukti Bayar Midtrans] --> J
-        K[Cek Status di<br/>Midtrans Dashboard] --> L
-        M[Reject Request<br/>dengan Alasan] --> S[UPDATE premium_requests:<br/>status = 'rejected'<br/>reject_reason = alasan]
-        O[UPDATE premium_requests:<br/>status = 'approved'<br/>approved_by = platform_id<br/>approved_at = now] --> P[UPDATE admin_profiles:<br/>is_premium = true<br/>premium_started_at = now<br/>premium_expired_at = sesuai paket]
-        P --> Q[INSERT transactions:<br/>type = 'subscription'<br/>amount = +nominal]
-        Q --> R[Kirim Notifikasi Approval<br/>ke Admin]
-        S --> T[Kirim Notifikasi Penolakan<br/>ke Admin]
-        R & T --> U[INSERT audit_logs:<br/>action approve/reject premium]
-        U --> V([🔴 Selesai])
+    subgraph Sistem ["💻 Sistem (Supabase DB & FCM)"]
+        V2 --> S1[SELECT FROM premium_requests WHERE status='paid']
+        S1 --> S2[Render List Pengajuan Premium Pending] --> V3
+        V5 --> S3[UPDATE premium_requests SET status='approved', approved_at=now]
+        S3 --> S4[UPDATE admin_profiles SET is_premium=true, premium_expired_at = now + 30]
+        S4 --> S5[INSERT ke transactions type='subscription']
+        S5 --> S6[Kirim FCM Notifikasi Premium Aktif ke Admin]
+        V6 --> S7[UPDATE premium_requests SET status='rejected', reject_reason = V6]
+        S7 --> S8[Kirim FCM Notifikasi Permintaan Ditolak ke Admin]
+        S6 & S8 --> S9[Perbarui Halaman Dashboard Platform] --> V7
     end
 ```
 
@@ -1188,7 +930,7 @@ sequenceDiagram
     alt Slot Penuh / Registrasi Ditutup
         App-->>Peserta: "Slot penuh atau pendaftaran ditutup"
     else Slot Tersedia
-        App->>DB: INSERT registrations\n(status='pending', payment_method)
+        App->>DB: INSERT registrations\n(status='pending_payment', payment_method)
         DB-->>App: registration_id
 
         App->>DB: INSERT team_members\n(ff_id per anggota)
@@ -1229,7 +971,7 @@ sequenceDiagram
 
     alt Peserta Membatalkan
         Peserta->>App: Tutup UI Midtrans
-        App->>DB: UPDATE registrations SET status='cancelled'
+        App->>DB: UPDATE registrations SET status='failed'
         App-->>Peserta: Kembali ke Browse
     else Peserta Membayar
         Peserta->>MT: Selesaikan pembayaran
@@ -1239,7 +981,7 @@ sequenceDiagram
         WebhookFn->>WebhookFn: Verifikasi HMAC-SHA512
 
         alt Signature Valid & Status settlement
-            WebhookFn->>DB: UPDATE registrations\nSET status='confirmed',\nmidtrans_status='settlement',\npayment_type=actual_type
+            WebhookFn->>DB: UPDATE registrations\nSET status='verified',\nmidtrans_status='settlement',\npayment_type=actual_type
             WebhookFn->>DB: UPDATE scrims\nSET slot_filled = slot_filled + 1
             WebhookFn->>DB: INSERT transactions\n(type='registration_fee', amount=+fee)
             WebhookFn->>FCM: Send notification\nke FCM token peserta
@@ -1249,7 +991,7 @@ sequenceDiagram
         end
 
         App->>DB: Realtime subscription (registrations)
-        DB-->>App: Status update: 'confirmed'
+        DB-->>App: Status update: 'verified'
         App-->>Peserta: "Pendaftaran Berhasil!"
     end
 ```
@@ -1276,7 +1018,7 @@ sequenceDiagram
     AdminApp->>DB: UPDATE scrims SET\nroom_id=?,\nroom_password=?,\nroom_sent_at=now()
     DB-->>AdminApp: Update berhasil
 
-    AdminApp->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='confirmed'
+    AdminApp->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='verified'
     DB-->>AdminApp: List user_id peserta
 
     loop Setiap Peserta
@@ -1308,7 +1050,7 @@ sequenceDiagram
 
     Note over Admin,DB: FASE 1 — Input Hasil
     Admin->>AdminApp: Buka "Input Hasil Pertandingan"
-    AdminApp->>DB: GET registrations\nWHERE scrim_id=? AND status='confirmed'
+    AdminApp->>DB: GET registrations\nWHERE scrim_id=? AND status='verified'
     DB-->>AdminApp: Daftar tim peserta
 
     loop Setiap Tim
@@ -1348,10 +1090,10 @@ sequenceDiagram
     DB-->>AdminApp: Daftar klaim
 
     Admin->>AdminApp: Verifikasi & approve klaim
-    AdminApp->>DB: UPDATE prize_claims SET status='approved'
+    AdminApp->>DB: UPDATE prize_claims SET status='paid'
     AdminApp->>DB: INSERT transactions\n(type='prize_payout', amount=-prize)
     AdminApp->>FCM: Notifikasi ke Peserta:\n"Hadiah Telah Dikirim!"
-    FCM-->>PesertaApp: 🔔 "Hadiah sedang dikirim!"
+    FCM-->>PesertaApp: 🔔 "Hadiah kamu sudah dikirim!"
 ```
 
 ---
@@ -1499,10 +1241,10 @@ sequenceDiagram
     Admin->>AdminApp: Input Room ID & Room Password
     Admin->>AdminApp: Klik Kirim
 
-    AdminApp->>DB: UPDATE scrims SET\nroom_id=?, room_password=?,\nroom_sent_at=now()\nWHERE id=? AND admin_id=current
+    AdminApp->>DB: UPDATE scrims SET room_id=?, room_password=?,\nroom_sent_at=now()\nWHERE id=? AND admin_id=current
     DB-->>AdminApp: Update sukses
 
-    AdminApp->>DB: SELECT users.fcm_token, registrations.user_id\nFROM registrations JOIN users\nWHERE scrim_id=? AND status='confirmed'
+    AdminApp->>DB: SELECT users.fcm_token, registrations.user_id\nFROM registrations JOIN users\nWHERE scrim_id=? AND status='verified'
     DB-->>AdminApp: List peserta & FCM token
 
     loop Batch Insert Notifikasi
@@ -1530,7 +1272,7 @@ sequenceDiagram
     participant FCM as Firebase FCM
 
     Admin->>App: Buka "Input Hasil" untuk scrim tertentu
-    App->>DB: SELECT registrations\nWHERE scrim_id=? AND status='confirmed'
+    App->>DB: SELECT registrations\nWHERE scrim_id=? AND status='verified'
     DB-->>App: Daftar tim peserta
     App-->>Admin: Form input hasil per tim
 
@@ -1552,7 +1294,7 @@ sequenceDiagram
     App->>DB: UPDATE scrims\nSET status='finished'
     DB-->>App: Status updated
 
-    App->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='confirmed'
+    App->>DB: SELECT user_id FROM registrations\nWHERE scrim_id=? AND status='verified'
     DB-->>App: List peserta
 
     App->>FCM: Broadcast ke semua peserta:\n"Hasil Scrim [nama] Telah Diumumkan!"
@@ -1592,7 +1334,7 @@ sequenceDiagram
     alt Admin Approve
         Admin->>AdminApp: Transfer manual via bank
         Admin->>AdminApp: Klik "Approve Klaim"
-        AdminApp->>DB: UPDATE prize_claims SET\nstatus='approved',\nverified_at=now(),\nverified_by=admin_id
+        AdminApp->>DB: UPDATE prize_claims SET\nstatus='paid',\nverified_at=now(),\nverified_by=admin_id
         AdminApp->>DB: INSERT transactions\n(type='prize_payout',\namount=-prize_amount,\nscrim_id=?, user_id=?)
         AdminApp->>FCM: Notif ke peserta:\n"Hadiah Telah Dikirim!"
         FCM-->>PesertaApp: 🔔 "Hadiah kamu sudah dikirim!"
@@ -1948,8 +1690,8 @@ classDiagram
         +int amount
         +String? bank_type
         +String? bank_name
-        +String? account_number
-        +String? account_name
+        +String? accountNumber
+        +String? accountName
         +String status
         +DateTime? claimed_at
         +DateTime? verified_at
@@ -2108,7 +1850,7 @@ erDiagram
         int prize_pool
         boolean is_premium
         boolean is_featured
-        enum status "open | ongoing | finished | cancelled"
+        enum status "draft | open | ongoing | finished | cancelled"
         varchar room_id
         varchar room_password
     }
@@ -2121,7 +1863,7 @@ erDiagram
         varchar team_name
         varchar captain_ff_id
         varchar phone
-        enum status "pending | confirmed | rejected | cancelled"
+        enum status "pending_payment | verified | rejected | cancelled"
         varchar payment_method
         int payment_amount
         varchar midtrans_snap_token
@@ -2215,7 +1957,7 @@ erDiagram
     AUDIT_LOGS {
         bigint id PK
         bigint actor_id FK
-        enum action "create | update | delete | login | suspend"
+        enum action "create | update | delete | login | suspend | unsuspend"
         varchar entity_type
         bigint entity_id
         jsonb old_values
@@ -2264,7 +2006,7 @@ graph TB
     end
 
     subgraph "Layanan Eksternal"
-        MIDTRANS[Midtrans Payment Gateway]
+        MIDTRANS[Midtrans Sandbox Payment Gateway]
         FCM[Firebase Cloud Messaging]
     end
 
@@ -2288,10 +2030,10 @@ graph TB
 | Mobile App | Flutter 3.x / Dart | UI, state management, real-time updates |
 | Database | Supabase (PostgreSQL) | Penyimpanan data utama dengan RLS |
 | Auth | Supabase Auth | Manajemen sesi & JWT token |
-| Storage | Supabase Storage | Upload avatar & bukti pembayaran |
-| Real-time | Supabase Realtime | Subscription status pembayaran live |
+| Storage | Supabase Storage | Upload avatar & berkas platform |
+| Real-time | Supabase Realtime | Subscription status pendaftaran live |
 | Edge Functions | Deno (TypeScript) | Server-side: generate token & webhook |
-| Payment | Midtrans Snap API | Payment gateway multi-metode |
+| Payment Gateway | Midtrans Sandbox API | Simulasi pembayaran multi-metode |
 | Push Notif | Firebase Cloud Messaging | Notifikasi push ke device |
 
 ---
@@ -2327,14 +2069,14 @@ booyahhub/
 │       │   └── platform_settings_screen.dart   # Pengaturan Platform
 │       ├── leaderboard/                   # UC-11 Leaderboard
 │       ├── notification/                  # Pusat Notifikasi
-│       ├── profile/                       # UC-12 Kelola Profil
+│       ├── profile/                       # UC-12 Profil & Rekening Bank
 │       └── search/                        # UC-03 Pencarian
 ├── supabase/
 │   └── functions/
 │       ├── create-transaction/
 │       │   └── index.ts                   # Generate Midtrans Snap Token
 │       └── payment-notification/
-│           └── index.ts                   # Webhook Handler Midtrans
+│       │   └── index.ts                   # Webhook Handler Midtrans
 ├── assets/
 │   ├── images/
 │   └── icons/
@@ -2347,4 +2089,4 @@ booyahhub/
 
 ---
 
-*Terakhir diperbarui: Juni 2026 — BooyahHub v2.0*
+*Terakhir diperbarui: Juni 2026 — BooyahHub v2.0 (Edisi Laporan Resmi SKPL)*
