@@ -157,14 +157,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
     appBar: AppBar(
       title: const Text('KIRIM PENGUMUMAN'),
       actions: [
-        Chip(
-          label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-          labelStyle: const TextStyle(
-            color: BooyahTheme.yellow,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
         const SizedBox(width: 8),
       ],
     ),

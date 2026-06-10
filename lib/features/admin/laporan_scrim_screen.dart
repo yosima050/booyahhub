@@ -120,11 +120,9 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text('LAPORAN SCRIM'),
-      actions: [Chip(label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-        backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-        labelStyle: const TextStyle(color: BooyahTheme.yellow, fontWeight: FontWeight.w700),
-      ), const SizedBox(width: 8)]),
+    appBar: AppBar(
+      title: const Text('LAPORAN SCRIM'),
+      actions: [ const SizedBox(width: 8)]),
     body: _loading
         ? const Center(child: CircularProgressIndicator(color: BooyahTheme.maroon))
         : !_hasData

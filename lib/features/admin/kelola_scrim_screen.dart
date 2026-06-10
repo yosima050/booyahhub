@@ -36,14 +36,6 @@ class KelolaScrimScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('KELOLA SCRIM'),
         actions: [
-          Chip(
-            label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-            backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-            labelStyle: const TextStyle(
-              color: BooyahTheme.yellow,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
           const SizedBox(width: 8),
         ],
       ),

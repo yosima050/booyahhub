@@ -97,14 +97,6 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
     appBar: AppBar(
       title: const Text('DATA PENDAFTAR'),
       actions: [
-        Chip(
-          label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-          labelStyle: const TextStyle(
-            color: BooyahTheme.yellow,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
         const SizedBox(width: 8),
       ],
       bottom: TabBar(
