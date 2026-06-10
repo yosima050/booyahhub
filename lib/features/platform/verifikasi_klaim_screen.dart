@@ -91,73 +91,246 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
     final claimId = claim['id'] as int;
     if (_processingId != null) return;
 
+    final detailCtrl = TextEditingController();
+    String selectedReason = 'Indikasi Cheat / Curang';
+    final List<String> reasons = [
+      'Indikasi Cheat / Curang',
+      'Data Rekening Salah / Tidak Valid',
+      'Melanggar Regulasi Scrim',
+      'Lainnya',
+    ];
+
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: BooyahTheme.card,
-        title: const Text(
-          'Tolak Klaim?',
-          style: TextStyle(
-            fontFamily: 'Rajdhani',
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: Text(
-          'Saldo Rp${_fmt(claim['amount'] as int? ?? 0)} akan dikembalikan ke akun ${claim['user_name']}.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'BATAL',
-              style: TextStyle(color: BooyahTheme.textMuted),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              setState(() => _processingId = claimId);
-              try {
-                await ClaimService.verifyClaim(
-                  claimId: claimId,
-                  approve: false,
-                  reason: 'Platform rejected',
-                );
-                if (mounted) {
-                  setState(() {
-                    _claims.removeAt(i);
-                    _processingId = null;
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Klaim ditolak. Saldo dikembalikan.'),
-                      backgroundColor: BooyahTheme.yellow,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            final bool isLainnya = selectedReason == 'Lainnya';
+            final bool isValid = !isLainnya || detailCtrl.text.trim().isNotEmpty;
+
+            return AlertDialog(
+              backgroundColor: BooyahTheme.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
+                  color: BooyahTheme.red.withValues(alpha: 0.3),
+                ),
+              ),
+              title: Row(
+                children: const [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: BooyahTheme.red,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'TOLAK KLAIM HADIAH',
+                    style: TextStyle(
+                      fontFamily: 'Rajdhani',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                  );
-                }
-              } catch (e) {
-                debugPrint('Error rejecting claim: $e');
-                if (mounted) {
-                  setState(() => _processingId = null);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Gagal menolak klaim: ${e.toString().replaceAll('Exception: ', '')}',
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Saldo Rp${_fmt(claim['amount'] as int? ?? 0)} akan dikembalikan ke akun ${claim['user_name']}.',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white70,
                       ),
-                      backgroundColor: BooyahTheme.red,
                     ),
-                  );
-                }
-              }
-            },
-            child: const Text(
-              'TOLAK',
-              style: TextStyle(color: BooyahTheme.red),
-            ),
-          ),
-        ],
-      ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'ALASAN UTAMA PENOLAKAN',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: BooyahTheme.textMuted,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedReason,
+                      dropdownColor: BooyahTheme.card,
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 10,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: const BorderSide(
+                            color: BooyahTheme.red,
+                          ),
+                        ),
+                      ),
+                      items: reasons.map((r) {
+                        return DropdownMenuItem<String>(
+                          value: r,
+                          child: Text(r),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() {
+                            selectedReason = val;
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'ALASAN LANJUT / KETERANGAN',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold,
+                        color: BooyahTheme.textMuted,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: detailCtrl,
+                      maxLines: 3,
+                      style: const TextStyle(fontSize: 12, color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: isLainnya
+                            ? 'Wajib diisi...'
+                            : 'Keterangan tambahan (opsional)...',
+                        hintStyle: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.white30,
+                        ),
+                        contentPadding: const EdgeInsets.all(10),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: const BorderSide(
+                            color: BooyahTheme.red,
+                          ),
+                        ),
+                      ),
+                      onChanged: (_) {
+                        setDialogState(() {});
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    detailCtrl.dispose();
+                    Navigator.pop(ctx);
+                  },
+                  child: const Text(
+                    'BATAL',
+                    style: TextStyle(
+                      color: BooyahTheme.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: BooyahTheme.red,
+                    disabledBackgroundColor: BooyahTheme.red.withValues(
+                      alpha: 0.3,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  onPressed: !isValid
+                      ? null
+                      : () async {
+                          final customReason = detailCtrl.text.trim();
+                          final String finalReason = isLainnya
+                              ? customReason
+                              : (customReason.isNotEmpty
+                                  ? '$selectedReason - $customReason'
+                                  : selectedReason);
+                          detailCtrl.dispose();
+                          Navigator.pop(ctx);
+
+                          setState(() => _processingId = claimId);
+                          try {
+                            await ClaimService.verifyClaim(
+                              claimId: claimId,
+                              approve: false,
+                              reason: finalReason,
+                            );
+                            if (mounted) {
+                              setState(() {
+                                _claims.removeAt(i);
+                                _processingId = null;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Klaim ditolak: $finalReason. Saldo dikembalikan.',
+                                  ),
+                                  backgroundColor: BooyahTheme.yellow,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            debugPrint('Error rejecting claim: $e');
+                            if (mounted) {
+                              setState(() => _processingId = null);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Gagal menolak klaim: ${e.toString().replaceAll('Exception: ', '')}',
+                                  ),
+                                  backgroundColor: BooyahTheme.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: const Text(
+                    'TOLAK KLAIM',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

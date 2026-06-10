@@ -1038,20 +1038,144 @@ class PlatformService {
     }).eq('id', requestId);
   }
 
+  // Helper to calculate finance summary dynamically in Dart to match UI expectation
+  static Future<Map<String, dynamic>> _calculateSummary(Map<String, dynamic> finance) async {
+    final int gross = (finance['gross_income'] as num? ?? 0).toInt();
+    final int platformFee = (gross * 0.05).round();
+    
+    // Fetch transactions with premium scrims info
+    int premiumGross = 0;
+    try {
+      final premiumTxRes = await _db
+          .from('transactions')
+          .select('amount, scrims(is_premium)')
+          .eq('type', 'registration_fee');
+      
+      for (var tx in premiumTxRes) {
+        final scrimRaw = tx['scrims'];
+        final scrim = scrimRaw is List ? (scrimRaw.isNotEmpty ? scrimRaw.first as Map? : null) : scrimRaw as Map?;
+        if (scrim != null && scrim['is_premium'] == true) {
+          premiumGross += (tx['amount'] as num? ?? 0).toInt();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error calculating premium gross: $e');
+    }
+    final int adminFee = (premiumGross * 0.0375).round();
+
+    // Fetch total registered teams
+    int totalTeams = 0;
+    try {
+      final totalTeamsRes = await _db
+          .from('registrations')
+          .select('id')
+          .isFilter('deleted_at', null);
+      totalTeams = totalTeamsRes.length;
+    } catch (e) {
+      debugPrint('Error counting total teams: $e');
+    }
+
+    // Fetch verified admin cashouts from prize_claims
+    int totalAdminCashout = 0;
+    try {
+      final cashoutsRes = await _db
+          .from('prize_claims')
+          .select('amount')
+          .isFilter('match_result_id', null)
+          .inFilter('status', ['verified', 'completed']);
+      for (var c in cashoutsRes) {
+        totalAdminCashout += (c['amount'] as num? ?? 0).toInt();
+      }
+    } catch (e) {
+      debugPrint('Error fetching admin cashouts for summary: $e');
+    }
+
+    final int totalPrizesPaid = (finance['prize_payout_total'] as num? ?? 0).toInt() + totalAdminCashout;
+    final int pendingClaimsAmount = (finance['pending_amount'] as num? ?? 0).toInt();
+    final int totalPrizes = totalPrizesPaid + pendingClaimsAmount;
+    final int payoutProgress = totalPrizes > 0 ? (totalPrizesPaid * 100 / totalPrizes).round() : 100;
+
+    return {
+      'gross_income': gross,
+      'platform_fee': platformFee,
+      'admin_fee': adminFee,
+      'total_prizes': totalPrizesPaid,
+      'pending_claims_amount': pendingClaimsAmount,
+      'pending_claims_count': (finance['pending_claims'] as num? ?? 0).toInt(),
+      'total_teams': totalTeams,
+      'total_scrims': (finance['total_scrims'] as num? ?? 0).toInt(),
+      'fee_percentage': 5,
+      'payout_progress': payoutProgress,
+    };
+  }
+
   // UC-20: Dashboard keuangan
   static Future<Map<String, dynamic>> getFinance() async {
-    final summary = await _db.from('v_platform_finance').select().single();
+    final finance = await _db.from('v_platform_finance').select().single();
+    final mappedSummary = await _calculateSummary(finance);
+
     final txRecent = await _db
         .from('transactions')
-        .select('*, users(name)')
+        .select('*, users(name), scrims(title)')
         .order('created_at', ascending: false)
         .limit(20);
-    return {'summary': summary, 'transactions': txRecent};
+
+    final mappedTx = List<Map<String, dynamic>>.from(
+      txRecent.map((t) {
+        final scrimRaw = t['scrims'];
+        final scrim = scrimRaw is List ? (scrimRaw.isNotEmpty ? scrimRaw.first as Map? : null) : scrimRaw as Map?;
+        final scrimTitle = scrim != null ? scrim['title'] : '';
+        return {
+          ...t,
+          'scrim_title': scrimTitle,
+        };
+      })
+    );
+
+    // Merge admin cashouts dynamically
+    try {
+      final cashoutsRes = await _db
+          .from('prize_claims')
+          .select('*, users!prize_claims_user_id_fkey(name)')
+          .isFilter('match_result_id', null)
+          .inFilter('status', ['verified', 'completed'])
+          .order('created_at', ascending: false)
+          .limit(20);
+
+      final cashoutTxList = List<Map<String, dynamic>>.from(
+        cashoutsRes.map((c) {
+          final userRaw = c['users'];
+          final user = userRaw is List ? (userRaw.isNotEmpty ? userRaw.first as Map? : null) : userRaw as Map?;
+          return {
+            'id': c['id'],
+            'type': 'prize_payout',
+            'amount': -c['amount'],
+            'user_id': c['user_id'],
+            'scrim_id': null,
+            'description': 'Admin Cashout (instant)',
+            'created_at': c['created_at'],
+            'updated_at': c['updated_at'],
+            'scrim_title': 'Penarikan Saldo Admin',
+            'users': {'name': user?['name'] ?? 'Admin'},
+          };
+        })
+      );
+
+      final allTx = [...mappedTx, ...cashoutTxList];
+      allTx.sort((a, b) => DateTime.parse(b['created_at'] as String).compareTo(DateTime.parse(a['created_at'] as String)));
+      
+      return {'summary': mappedSummary, 'transactions': allTx.take(20).toList()};
+    } catch (e) {
+      debugPrint('Error merging admin cashouts in getFinance: $e');
+    }
+
+    return {'summary': mappedSummary, 'transactions': mappedTx};
   }
 
   // UC-21: Laporan keseluruhan
   static Future<Map<String, dynamic>> getReport() async {
     final finance = await _db.from('v_platform_finance').select().single();
+    final mappedSummary = await _calculateSummary(finance);
 
     final topAdmins = await _db
         .from('admin_profiles')
@@ -1077,7 +1201,7 @@ class PlatformService {
         .limit(100);
 
     return {
-      'summary': finance,
+      'summary': mappedSummary,
       'top_admins': topAdmins,
       'user_roles': userRoles,
       'scrims': scrims,
@@ -1240,6 +1364,89 @@ class AdminService {
         .eq('scrim_id', scrimId)
         .single();
     return Map<String, dynamic>.from(res);
+  }
+
+  // Get admin fee balance details dynamically
+  static Future<Map<String, dynamic>> getAdminBalance(int adminId) async {
+    // 1. Calculate total earnings from completed scrims
+    final scrimsRes = await _db
+        .from('scrims')
+        .select('fee_admin')
+        .eq('admin_id', adminId)
+        .eq('status', 'finished')
+        .isFilter('deleted_at', null);
+    
+    int totalEarnings = 0;
+    for (var s in scrimsRes) {
+      totalEarnings += (s['fee_admin'] as num? ?? 0).toInt();
+    }
+
+    // 2. Calculate total withdrawn / processing claims
+    final claimsRes = await _db
+        .from('prize_claims')
+        .select('amount, status')
+        .eq('user_id', adminId)
+        .isFilter('match_result_id', null);
+
+    int totalWithdrawn = 0;
+    int totalProcessing = 0;
+    for (var c in claimsRes) {
+      final status = c['status'] as String;
+      final amount = (c['amount'] as num? ?? 0).toInt();
+      if (status == 'completed' || status == 'verified') {
+        totalWithdrawn += amount;
+      } else if (status == 'processing') {
+        totalProcessing += amount;
+      }
+    }
+
+    return {
+      'total_earnings': totalEarnings,
+      'total_withdrawn': totalWithdrawn,
+      'total_processing': totalProcessing,
+      'available_balance': totalEarnings - totalWithdrawn - totalProcessing,
+    };
+  }
+
+  // Submit admin cashout request
+  static Future<void> requestAdminCashout({
+    required int adminId,
+    required int amount,
+    required String bankName,
+    required String accountNumber,
+    required String accountName,
+  }) async {
+    final nowStr = DateTime.now().toIso8601String();
+    final res = await _db.from('prize_claims').insert({
+      'user_id': adminId,
+      'amount': amount,
+      'bank_name': bankName,
+      'account_number': accountNumber,
+      'account_name': accountName,
+      'status': 'verified', // 🟢 Set langsung ke verified agar instan dan bypass verifikasi platform
+      'created_at': nowStr,
+      'updated_at': nowStr,
+      'claimed_at': nowStr,
+      'verified_at': nowStr,
+    }).select().single();
+
+    final claimId = res['id'];
+
+    // Opsional: catat transaksi keluar ke tabel transactions
+    try {
+      await _db.from('transactions').insert({
+        'type': 'prize_payout',
+        'amount': -amount,
+        'reference_type': 'prize_claims',
+        'reference_id': claimId,
+        'description': 'Admin Cashout (instant)',
+        'user_id': adminId,
+        'created_at': nowStr,
+        'updated_at': nowStr,
+      });
+    } catch (e) {
+      debugPrint('Optional admin cashout transaction log failed (RLS): $e');
+    }
   }
 }
 
