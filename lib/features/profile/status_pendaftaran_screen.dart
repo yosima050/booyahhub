@@ -14,11 +14,18 @@ class StatusPendaftaranScreen extends StatefulWidget {
 class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
   List<Map<String, dynamic>> _registrations = [];
   bool _loading = true;
+  RealtimeChannel? _realtimeChannel;
 
   @override
   void initState() {
     super.initState();
     _loadRegistrations();
+  }
+
+  @override
+  void dispose() {
+    _realtimeChannel?.unsubscribe();
+    super.dispose();
   }
 
   Future<void> _loadRegistrations() async {
@@ -32,6 +39,7 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
         if (mounted) {
           setState(() => _registrations = data);
         }
+        _setupRealtimeSubscription(user.id);
       }
     } catch (e) {
       debugPrint('Error loading registrations: $e');
@@ -42,47 +50,90 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
     }
   }
 
+  Future<void> _loadRegistrationsSilent() async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null) {
+        final data = await RegistrationService.getMyRiwayat();
+        if (mounted) {
+          setState(() => _registrations = data);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading registrations silently: $e');
+    }
+  }
+
+  void _setupRealtimeSubscription(String userUuid) async {
+    _realtimeChannel?.unsubscribe();
+    try {
+      final profile = await UserService.getUserProfile(userUuid);
+      final int userBigId = profile['id'] as int;
+      _realtimeChannel = RegistrationService.subscribeMyStatus(
+        userBigId.toString(),
+        (payload) {
+          debugPrint('Realtime status pendaftaran updated: $payload');
+          _loadRegistrationsSilent();
+        },
+      );
+    } catch (e) {
+      debugPrint('Error setting up realtime subscription: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(title: const Text('STATUS PENDAFTARAN')),
-    body: _loading
-        ? const Center(
-            child: CircularProgressIndicator(color: Color(0xFFB22222)),
-          )
-        : _registrations.isEmpty
-        ? const Center(
-            child: Text(
-              'Belum ada pendaftaran scrim.',
-              style: TextStyle(color: BooyahTheme.textMuted),
-            ),
-          )
-        : SingleChildScrollView(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionHeader(title: 'PENDAFTARAN AKTIF'),
-                ..._registrations.map(
-                  (reg) => _buildStatusCard(
-                    title: reg['scrim_title'] as String? ?? 'Unknown',
-                    admin:
-                        '${reg['admin_name'] ?? 'Admin'} · ${_fmtDate(reg['scheduled_at'])} · ${_fmtTime(reg['scheduled_at'])}',
-                    regStatus: reg['reg_status'] as String? ?? 'unknown',
-                    roomId: reg['room_id'] as String?,
-                    borderColor: _getStatusColor(
-                      reg['reg_status'] as String? ?? 'unknown',
-                    ),
-                    statusLabel: _getStatusLabel(
-                      reg['reg_status'] as String? ?? 'unknown',
-                    ),
-                    statusColor: _getStatusColor(
-                      reg['reg_status'] as String? ?? 'unknown',
-                    ),
+    body: RefreshIndicator(
+      onRefresh: _loadRegistrations,
+      color: BooyahTheme.maroon,
+      backgroundColor: BooyahTheme.card,
+      child: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFB22222)),
+            )
+          : _registrations.isEmpty
+          ? const SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 100),
+                  child: Text(
+                    'Belum ada pendaftaran scrim.',
+                    style: TextStyle(color: BooyahTheme.textMuted),
                   ),
                 ),
-              ],
+              ),
+            )
+          : SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionHeader(title: 'PENDAFTARAN AKTIF'),
+                  ..._registrations.map(
+                    (reg) => _buildStatusCard(
+                      title: reg['scrim_title'] as String? ?? 'Unknown',
+                      admin:
+                          '${reg['admin_name'] ?? 'Admin'} · ${_fmtDate(reg['scheduled_at'])} · ${_fmtTime(reg['scheduled_at'])}',
+                      regStatus: reg['reg_status'] as String? ?? 'unknown',
+                      roomId: reg['room_id'] as String?,
+                      borderColor: _getStatusColor(
+                        reg['reg_status'] as String? ?? 'unknown',
+                      ),
+                      statusLabel: _getStatusLabel(
+                        reg['reg_status'] as String? ?? 'unknown',
+                      ),
+                      statusColor: _getStatusColor(
+                        reg['reg_status'] as String? ?? 'unknown',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+    ),
   );
 
   String _fmtDate(String? iso) {
@@ -114,9 +165,10 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'waiting_verify':
-        return BooyahTheme.yellow;
+      case 'verified':
       case 'waiting_room_id':
+        return BooyahTheme.yellow;
+      case 'waiting_verify':
         return BooyahTheme.yellow;
       case 'ongoing':
         return BooyahTheme.maroonGlow;
@@ -129,10 +181,11 @@ class _StatusPendaftaranScreenState extends State<StatusPendaftaranScreen> {
 
   String _getStatusLabel(String status) {
     switch (status) {
-      case 'waiting_verify':
-        return 'VERIFIKASI';
+      case 'verified':
       case 'waiting_room_id':
         return 'MENUNGGU ROOM ID';
+      case 'waiting_verify':
+        return 'VERIFIKASI';
       case 'ongoing':
         return 'BERLANGSUNG';
       case 'finished':

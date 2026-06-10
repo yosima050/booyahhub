@@ -49,26 +49,48 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
     time:       d['scheduled_at'] != null ? _fmtTime(d['scheduled_at']) : '',
     roomId:     d['room_id']     as String? ?? '',
     fee:        d['fee']         as int?    ?? 0,
-    status:     _parseStatus(d['reg_status'] as String? ?? ''),
+    status:     _parseStatus(
+      regStatus: d['reg_status'] as String? ?? '',
+      scrimStatus: d['scrim_status'] as String? ?? '',
+    ),
     rank:       d['rank']        as int?,
     points:     d['total_point'] as int?,
   );
 
-  ScrimStatus _parseStatus(String s) {
-    switch (s) {
-      case 'waiting_verify': return ScrimStatus.menungguVerifikasi;
-      case 'waiting_room_id': return ScrimStatus.menungguRoomId;
-      case 'ongoing':         return ScrimStatus.berlangsung;
-      case 'finished':        return ScrimStatus.selesai;
-      default:                return ScrimStatus.menungguVerifikasi;
+  ScrimStatus _parseStatus({required String regStatus, required String scrimStatus}) {
+    if (scrimStatus == 'finished') {
+      return ScrimStatus.selesai;
+    }
+    if (scrimStatus == 'ongoing') {
+      return ScrimStatus.berlangsung;
+    }
+    switch (regStatus) {
+      case 'verified':
+      case 'waiting_room_id':
+        return ScrimStatus.menungguRoomId;
+      case 'waiting_verify':
+        return ScrimStatus.menungguVerifikasi;
+      default:
+        return ScrimStatus.menungguVerifikasi;
     }
   }
 
   List<RiwayatModel> get _filtered {
     final all = _rawData.map(_toModel).toList();
     if (_filterIdx == 0) return all;
-    final map = [null, ScrimStatus.menungguVerifikasi, ScrimStatus.berlangsung, ScrimStatus.selesai];
-    return all.where((r) => r.status == map[_filterIdx]).toList();
+    if (_filterIdx == 1) {
+      return all.where((r) => 
+        r.status == ScrimStatus.menungguVerifikasi || 
+        r.status == ScrimStatus.menungguRoomId
+      ).toList();
+    }
+    if (_filterIdx == 2) {
+      return all.where((r) => r.status == ScrimStatus.berlangsung).toList();
+    }
+    if (_filterIdx == 3) {
+      return all.where((r) => r.status == ScrimStatus.selesai).toList();
+    }
+    return all;
   }
 
   String _fmtDate(String iso) {
@@ -120,13 +142,30 @@ class _RiwayatScrimScreenState extends State<RiwayatScrimScreen> {
         Expanded(
           child: _loading
               ? const Center(child: CircularProgressIndicator(color: Color(0xFFB22222)))
-              : _filtered.isEmpty
-                  ? const Center(child: Text('Belum ada riwayat scrim.', style: TextStyle(color: BooyahTheme.textMuted)))
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(14),
-                      itemCount: _filtered.length,
-                      itemBuilder: (_, i) => _buildCard(_filtered[i]),
-                    ),
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  color: BooyahTheme.maroon,
+                  backgroundColor: BooyahTheme.card,
+                  child: _filtered.isEmpty
+                      ? const SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Center(
+                            child: Padding(
+                              padding: EdgeInsets.only(top: 100),
+                              child: Text(
+                                'Belum ada riwayat scrim.',
+                                style: TextStyle(color: BooyahTheme.textMuted),
+                              ),
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(14),
+                          itemCount: _filtered.length,
+                          itemBuilder: (_, i) => _buildCard(_filtered[i]),
+                        ),
+                ),
         ),
       ],
     ),

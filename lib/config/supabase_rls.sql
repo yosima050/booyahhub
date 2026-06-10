@@ -228,13 +228,13 @@ BEGIN
 
   -- Kirim notifikasi ke peserta terverifikasi
   INSERT INTO notifications (user_id, type, title, message, scrim_id, sent_by)
-  SELECT r.user_id, 'room_info', 'Room ID Tersedia',
+  SELECT r.user_id, 'room_id_sent', 'Room ID Tersedia',
          COALESCE(p_extra_msg || E'\n', '') || 'Room ID: ' || p_room_id ||
          E'\nPassword: ' || p_room_pass,
          p_scrim_id, p_admin_id
   FROM registrations r
   WHERE r.scrim_id = p_scrim_id
-    AND r.status = 'verified'
+    AND r.status IN ('verified', 'waiting_room_id')
     AND r.deleted_at IS NULL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

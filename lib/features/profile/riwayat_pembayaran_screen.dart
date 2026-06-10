@@ -14,11 +14,18 @@ class RiwayatPembayaranScreen extends StatefulWidget {
 class _RiwayatPembayaranScreenState extends State<RiwayatPembayaranScreen> {
   List<Map<String, dynamic>> _transactions = [];
   bool _loading = true;
+  RealtimeChannel? _txChannel;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _txChannel?.unsubscribe();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -27,17 +34,50 @@ class _RiwayatPembayaranScreenState extends State<RiwayatPembayaranScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final profile = await UserService.getUserProfile(user.id);
-        final int userBigId = profile['id'] as int;
+        final int userBigId = int.parse(profile['id'].toString());
         final txList = await user_svc.UserService.getUserTransactions(userBigId);
         setState(() {
           _transactions = txList;
         });
+        _setupRealtimeSync(userBigId);
       }
     } catch (e) {
       debugPrint('Error loading transactions: $e');
     } finally {
       setState(() => _loading = false);
     }
+  }
+
+  Future<void> _loadDataSilent(int userBigId) async {
+    try {
+      final txList = await user_svc.UserService.getUserTransactions(userBigId);
+      setState(() {
+        _transactions = txList;
+      });
+    } catch (e) {
+      debugPrint('Error loading transactions silently: $e');
+    }
+  }
+
+  void _setupRealtimeSync(int userBigId) {
+    _txChannel?.unsubscribe();
+    _txChannel = Supabase.instance.client.realtime
+        .channel('realtime_tx_$userBigId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'transactions',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userBigId.toString(),
+          ),
+          callback: (payload) {
+            debugPrint('New transaction received: ${payload.newRecord}');
+            _loadDataSilent(userBigId);
+          },
+        )
+        .subscribe();
   }
 
   String _fmtRupiah(int amount) {

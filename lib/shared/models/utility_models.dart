@@ -359,7 +359,7 @@ class UserRiwayatViewDto {
       mode: json['mode'] ?? 'battle_royale',
       scheduledAt: DateTime.parse(json['scheduled_at'] ?? DateTime.now().toIso8601String()),
       fee: json['fee'] ?? 0,
-      registrationStatus: RegistrationStatus.fromString(json['registration_status']),
+      registrationStatus: RegistrationStatus.fromString(json['reg_status']),
       rank: json['rank'],
       totalPoint: json['total_point'],
       prizeAmount: json['prize_amount'],

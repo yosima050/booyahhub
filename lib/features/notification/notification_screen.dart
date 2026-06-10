@@ -78,28 +78,60 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Color _getTypeColor(String type) {
     switch (type) {
       case 'room_id':
-      case 'room_info':      return BooyahTheme.maroonGlow;
-      case 'payment':        return BooyahTheme.green;
-      case 'result':         return BooyahTheme.gold;
-      case 'claim':          return BooyahTheme.yellow;
-      case 'schedule':       return BooyahTheme.yellow;
-      case 'booking':        return BooyahTheme.maroonB;
-      case 'announcement':   return BooyahTheme.maroon;
-      default:               return BooyahTheme.textMuted;
+      case 'room_info':
+      case 'room_id_sent':
+        return BooyahTheme.maroonGlow;
+      case 'payment':
+      case 'payment_confirmed':
+      case 'payment_rejected':
+        return BooyahTheme.green;
+      case 'result':
+      case 'match_result':
+        return BooyahTheme.gold;
+      case 'claim':
+      case 'prize_processing':
+      case 'prize_sent':
+        return BooyahTheme.yellow;
+      case 'schedule':
+      case 'schedule_changed':
+        return BooyahTheme.yellow;
+      case 'booking':
+      case 'booking_reminder':
+        return BooyahTheme.maroonB;
+      case 'announcement':
+        return BooyahTheme.maroon;
+      default:
+        return BooyahTheme.textMuted;
     }
   }
 
   String _getIcon(String type) {
     switch (type) {
       case 'room_id':
-      case 'room_info':    return '🔴';
-      case 'payment':      return '✅';
-      case 'result':       return '🏆';
-      case 'claim':        return '💰';
-      case 'schedule':     return '⚠️';
-      case 'booking':      return '🎮';
-      case 'announcement': return '📢';
-      default:             return '📝';
+      case 'room_info':
+      case 'room_id_sent':
+        return '🔴';
+      case 'payment':
+      case 'payment_confirmed':
+      case 'payment_rejected':
+        return '✅';
+      case 'result':
+      case 'match_result':
+        return '🏆';
+      case 'claim':
+      case 'prize_processing':
+      case 'prize_sent':
+        return '💰';
+      case 'schedule':
+      case 'schedule_changed':
+        return '⚠️';
+      case 'booking':
+      case 'booking_reminder':
+        return '🎮';
+      case 'announcement':
+        return '📢';
+      default:
+        return '📝';
     }
   }
 
@@ -187,7 +219,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     final title = notif['title'] as String? ?? 'Notifikasi';
     final message = notif['message'] as String? ?? '';
     final type = notif['type'] as String? ?? '';
-    final isRoomInfo = type == 'room_id' || type == 'room_info' || message.toLowerCase().contains('room');
+    final isRoomInfo = type == 'room_id' || type == 'room_info' || type == 'room_id_sent' || message.toLowerCase().contains('room');
 
     String? roomId;
     String? roomPass;

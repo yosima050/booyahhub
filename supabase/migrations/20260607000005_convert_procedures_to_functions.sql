@@ -138,9 +138,11 @@ BEGIN
 
     SELECT title INTO v_title FROM scrims WHERE id = p_scrim_id;
 
-    -- Validasi peserta terverifikasi
+    -- Validasi peserta terverifikasi atau sudah menunggu room ID
     SELECT COUNT(*) INTO v_count
-    FROM registrations WHERE scrim_id = p_scrim_id AND status = 'verified';
+    FROM registrations 
+    WHERE scrim_id = p_scrim_id 
+      AND status IN ('verified', 'waiting_room_id');
 
     IF v_count = 0 THEN
         RAISE EXCEPTION 'Tidak ada peserta terverifikasi untuk dikirim Room ID';
@@ -156,7 +158,7 @@ BEGIN
     SET status = 'waiting_room_id'
     WHERE scrim_id = p_scrim_id AND status = 'verified';
 
-    -- Kirim notifikasi ke semua peserta verified
+    -- Kirim notifikasi ke semua peserta verified atau waiting_room_id
     INSERT INTO notifications (user_id, type, title, message, data, sent_by, scrim_id)
     SELECT
         r.user_id,
