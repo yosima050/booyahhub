@@ -86,14 +86,6 @@ class _DashKeuanganState extends State<DashboardKeuanganScreen> {
       title: const Text('KEUANGAN PLATFORM'),
       automaticallyImplyLeading: false,
       actions: [
-        Chip(
-          label: const Text('PLATFORM', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.maroonGlow.withValues(alpha: 0.15),
-          labelStyle: const TextStyle(
-            color: BooyahTheme.maroonGlow,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
         const SizedBox(width: 8),
       ],
     ),
