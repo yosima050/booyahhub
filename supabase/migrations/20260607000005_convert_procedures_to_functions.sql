@@ -234,7 +234,7 @@ BEGIN
 
     INSERT INTO audit_logs (actor_id, actor_role, action, entity_type, entity_id, description)
     VALUES (p_platform_id, 'platform',
-        CASE WHEN p_approve THEN 'verify' ELSE 'reject' END,
+        (CASE WHEN p_approve THEN 'verify' ELSE 'reject' END)::audit_action,
         'prize_claim', p_claim_id,
         CASE WHEN p_approve THEN 'Prize transferred' ELSE 'Prize rejected: ' || COALESCE(p_reason,'') END);
 END;
