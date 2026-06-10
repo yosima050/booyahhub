@@ -6,7 +6,6 @@ import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart' as supabase_svc;
 import 'kelola_scrim_screen.dart';
 
-
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
   @override
@@ -56,7 +55,9 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
       if (mounted) {
         setState(() {
           _stats = dash['stats'] as Map<String, dynamic>? ?? {};
-          _myScrim = List<Map<String, dynamic>>.from(dash['recent_scrims'] ?? []);
+          _myScrim = List<Map<String, dynamic>>.from(
+            dash['recent_scrims'] ?? [],
+          );
         });
       }
     } catch (e) {
@@ -143,41 +144,6 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                       children: [
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: BooyahTheme.yellow.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: BooyahTheme.yellow.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                ),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 12,
-                                    color: BooyahTheme.yellow,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'ADMIN',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      color: BooyahTheme.yellow,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                             const Spacer(),
                             Stack(
                               children: [
@@ -344,7 +310,8 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                           builder: (context) {
                             final filteredScrims = _myScrim.where((s) {
                               final status = s['status'] as String? ?? 'open';
-                              if (_activeFilter == 'SEMUA') return status != 'finished';
+                              if (_activeFilter == 'SEMUA')
+                                return status != 'finished';
                               if (_activeFilter == 'DRAFT') {
                                 return status == 'draft';
                               }
@@ -382,20 +349,26 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (_) => KelolaScrimScreen(scrim: s),
+                                            builder: (_) =>
+                                                KelolaScrimScreen(scrim: s),
                                           ),
-                                        ).then((_) => load()); // Refresh dashboard data when coming back
+                                        ).then(
+                                          (_) => load(),
+                                        ); // Refresh dashboard data when coming back
                                       },
                                       child: Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
                                           color: BooyahTheme.card,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                           border: Border.all(
-                                            color: BooyahTheme.maroon.withValues(
-                                              alpha: 0.2,
-                                            ),
+                                            color: BooyahTheme.maroon
+                                                .withValues(alpha: 0.2),
                                           ),
                                         ),
                                         child: Row(
@@ -429,7 +402,8 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                                                     s['title'] as String? ?? '',
                                                     style: const TextStyle(
                                                       fontSize: 12,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
                                                   ),
                                                   Text(
@@ -459,10 +433,13 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                                                           'open',
                                                     ).withValues(alpha: 0.15),
                                                     borderRadius:
-                                                        BorderRadius.circular(4),
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
                                                     border: Border.all(
                                                       color: _statusColor(
-                                                        s['status'] as String? ??
+                                                        s['status']
+                                                                as String? ??
                                                             'open',
                                                       ).withValues(alpha: 0.4),
                                                     ),
@@ -475,10 +452,12 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                                                     style: TextStyle(
                                                       fontSize: 9,
                                                       color: _statusColor(
-                                                        s['status'] as String? ??
-                                                          'open',
+                                                        s['status']
+                                                                as String? ??
+                                                            'open',
                                                       ),
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
                                                   ),
                                                 ),
@@ -487,7 +466,8 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                                                   '${s['slot_filled'] ?? 0}/${s['slot_total'] ?? 0}',
                                                   style: const TextStyle(
                                                     fontSize: 10,
-                                                    color: BooyahTheme.textMuted,
+                                                    color:
+                                                        BooyahTheme.textMuted,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
