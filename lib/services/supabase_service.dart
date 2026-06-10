@@ -714,10 +714,31 @@ class ClaimService {
   static Future<List<Map<String, dynamic>>> getPendingClaims() async {
     final res = await _db
         .from('prize_claims')
-        .select('*, users!prize_claims_user_id_fkey(name), scrims(title)')
+        .select('*, users!prize_claims_user_id_fkey(name), scrims(title), match_results(rank, registrations(team_name))')
         .eq('status', 'processing')
         .order('claimed_at', ascending: true);
-    return List<Map<String, dynamic>>.from(res);
+
+    return List<Map<String, dynamic>>.from(res.map((item) {
+      final userRaw = item['users'];
+      final user = userRaw is List ? (userRaw.isNotEmpty ? userRaw.first as Map? : null) : userRaw as Map?;
+
+      final scrimRaw = item['scrims'];
+      final scrim = scrimRaw is List ? (scrimRaw.isNotEmpty ? scrimRaw.first as Map? : null) : scrimRaw as Map?;
+
+      final mrRaw = item['match_results'];
+      final mr = mrRaw is List ? (mrRaw.isNotEmpty ? mrRaw.first as Map? : null) : mrRaw as Map?;
+
+      final regRaw = mr?['registrations'];
+      final reg = regRaw is List ? (regRaw.isNotEmpty ? regRaw.first as Map? : null) : regRaw as Map?;
+
+      return {
+        ...item,
+        'user_name': user?['name'] ?? '',
+        'scrim_title': scrim?['title'] ?? '',
+        'team_name': reg?['team_name'] ?? 'Team',
+        'rank': mr?['rank'] ?? 0,
+      };
+    }));
   }
 }
 

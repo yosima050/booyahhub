@@ -11,6 +11,7 @@ import 'bantuan_faq_screen.dart';
 import '../admin/admin_subscription_screen.dart';
 import 'rekening_ewallet_screen.dart';
 import 'riwayat_pembayaran_screen.dart';
+import '../notification/notification_screen.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
@@ -404,6 +405,18 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             ctx,
                             MaterialPageRoute(
                               builder: (_) => const BantuanFaqScreen(),
+                            ),
+                          );
+                        }
+                      ),
+                      (
+                        Icons.notifications_none,
+                        'Notifikasi',
+                        () {
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => const NotificationScreen(),
                             ),
                           );
                         }

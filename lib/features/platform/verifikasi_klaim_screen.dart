@@ -15,6 +15,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
   int _successCount = 0;
   int _totalClaims = 0;
   bool _loading = true;
+  int? _processingId;
 
   @override
   void initState() {
@@ -44,16 +45,21 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
   }
 
   void _markDone(int i) async {
+    final claim = _claims[i];
+    final claimId = claim['id'] as int;
+    if (_processingId != null) return;
+
+    setState(() => _processingId = claimId);
     try {
-      final claim = _claims[i];
       await ClaimService.verifyClaim(
-        claimId: claim['id'] as int,
+        claimId: claimId,
         approve: true,
       );
       if (mounted) {
         setState(() {
           _claims.removeAt(i);
           _successCount++;
+          _processingId = null;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -66,11 +72,25 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
       }
     } catch (e) {
       debugPrint('Error marking claim done: $e');
+      if (mounted) {
+        setState(() => _processingId = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Gagal memverifikasi klaim: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+            backgroundColor: BooyahTheme.red,
+          ),
+        );
+      }
     }
   }
 
   void _reject(int i) async {
     final claim = _claims[i];
+    final claimId = claim['id'] as int;
+    if (_processingId != null) return;
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -97,15 +117,17 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
+              setState(() => _processingId = claimId);
               try {
                 await ClaimService.verifyClaim(
-                  claimId: claim['id'] as int,
+                  claimId: claimId,
                   approve: false,
                   reason: 'Platform rejected',
                 );
                 if (mounted) {
                   setState(() {
                     _claims.removeAt(i);
+                    _processingId = null;
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -116,6 +138,17 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                 }
               } catch (e) {
                 debugPrint('Error rejecting claim: $e');
+                if (mounted) {
+                  setState(() => _processingId = null);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Gagal menolak klaim: ${e.toString().replaceAll('Exception: ', '')}',
+                      ),
+                      backgroundColor: BooyahTheme.red,
+                    ),
+                  );
+                }
               }
             },
             child: const Text(
@@ -214,7 +247,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            c['team_name'] as String? ?? 'Team',
+                                            '${c['team_name'] as String? ?? 'Team'} (Juara ${c['rank'] ?? '-'})',
                                             style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,
@@ -277,7 +310,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                                   children: [
                                     Expanded(
                                       child: GestureDetector(
-                                        onTap: () => _markDone(i),
+                                        onTap: _processingId != null ? null : () => _markDone(i),
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(
                                             vertical: 10,
@@ -294,18 +327,27 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                                               5,
                                             ),
                                           ),
-                                          child: const Row(
+                                          child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              Icon(
-                                                Icons.check_rounded,
-                                                size: 14,
-                                                color: BooyahTheme.green,
-                                              ),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                'TRANSFER SELESAI',
+                                              _processingId == c['id']
+                                                  ? const SizedBox(
+                                                      width: 14,
+                                                      height: 14,
+                                                      child: CircularProgressIndicator(
+                                                        color: BooyahTheme.green,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.check_rounded,
+                                                      size: 14,
+                                                      color: BooyahTheme.green,
+                                                    ),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                'SETUJUI & KIRIM HADIAH',
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w700,
@@ -320,7 +362,7 @@ class _VerifikasiKlaimScreenState extends State<VerifikasiKlaimScreen> {
                                     ),
                                     const SizedBox(width: 6),
                                     GestureDetector(
-                                      onTap: () => _reject(i),
+                                      onTap: _processingId != null ? null : () => _reject(i),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 12,

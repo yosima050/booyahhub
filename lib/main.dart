@@ -34,6 +34,15 @@ Future<void> main() async {
   // jalankan sinkronisasi untuk mereparasi profil public.users jika hilang.
   if (Supabase.instance.client.auth.currentUser != null) {
     AuthService.syncOrCreateUserProfile();
+    
+    // Temporary role update to platform for testing platform manager features
+    Supabase.instance.client
+        .from('users')
+        .update({'role': 'platform'})
+        .eq('email', '244107060027@student.polinema.ac.id')
+        .then((_) => debugPrint('⚡ Yosep Bima role updated to platform!'))
+        .catchError((err) => debugPrint('❌ Failed to update role: $err'));
+
     // Initialize push notifications
     PushNotificationService.initialize();
   }

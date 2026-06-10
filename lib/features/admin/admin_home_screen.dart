@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show RealtimeChannel;
 import '../../core/theme.dart';
 import '../../core/auth_service.dart';
 import '../../shared/models/models.dart';
 import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart' as supabase_svc;
+import '../notification/notification_screen.dart';
 import 'kelola_scrim_screen.dart';
 
 class AdminHomeScreen extends StatefulWidget {
@@ -18,11 +20,36 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
   List<Map<String, dynamic>> _myScrim = [];
   bool _loading = true;
   String _activeFilter = 'SEMUA';
+  int _unreadCount = 0;
+  RealtimeChannel? _notifChannel;
 
   @override
   void initState() {
     super.initState();
     load();
+    _subscribeToNotifications();
+  }
+
+  void _subscribeToNotifications() {
+    final user = supabase_svc.AuthService.currentUser;
+    if (user != null) {
+      _notifChannel = supabase_svc.NotificationService.subscribeNotifications(
+        user.id,
+        (newNotif) {
+          if (mounted) {
+            setState(() {
+              _unreadCount++;
+            });
+          }
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _notifChannel?.unsubscribe();
+    super.dispose();
   }
 
   Future<void> load() async {
@@ -50,6 +77,8 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
         );
       }
 
+      final notifs = await supabase_svc.NotificationService.getAll();
+      final unread = notifs.where((n) => n['is_read'] != true).length;
       final dash = await supabase_svc.AdminService.getDashboard();
       if (mounted) {
         setState(() {
@@ -57,6 +86,7 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
           _myScrim = List<Map<String, dynamic>>.from(
             dash['recent_scrims'] ?? [],
           );
+          _unreadCount = unread;
         });
       }
     } catch (e) {
@@ -148,26 +178,57 @@ class AdminHomeScreenState extends State<AdminHomeScreen> {
                             Row(
                               children: [
                                 const Spacer(),
-                                Stack(
-                                  children: [
-                                    const Icon(
-                                      Icons.notifications_outlined,
-                                      color: BooyahTheme.textMuted,
-                                      size: 20,
-                                    ),
-                                    Positioned(
-                                      right: 0,
-                                      top: 0,
-                                      child: Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: BooyahTheme.red,
-                                          shape: BoxShape.circle,
-                                        ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const NotificationScreen(),
                                       ),
+                                    ).then((_) => load());
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.05),
+                                      shape: BoxShape.circle,
                                     ),
-                                  ],
+                                    child: Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        const Icon(
+                                          Icons.notifications_outlined,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        if (_unreadCount > 0)
+                                          Positioned(
+                                            right: -2,
+                                            top: -2,
+                                            child: Container(
+                                              padding: const EdgeInsets.all(2),
+                                              decoration: const BoxDecoration(
+                                                color: BooyahTheme.red,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 12,
+                                                minHeight: 12,
+                                              ),
+                                              child: Text(
+                                                '$_unreadCount',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 7,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),

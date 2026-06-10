@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../shared/models/models.dart';
+import '../../shared/widgets/booyah_widgets.dart';
 import '../../services/supabase_service.dart';
 
 class DataPendaftarScreen extends StatefulWidget {
@@ -10,13 +11,7 @@ class DataPendaftarScreen extends StatefulWidget {
   State<DataPendaftarScreen> createState() => _DataPendaftarScreenState();
 }
 
-class _DataPendaftarScreenState extends State<DataPendaftarScreen>
-    with SingleTickerProviderStateMixin {
-    late final TabController _tab = TabController(
-    length: 2,
-    vsync: this,
-    initialIndex: 0,
-  );
+class _DataPendaftarScreenState extends State<DataPendaftarScreen> {
   List<Map<String, dynamic>> _rawData = [];
   bool _loading = true;
 
@@ -55,7 +50,7 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
           paymentMethod: d['payment_method'] as String? ?? '-',
           amount: _fmtRupiah(d['payment_amount'] as int? ?? 0),
           time: d['created_at'] != null ? _fmtTime(d['created_at']) : '-',
-          isApproved: d['status'] == 'verified',
+          isApproved: d['status'] == 'verified' || d['status'] == 'waiting_room_id',
           isRejected:
               d['status'] == 'rejected' ||
               d['status'] == 'expired' ||
@@ -63,11 +58,6 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
         ),
       )
       .toList();
-
-  List<PendaftarModel> get _approved =>
-      _allPendaftar.where((d) => d.isApproved).toList();
-  List<PendaftarModel> get _rejected =>
-      _allPendaftar.where((d) => d.isRejected).toList();
 
   String _fmtTime(String iso) {
     final d = DateTime.parse(iso).toLocal();
@@ -90,36 +80,12 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
   Widget build(BuildContext ctx) => Scaffold(
     appBar: AppBar(
       title: const Text('DATA PENDAFTAR'),
-      actions: [
-        const SizedBox(width: 8),
-      ],
-      bottom: TabBar(
-        controller: _tab,
-        indicatorColor: BooyahTheme.maroonB,
-        labelColor: BooyahTheme.maroonB,
-        unselectedLabelColor: BooyahTheme.textMuted,
-        labelStyle: const TextStyle(
-          fontFamily: 'Rajdhani',
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
-        tabs: [
-          Tab(text: 'TERVERIFIKASI (${_approved.length})'),
-          Tab(text: 'DITOLAK (${_rejected.length})'),
-        ],
-      ),
     ),
     body: _loading
         ? const Center(
             child: CircularProgressIndicator(color: Color(0xFFB22222)),
           )
-        : TabBarView(
-            controller: _tab,
-            children: [
-              _buildList(_approved),
-              _buildList(_rejected),
-            ],
-          ),
+        : _buildList(_allPendaftar),
   );
 
   Widget _buildList(List<PendaftarModel> list) {
@@ -137,6 +103,9 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
       itemCount: list.length,
       itemBuilder: (_, i) {
         final d = list[i];
+        final statusLabel = d.isApproved ? 'TERVERIFIKASI' : (d.isRejected ? 'DITOLAK' : 'PENDING');
+        final statusColor = d.isApproved ? BooyahTheme.green : (d.isRejected ? BooyahTheme.red : BooyahTheme.yellow);
+
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
@@ -195,6 +164,12 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 10),
+              StatusBadge(
+                label: statusLabel,
+                color: statusColor,
+                showDot: false,
               ),
             ],
           ),
