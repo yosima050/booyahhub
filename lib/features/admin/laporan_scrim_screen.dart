@@ -57,7 +57,6 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
         final gross = (s['actual_gross'] as num? ?? 0).toInt();
         final net = (s['actual_fee_admin'] as num? ?? 0).toInt();
         
-        final double verifRate = registered > 0 ? (verified / registered) * 100 : 0.0;
         final fillRate = total > 0 ? (filled / total) * 100 : 0.0;
         final double remainingSlotsPct = total > 0 ? ((total - filled) / total) : 1.0;
 
@@ -77,7 +76,6 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
             'new_scrims': s['status'] == 'open' ? 1 : 0,
             'new_teams': verified,
             'revenue_change': fillRate.toInt(),
-            'verification_rate': verifRate.toInt(),
             'chart_data': [
               registered > 0 ? (verified / registered).toDouble() : 0.0,
               registered > 0 ? (pending / registered).toDouble() : 0.0,
@@ -165,7 +163,6 @@ class _LaporanScrimScreenState extends State<LaporanScrimScreen> {
                   _kpiCard(Icons.emoji_events_rounded, _scrimId != null ? 'STATUS SCRIM' : 'TOTAL SCRIM', _scrimId != null ? 'AKTIF' : '${_stats['total_scrims'] ?? 0}', _scrimId != null ? '1' : '+${_stats['new_scrims'] ?? 0}', true),
                   _kpiCard(Icons.groups_rounded, 'TOTAL TIM', '${_stats['total_teams'] ?? 0}', _scrimId != null ? 'TERVERIF' : '+${_stats['new_teams'] ?? 0}', true),
                   _kpiCard(Icons.monetization_on_rounded, 'PENDAPATAN', _fmt(_stats['total_revenue'] ?? 0), '${_stats['revenue_change'] ?? 0}%', true),
-                  _kpiCard(Icons.check_circle_rounded, 'VERIF RATE', '${_stats['verification_rate'] ?? 0}%', '${_stats['verification_rate'] ?? 0}%', true),
                 ],
               ),
               const SizedBox(height: 12),

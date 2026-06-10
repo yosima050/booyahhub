@@ -203,14 +203,6 @@ class _RoomIdScreenState extends State<RoomIdScreen> {
     appBar: AppBar(
       title: const Text('INPUT ROOM ID'),
       actions: [
-        Chip(
-          label: const Text('ADMIN', style: TextStyle(fontSize: 9)),
-          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-          labelStyle: const TextStyle(
-            color: BooyahTheme.yellow,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
         const SizedBox(width: 8),
       ],
     ),
