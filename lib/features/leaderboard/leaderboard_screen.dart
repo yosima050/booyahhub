@@ -231,27 +231,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_teams.isNotEmpty ? _teams[0]['scrim_title'].toString() : 'LEADERBOARD'),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 14),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: BooyahTheme.maroon.withValues(alpha: 0.2),
-              border: Border.all(
-                color: BooyahTheme.maroon.withValues(alpha: 0.4),
-              ),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: const Text(
-              'SCRIM',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: BooyahTheme.maroonB,
-              ),
-            ),
-          ),
-        ],
       ),
       body: _detailLoading
           ? const Center(
@@ -314,6 +293,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 BooyahTheme.silver,
                                 85,
                                 68,
+                                '2',
                               ),
                             const SizedBox(width: 8),
                             if (_teams.isNotEmpty)
@@ -330,6 +310,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                     BooyahTheme.gold,
                                     110,
                                     80,
+                                    '1',
                                   ),
                                 ],
                               ),
@@ -341,6 +322,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                                 BooyahTheme.bronze,
                                 65,
                                 56,
+                                '3',
                               ),
                           ],
                         ),
@@ -623,6 +605,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     Color color,
     double baseH,
     double avaSize,
+    String rank,
   ) => Column(
     children: [
       Icon(Icons.sports_esports, size: avaSize * 0.35, color: color),
@@ -654,11 +637,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         ),
         child: Center(
           child: Text(
-            pts.startsWith('1')
-                ? '1'
-                : pts.startsWith('2')
-                ? '2'
-                : '3',
+            rank,
             style: const TextStyle(
               fontFamily: 'Orbitron',
               fontSize: 22,

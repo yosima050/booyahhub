@@ -34,8 +34,9 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   final Map<String, List<PlayerScoreModel>> _playersMap = {};
   // Track which teams are expanded
   final Set<String> _expandedTeams = {};
-  // Controllers for team kills to sync changes
   final Map<String, TextEditingController> _teamKillsControllers = {};
+  // Controllers for team placement ranks to sync changes
+  final Map<String, TextEditingController> _teamPlacementControllers = {};
 
   @override
   void initState() {
@@ -49,6 +50,9 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
   @override
   void dispose() {
     for (final ctrl in _teamKillsControllers.values) {
+      ctrl.dispose();
+    }
+    for (final ctrl in _teamPlacementControllers.values) {
       ctrl.dispose();
     }
     super.dispose();
@@ -86,15 +90,17 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 final existing = resultsMap[regId];
                 final String teamId = regId.toString();
                 final int kills = existing?['kills'] as int? ?? 0;
+                final int placement = existing?['placement'] as int? ?? 1;
                 
-                // Initialize controller
+                // Initialize controllers
                 _teamKillsControllers[teamId] = TextEditingController(text: '$kills');
+                _teamPlacementControllers[teamId] = TextEditingController(text: '$placement');
                 
                 return TeamScoreModel(
                   id: teamId,
                   teamName: d['team_name'] as String,
                   icon: '',
-                  placement: existing?['placement'] as int? ?? 1,
+                  placement: placement,
                   kills: kills,
                 );
               },
@@ -317,7 +323,7 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                             SizedBox(
                               width: 72,
                               child: Text(
-                                'PLACEMENT',
+                                'PERINGKAT (#)',
                                 style: TextStyle(
                                   fontSize: 8,
                                   color: BooyahTheme.textMuted,
@@ -524,24 +530,24 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                 ),
               ),
               const SizedBox(width: 4),
-              // Placement dropdown
+              // Placement rank input
               SizedBox(
                 width: 72,
-                child: DropdownButtonFormField<int>(
-                  isExpanded: true,
-                  initialValue: t.placement,
-                  dropdownColor: BooyahTheme.surface,
+                child: TextFormField(
+                  controller: _teamPlacementControllers[t.id],
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontFamily: 'Orbitron',
-                    fontSize: 12,
+                    fontSize: 13,
                     color: BooyahTheme.textPri,
                     fontWeight: FontWeight.w700,
                   ),
-                  isDense: true,
                   decoration: InputDecoration(
+                    isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 6,
+                      horizontal: 6,
+                      vertical: 8,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5),
@@ -550,14 +556,12 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                       ),
                     ),
                   ),
-                  items: List.generate(
-                    12,
-                    (i) => DropdownMenuItem(
-                      value: i + 1,
-                      child: Text('#${i + 1}'),
-                    ),
-                  ),
-                  onChanged: (v) => setState(() => _teams[idx].placement = v!),
+                  onChanged: (v) {
+                    final rank = int.tryParse(v) ?? 1;
+                    setState(() {
+                      _teams[idx].placement = rank.clamp(1, 99);
+                    });
+                  },
                 ),
               ),
               const SizedBox(width: 4),
@@ -588,8 +592,9 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                     ),
                   ),
                   onChanged: (v) {
+                    final kl = int.tryParse(v) ?? 0;
                     setState(() {
-                      _teams[idx].kills = int.tryParse(v) ?? 0;
+                      _teams[idx].kills = kl;
                     });
                   },
                 ),
@@ -827,14 +832,14 @@ class _InputHasilScreenState extends State<InputHasilScreen> {
                                 ),
                               ),
                             ),
-                            onChanged: (v) {
-                              setState(() {
-                                player.kills = int.tryParse(v) ?? 0;
-                                final totalKills = players.fold<int>(0, (sum, p) => sum + p.kills);
-                                _teams[idx].kills = totalKills;
-                                _teamKillsControllers[t.id]?.text = '$totalKills';
-                              });
-                            },
+                             onChanged: (v) {
+                               setState(() {
+                                 player.kills = int.tryParse(v) ?? 0;
+                                 final totalKills = players.fold<int>(0, (sum, p) => sum + p.kills);
+                                 _teams[idx].kills = totalKills;
+                                 _teamKillsControllers[t.id]?.text = '$totalKills';
+                               });
+                             },
                           ),
                         ),
                       ],
