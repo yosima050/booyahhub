@@ -198,21 +198,7 @@ class _BuatScrimScreenState extends State<BuatScrimScreen> {
 
   @override
   Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(
-      title: const Text('BUAT SCRIM BARU'),
-      actions: [
-        Chip(
-          label: const Text(
-            'ADMIN',
-            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
-          ),
-          backgroundColor: BooyahTheme.yellow.withValues(alpha: 0.15),
-          side: BorderSide(color: BooyahTheme.yellow.withValues(alpha: 0.4)),
-          labelStyle: const TextStyle(color: BooyahTheme.yellow),
-        ),
-        const SizedBox(width: 8),
-      ],
-    ),
+    appBar: AppBar(title: const Text('BUAT SCRIM BARU')),
     body: SingleChildScrollView(
       padding: const EdgeInsets.all(14),
       child: Column(
