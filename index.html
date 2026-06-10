@@ -65,7 +65,7 @@ section{padding:90px 5%;max-width:1100px;margin:0 auto}
 .step-title{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:var(--white);margin-bottom:8px}
 .step-desc{font-size:12px;color:var(--gray-500);line-height:1.6}
 
-.role-tabs{display:flex;justify-content:center;gap:0;margin-bottom:40px;border:1px solid var(--dark-border);border-radius:10px;overflow:hidden;max-width:520px;margin-left:auto;margin-right:auto}
+.role-tabs{display:flex;justify-content:center;gap:0;margin-bottom:40px;border:1px solid var(--dark-border);border-radius:10px;overflow:hidden;max-width:360px;margin-left:auto;margin-right:auto}
 .role-tab{flex:1;padding:12px 16px;background:transparent;border:none;color:var(--gray-500);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:background 0.2s,color 0.2s;border-right:1px solid var(--dark-border);display:flex;align-items:center;justify-content:center;gap:5px}
 .role-tab:last-child{border-right:none}
 .role-tab.active{background:var(--red);color:var(--white)}
@@ -329,12 +329,11 @@ footer{background:var(--dark-surface);border-top:1px solid var(--dark-border);pa
 <section id="roles" style="max-width:1100px;margin:0 auto;padding:0 5% 90px;">
   <div style="text-align:center;margin-bottom:40px;">
     <span class="section-label">Peran Pengguna</span>
-    <h2 class="section-title">Satu Platform,<br>Tiga Peran Berbeda</h2>
+    <h2 class="section-title">Satu Platform,<br>Dua Peran Utama</h2>
   </div>
   <div class="role-tabs">
     <button class="role-tab active" onclick="showRole('user',this)"><i class="ti ti-user"></i> Peserta</button>
     <button class="role-tab" onclick="showRole('admin',this)"><i class="ti ti-shield-check"></i> Admin Scrim</button>
-    <button class="role-tab" onclick="showRole('platform',this)"><i class="ti ti-settings"></i> Platform</button>
   </div>
   <div class="role-panel active" id="role-user">
     <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-calendar-event"></i></div><div><div class="role-feature-title">Lihat &amp; Booking Scrim</div><div class="role-feature-desc">Telusuri jadwal scrim, booking slot, isi data tim.</div></div></div>
@@ -351,14 +350,6 @@ footer{background:var(--dark-surface);border-top:1px solid var(--dark-border);pa
     <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-chart-bar"></i></div><div><div class="role-feature-title">Input Hasil Pertandingan</div><div class="role-feature-desc">Masukkan poin, leaderboard langsung terupdate.</div></div></div>
     <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-speakerphone"></i></div><div><div class="role-feature-title">Kirim Pengumuman</div><div class="role-feature-desc">Broadcast pesan ke seluruh peserta scrim kamu.</div></div></div>
     <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-trending-up"></i></div><div><div class="role-feature-title">Laporan Pendapatan</div><div class="role-feature-desc">Dashboard statistik pendapatan dan performa scrim.</div></div></div>
-  </div>
-  <div class="role-panel" id="role-platform">
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-users"></i></div><div><div class="role-feature-title">Manajemen Akun</div><div class="role-feature-desc">Kelola semua akun User, Admin, dan Platform.</div></div></div>
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-star"></i></div><div><div class="role-feature-title">Kelola Premium Admin</div><div class="role-feature-desc">Approve upgrade dan pantau masa aktif layanan premium.</div></div></div>
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-gift"></i></div><div><div class="role-feature-title">Verifikasi Klaim Hadiah</div><div class="role-feature-desc">Proses pencairan dana pemenang dengan akuntabilitas penuh.</div></div></div>
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-report-money"></i></div><div><div class="role-feature-title">Dasbor Keuangan</div><div class="role-feature-desc">Pantau aliran dana platform, fee, dan hadiah secara menyeluruh.</div></div></div>
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-chart-dots"></i></div><div><div class="role-feature-title">Laporan Keseluruhan</div><div class="role-feature-desc">Analitik big data: total user, total scrim, dan performa sistem.</div></div></div>
-    <div class="role-feature"><div class="role-feature-icon"><i class="ti ti-lock"></i></div><div><div class="role-feature-title">Keamanan Sistem</div><div class="role-feature-desc">Pantau uptime, suspend akun, dan jaga integritas platform.</div></div></div>
   </div>
 </section>
 
