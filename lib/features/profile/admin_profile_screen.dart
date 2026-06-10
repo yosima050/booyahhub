@@ -66,6 +66,35 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         final userData = await UserService.getUserProfile(user.id);
+
+        // Count all scrims created by this admin dynamically (fallback/immediate fix)
+        int scrimsCount = 0;
+        try {
+          final int adminId = userData['id'];
+          final scrimsRes = await Supabase.instance.client
+              .from('scrims')
+              .select('id')
+              .eq('admin_id', adminId)
+              .isFilter('deleted_at', null);
+          scrimsCount = (scrimsRes as List).length;
+        } catch (scrimError) {
+          debugPrint('Error counting scrims dynamically: $scrimError');
+        }
+
+        // Inject total_scrims_created dynamically
+        final dynamic adminProfData = userData['admin_profiles'];
+        if (adminProfData != null) {
+          if (adminProfData is List && adminProfData.isNotEmpty) {
+            final profileMap = Map<String, dynamic>.from(adminProfData.first);
+            profileMap['total_scrims_created'] = scrimsCount;
+            userData['admin_profiles'] = [profileMap];
+          } else if (adminProfData is Map) {
+            final profileMap = Map<String, dynamic>.from(adminProfData);
+            profileMap['total_scrims_created'] = scrimsCount;
+            userData['admin_profiles'] = profileMap;
+          }
+        }
+
         if (mounted) {
           setState(() {
             _userData = userData;
