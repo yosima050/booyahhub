@@ -1,7 +1,3 @@
-// ──────────────────────────────────────────────────────────
-// FILE: lib/features/admin/data_pendaftar_screen.dart
-// UC-15: Data Pendaftar (READ-ONLY MONITORING DASHBOARD)
-// ──────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import '../../core/theme.dart';
 import '../../shared/models/models.dart';
@@ -16,8 +12,8 @@ class DataPendaftarScreen extends StatefulWidget {
 
 class _DataPendaftarScreenState extends State<DataPendaftarScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tab = TabController(
-    length: 3,
+    late final TabController _tab = TabController(
+    length: 2,
     vsync: this,
     initialIndex: 0,
   );
@@ -68,8 +64,6 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
       )
       .toList();
 
-  List<PendaftarModel> get _pending =>
-      _allPendaftar.where((d) => !d.isApproved && !d.isRejected).toList();
   List<PendaftarModel> get _approved =>
       _allPendaftar.where((d) => d.isApproved).toList();
   List<PendaftarModel> get _rejected =>
@@ -110,7 +104,6 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
           fontSize: 11,
         ),
         tabs: [
-          Tab(text: 'PENDING (${_pending.length})'),
           Tab(text: 'TERVERIFIKASI (${_approved.length})'),
           Tab(text: 'DITOLAK (${_rejected.length})'),
         ],
@@ -123,7 +116,6 @@ class _DataPendaftarScreenState extends State<DataPendaftarScreen>
         : TabBarView(
             controller: _tab,
             children: [
-              _buildList(_pending),
               _buildList(_approved),
               _buildList(_rejected),
             ],

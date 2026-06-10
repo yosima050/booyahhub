@@ -22,7 +22,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
 
   int _allCount = 0;
   int _verifiedCount = 0;
-  int _pendingCount = 0;
 
   final _kategoriList = [
     'Pengumuman Umum',
@@ -42,11 +41,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
       'label': 'Terverifikasi Saja',
       'count': '$_verifiedCount',
       'db_target': 'verified',
-    },
-    {
-      'label': 'Menunggu Bayar',
-      'count': '$_pendingCount',
-      'db_target': 'pending',
     },
   ];
 
@@ -69,7 +63,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
       setState(() {
         _allCount = regs.length;
         _verifiedCount = regs.where((r) => r['status'] == 'verified').length;
-        _pendingCount = regs.where((r) => r['status'] == 'pending_payment' || r['status'] == 'waiting_verify').length;
       });
     } catch (e) {
       debugPrint('Error loading scrim data: $e');
@@ -207,7 +200,6 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
           ),
           const SizedBox(height: 10),
 
-          // Target filter
           Row(
             children: _targets.asMap().entries.map((e) {
               final active = _targetIdx == e.key;
@@ -215,7 +207,7 @@ class _KirimPengumumanScreenState extends State<KirimPengumumanScreen> {
                 child: GestureDetector(
                   onTap: () => setState(() => _targetIdx = e.key),
                   child: Container(
-                    margin: EdgeInsets.only(right: e.key < 2 ? 6 : 0),
+                    margin: EdgeInsets.only(right: e.key < 1 ? 6 : 0),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
                       color: active
