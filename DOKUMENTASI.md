@@ -35,6 +35,7 @@
    - [UC-20 Dashboard Keuangan (Platform)](#uc-20-dashboard-keuangan-platform)
    - [UC-21 Kelola & Suspend Pengguna (Platform)](#uc-21-kelola--suspend-pengguna-platform)
    - [UC-22 Approve/Reject Premium Request (Platform)](#uc-22-approvereject-premium-request-platform)
+   - [UC-23 Tarik Saldo Pendapatan (Admin Cashout)](#uc-23-tarik-saldo-pendapatan-admin-cashout)
 5. [Sequence Diagram per Use Case](#5-sequence-diagram-per-use-case)
    - [SD-01 Registrasi Akun](#sd-01-registrasi-akun)
    - [SD-02 Login](#sd-02-login)
@@ -58,6 +59,7 @@
    - [SD-20 Dashboard Keuangan (Platform)](#sd-20-dashboard-keuangan-platform)
    - [SD-21 Kelola & Suspend Pengguna (Platform)](#sd-21-kelola--suspend-pengguna-platform)
    - [SD-22 Approve/Reject Premium Request (Platform)](#sd-22-approvereject-premium-request-platform)
+   - [SD-23 Tarik Saldo Pendapatan (Admin Cashout)](#sd-23-tarik-saldo-pendapatan-admin-cashout)
 6. [Class Diagram](#6-class-diagram)
 7. [Entity Relationship Diagram (ERD)](#7-entity-relationship-diagram-erd)
 8. [Arsitektur Sistem](#8-arsitektur-sistem)
@@ -121,6 +123,7 @@ graph TB
         UC17([UC-17: Input Hasil Pertandingan])
         UC18([UC-18: Verifikasi Klaim Hadiah])
         UC19([UC-19: Berlangganan Premium])
+        UC23([UC-23: Tarik Saldo Pendapatan])
     end
 
     subgraph PLATFORM["👑 PLATFORM"]
@@ -135,7 +138,7 @@ graph TB
     end
 
     A(👤 Peserta) --> UC01 & UC02 & UC03 & UC04 & UC05 & UC07 & UC08 & UC09 & UC10 & UC11 & UC12
-    B(🎮 Admin) --> UC13 & UC14 & UC15 & UC16 & UC17 & UC18 & UC19
+    B(🎮 Admin) --> UC13 & UC14 & UC15 & UC16 & UC17 & UC18 & UC19 & UC23
     C(👑 Platform) --> UC20 & UC21 & UC22
 
     UC05 -.->|include| UC06
@@ -798,6 +801,42 @@ flowchart TD
         S7 --> S8[Kirim FCM Notifikasi Permintaan Ditolak ke Admin]
         S6 & S8 --> S9[Perbarui Halaman Dashboard Platform] --> V7
     end
+
+---
+
+### UC-23 Tarik Saldo Pendapatan (Admin Cashout)
+
+**Aktor:** Admin  
+**Tujuan:** Melakukan penarikan saldo pendapatan (fee_admin) terkumpul secara instan ke rekening bank utama  
+**Prasyarat:** Admin telah login, saldo tersedia >= Rp 10.000, dan mendaftarkan rekening utama  
+
+```mermaid
+flowchart TD
+    subgraph Aktor ["👤 Aktor (Admin)"]
+        W1([🟢 Mulai]) --> W2[Buka Halaman Profil Admin]
+        W2 --> W3[Klik Tarik Saldo Cashout]
+        W4{Apakah Rekening Terdaftar?}
+        W4 -->|Tidak| W5[Lihat Peringatan Rekening & Klik Atur Rekening]
+        W4 -->|Ya| W6[Pilih/Input Nominal Penarikan]
+        W6 --> W7[Klik Kirim Cashout]
+        W8[Tampilkan Dialog Sukses Penarikan] --> W9([🔴 Selesai])
+    end
+
+    subgraph Sistem ["💻 Sistem (Supabase DB)"]
+        W2 --> S1[SELECT Available Balance dari prize_claims & Completed Scrims]
+        S1 --> S2[Tampilkan Saldo Earnings di Profil] --> W3
+        W3 --> S3[SELECT FROM bank_accounts WHERE user_id = current_user AND is_primary = true]
+        S3 --> S4{Menemukan Rekening Utama?}
+        S4 -->|Tidak| S5[Tampilkan Dialog Rekening Belum Diatur] --> W4
+        S4 -->|Ya| S6[Tampilkan Modal Form Cashout & Rekening Tujuan] --> W4
+        W5 --> S7[Redirect ke RekeningEwalletScreen] --> W9
+        W7 --> S8{Validasi Nominal >= Rp 10.000 & <= Saldo?}
+        S8 -->|Tidak| S9[Tampilkan Pesan Error Saldo/Nominal] --> W6
+        S8 -->|Ya| S10[INSERT ke prize_claims status='verified']
+        S10 --> S11[INSERT ke transactions type='prize_payout']
+        S11 --> S12[Kurangi Saldo & Tampilkan Pop-up Berhasil] --> W8
+    end
+```
 
 ---
 
@@ -1901,6 +1940,63 @@ sequenceDiagram
         PlatformApp-->>Platform: "Request Premium ditolak"
         deactivate PlatformApp
     end
+
+---
+
+### SD-23 Tarik Saldo Pendapatan (Admin Cashout)
+
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant App as App (Profil & Modal Cashout)
+    participant DB as Supabase DB
+
+    Admin->>App: Buka Halaman Profil Admin
+    activate App
+    App->>DB: AdminService.getAdminBalance(adminId)
+    activate DB
+    DB-->>App: Available Balance, Processing, Earnings, Withdrawn
+    deactivate DB
+    App-->>Admin: Tampilkan Profil & Saldo Earnings
+    deactivate App
+
+    Admin->>App: Klik "Tarik Saldo (Cashout)"
+    activate App
+    App->>DB: UserService.getPrimaryBankAccount(adminId)
+    activate DB
+    DB-->>App: Primary Bank Account Model (Null / BankAccountModel)
+    deactivate DB
+
+    alt Rekening Utama Belum Diatur (Null)
+        App-->>Admin: Tampilkan Dialog "REKENING BELUM DIATUR"
+        Admin->>App: Klik "ATUR REKENING"
+        App-->>Admin: Redirect ke RekeningEwalletScreen
+    else Rekening Utama Terdaftar
+        App-->>Admin: Render Modal Sheet "TARIK SALDO ADMIN"
+        deactivate App
+        
+        Admin->>App: Masukkan nominal penarikan & Klik "KIRIM CASHOUT"
+        activate App
+        App->>App: Validasi nominal (>= Rp 10.000 & <= Saldo)
+        
+        alt Validasi Gagal
+            App-->>Admin: Tampilkan error nominal/saldo tidak cukup
+        else Validasi Sukses
+            App->>DB: AdminService.requestAdminCashout(adminId, amount, ...)
+            activate DB
+            DB->>DB: INSERT prize_claims (status='verified')
+            DB->>DB: INSERT transactions (type='prize_payout', negative amount)
+            DB-->>App: Sukses
+            deactivate DB
+            App->>DB: AdminService.getAdminBalance(adminId)
+            activate DB
+            DB-->>App: Updated Balance
+            deactivate DB
+            App-->>Admin: Tampilkan Dialog "PENARIKAN BERHASIL" & Update Saldo Header
+        end
+        deactivate App
+    end
+```
 ```
 
 ---

@@ -33,6 +33,7 @@
    - [UC-20: Dashboard Keuangan](#uc-20-dashboard-keuangan)
    - [UC-21: Kelola & Suspend Pengguna](#uc-21-kelola--suspend-pengguna)
    - [UC-22: Approve/Reject Premium Request](#uc-22-approvereject-premium-request)
+   - [UC-23: Tarik Saldo Pendapatan (Admin Cashout)](#uc-23-tarik-saldo-pendapatan-admin-cashout)
 
 ---
 
@@ -67,6 +68,7 @@ Dokumen **Spesifikasi Use Case (Use Case Specification)** ini berfungsi sebagai 
 | **UC-20** | Dashboard Keuangan | Platform | Mengaudit arus kas masuk dan keluar di seluruh platform. |
 | **UC-21** | Kelola & Suspend Pengguna | Platform | Melakukan moderasi atau penonaktifan akun bermasalah. |
 | **UC-22** | Approve/Reject Premium Request | Platform | Memverifikasi dan mengaktifkan status premium berbayar admin. |
+| **UC-23** | Tarik Saldo Pendapatan (Admin Cashout) | Admin | Melakukan penarikan saldo keuntungan (fee admin) secara instan ke rekening utama. |
 
 ---
 
@@ -583,8 +585,34 @@ Dokumen **Spesifikasi Use Case (Use Case Specification)** ini berfungsi sebagai 
     - Pada langkah 5, jika terdeteksi fraud atau masalah data, Platform Owner memilih tombol "Reject / Tolak".
     - Sistem menampilkan input box alasan penolakan.
     - Platform Owner mengisi alasan dan menekan kirim.
-    - Sistem mengubah status pengajuan menjadi `rejected` dan mencatat alasan penolakan.
-    - Sistem menyimpan baris log ke `audit_logs` dan mengirim push notifikasi penolakan via FCM ke admin target.
+    - Sistem menyimpan baris log ke `audit_logs` dan mengirim push notifikasi penolakan via FCM via Platform ke admin target.
+
+---
+
+### UC-23: Tarik Saldo Pendapatan (Admin Cashout)
+* **ID & Nama**: UC-23 Tarik Saldo Pendapatan (Admin Cashout)
+* **Aktor Utama**: Admin
+* **Aktor Pendukung / Sistem Eksternal**: Supabase Database
+* **Deskripsi**: Use case ini memungkinkan admin untuk menarik saldo keuntungan (fee_admin) yang telah terakumulasi dari scrim berbayar yang diselesaikan secara instan tanpa perlu persetujuan Platform Owner.
+* **Kondisi Awal (Preconditions)**: Admin telah login, saldo tersedia lebih besar atau sama dengan nominal minimal penarikan (Rp 10.000), dan memiliki setidaknya satu rekening bank/e-wallet utama terdaftar.
+* **Kondisi Akhir (Postconditions)**: Pengajuan penarikan tersimpan di tabel `prize_claims` dengan status `verified`, dan mutasi saldo tercatat di tabel `transactions` sebagai pengeluaran/payout. Saldo tersedia admin berkurang sebesar nominal penarikan.
+* **Alur Utama (Basic Flow)**:
+  1. Admin membuka halaman "Profil Admin".
+  2. Sistem menampilkan sisa **SALDO EARNINGS** tersedia, nominal sedang diproses, dan total pendapatan terakumulasi.
+  3. Admin memilih menu "Tarik Saldo (Cashout)".
+  4. Sistem memeriksa ketersediaan rekening bank/e-wallet utama admin dari tabel `bank_accounts`.
+  5. Sistem menampilkan kartu informasi Rekening Tujuan beserta formulir nominal penarikan.
+  6. Admin memasukkan nominal penarikan atau memilih nominal cepat (50.000, 100.000, 200.000, atau Tarik Semua).
+  7. Admin menekan tombol "Kirim Cashout".
+  8. Sistem memvalidasi input nominal penarikan secara lokal (minimal Rp 10.000 dan tidak melebihi saldo tersedia).
+  9. Sistem melakukan operasi database untuk menyisipkan klaim penarikan baru ke tabel `prize_claims` dengan status `verified`.
+  10. Sistem mencatat baris transaksi mutasi ke tabel `transactions` dengan tipe `prize_payout` senilai negatif nominal penarikan.
+  11. Sistem memperbarui data profil admin dan menampilkan pop-up sukses "PENARIKAN BERHASIL".
+* **Alur Alternatif & Eksepsi (Alternative & Exception Flows)**:
+  - **Alt-1: Rekening Utama Belum Diatur**
+    - Pada langkah 4, jika admin belum mendaftarkan rekening bank utama, sistem menampilkan dialog peringatan "REKENING BELUM DIATUR" dengan tombol shortcut ke halaman Rekening & E-Wallet.
+  - **Alt-2: Saldo Tidak Mencukupi**
+    - Pada langkah 8, jika nominal penarikan melebihi saldo tersedia, sistem menampilkan pesan error "Saldo tidak mencukupi" di bawah kolom nominal penarikan dan menonaktifkan tombol kirim.
 
 ---
 *(Akhir Dokumen Spesifikasi Use Case BooyahHub)*
