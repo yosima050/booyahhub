@@ -1442,7 +1442,6 @@ class AdminService {
         'description': 'Admin Cashout (instant)',
         'user_id': adminId,
         'created_at': nowStr,
-        'updated_at': nowStr,
       });
     } catch (e) {
       debugPrint('Optional admin cashout transaction log failed (RLS): $e');

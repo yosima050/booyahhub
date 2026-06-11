@@ -448,3 +448,11 @@ SELECT
 FROM scrims s
 LEFT JOIN registrations r ON s.id = r.scrim_id AND r.deleted_at IS NULL
 LEFT JOIN prize_claims pc ON s.id = pc.scrim_id;
+
+-- ══════════════════════════════════════════════════════════
+-- SCHEMA MIGRATIONS (Run in Supabase SQL Editor if needed)
+-- ══════════════════════════════════════════════════════════
+-- Allow nullable scrim_id and match_result_id in prize_claims to support Admin Cashout
+ALTER TABLE public.prize_claims ALTER COLUMN scrim_id DROP NOT NULL;
+ALTER TABLE public.prize_claims ALTER COLUMN match_result_id DROP NOT NULL;
+

@@ -281,7 +281,6 @@ class LeaderboardService {
         'scrim_id': scrimId,
         'description': description,
         'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
       }).select().single();
 
       return TransactionModel.fromJson(response);
