@@ -456,3 +456,62 @@ LEFT JOIN prize_claims pc ON s.id = pc.scrim_id;
 ALTER TABLE public.prize_claims ALTER COLUMN scrim_id DROP NOT NULL;
 ALTER TABLE public.prize_claims ALTER COLUMN match_result_id DROP NOT NULL;
 
+-- Update fn_get_public_stats to include user counts and player records for Home screen stats
+CREATE OR REPLACE FUNCTION public.fn_get_public_stats()
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+DECLARE
+  v_ongoing_scrims INT;
+  v_total_registrations INT;
+  v_verification_rate INT;
+  v_total_users INT;
+  v_total_filled INT;
+  v_max_filled INT;
+BEGIN
+  -- Count ongoing scrims
+  SELECT COUNT(*)::INT INTO v_ongoing_scrims
+  FROM public.scrims
+  WHERE status = 'ongoing' AND deleted_at IS NULL;
+
+  -- Count total registrations
+  SELECT COUNT(*)::INT INTO v_total_registrations
+  FROM public.registrations;
+
+  -- Count total players (users with role = 'peserta')
+  SELECT COUNT(*)::INT INTO v_total_users
+  FROM public.users
+  WHERE role = 'peserta' AND deleted_at IS NULL;
+
+  -- Sum of all slots filled (pemain aktif)
+  SELECT COALESCE(SUM(slot_filled), 0)::INT INTO v_total_filled
+  FROM public.scrims
+  WHERE deleted_at IS NULL;
+
+  -- Max of slot_filled (rekor peserta)
+  SELECT COALESCE(MAX(slot_filled), 0)::INT INTO v_max_filled
+  FROM public.scrims
+  WHERE deleted_at IS NULL;
+
+  -- Calculate verification rate
+  IF v_total_registrations > 0 THEN
+    SELECT ROUND((COUNT(*)::FLOAT / v_total_registrations::FLOAT) * 100) INTO v_verification_rate
+    FROM public.registrations
+    WHERE status = 'verified';
+  ELSE
+    v_verification_rate := 97;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'ongoing_scrims', v_ongoing_scrims,
+    'total_registrations', v_total_registrations,
+    'verification_rate', v_verification_rate,
+    'total_users', v_total_users,
+    'total_filled', v_total_filled,
+    'max_filled', v_max_filled
+  );
+END;
+$function$;
+
+
